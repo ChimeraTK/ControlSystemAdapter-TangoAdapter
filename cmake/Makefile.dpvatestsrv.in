@@ -1,0 +1,56 @@
+#define the dependeny locations here
+DOOCSROOT = $(HOME)/doocs
+ControlSystemAdapter_DIR = @ControlSystemAdapter_DIR@
+DOOCS_Adapter_DIR = @CMAKE_SOURCE_DIR@
+
+# to define DOOCSROOT as an absolute path
+include $(DOOCSROOT)/$(DOOCSARCH)/DEFINEDOOCSROOT
+
+OBJDIR = $(DOOCSROOT)/$(DOOCSARCH)/obj/server/test/dpvatestsrv
+SRCDIR = $(PWD)
+
+# to define the arch dependend things
+include $(DOOCSROOT)/$(DOOCSARCH)/CONFIG
+
+SOURCEOBJ = $(OBJDIR)/dpvatestsrv_rpc_server.o
+
+SOURCEHFILES = $(SRCDIR)/eq_dpvatestsrv.h
+
+ALLPROGS = $(OBJDIR)/dpvatestsrv_server
+
+CPPFLAGS += -Wall -Wextra -Wshadow -pedantic -Wuninitialized
+CPPFLAGS += -I $(ControlSystemAdapter_DIR)/include
+CPPFLAGS += -I $(DOOCS_Adapter_DIR)/include
+
+
+all: $(ALLPROGS)
+
+$(OBJDIR)/.depend depend:
+		@if [ ! -f $(OBJDIR) ] ; then \
+		  echo ---------- create dir $(OBJDIR) --------------; \
+		  mkdir -p $(OBJDIR) ; \
+		fi
+		for i in $(SRCDIR)/*.cc ;do $(CCDEP) $$i ;done > $(OBJDIR)/.depend_temp
+		cat $(OBJDIR)/.depend_temp | sed -e "/:/s/^/\$$\(OBJDIR\)\//g" > $(OBJDIR)/.depend
+		chmod g+w $(OBJDIR)/.depend*
+
+include $(OBJDIR)/.depend
+
+$(OBJDIR)/dpvatestsrv_server:    $(SOURCEOBJ)
+		$(LINK.cc) $(LDFLAGS) \
+		-o $(OBJDIR)/dpvatestsrv_server $(SOURCEOBJ) \
+			   -lEqServer -lTTFapi -lzmq \
+			   $(LDLIBS) 
+		@chmod g+w $(OBJDIR)/dpvatestsrv_server
+		@echo "---------------- $(OBJDIR)/dpvatestsrv_server done---------------"
+
+static $(OBJDIR)/static_dpvatestsrv_server:    $(SOURCEOBJ)
+		$(LINK.cc.static) $(LDFLAGS) -o $(OBJDIR)/static_dpvatestsrv_server $(SOURCEOBJ) \
+			   -lEqServer -lTTFapi -lzmq \
+			   $(LDLIBS) 
+		@chmod g+w $(OBJDIR)/static_dpvatestsrv_server
+		@echo "----------------$(OBJDIR)/static_dpvatestsrv_server done---------------"
+
+clean:
+	rm -f $(SOURCEOBJ) $(OBJDIR)/*.o $(SRCDIR)/*.ps $(OBJDIR)/dpvatestsrv_server $(OBJDIR)/.depend*
+
