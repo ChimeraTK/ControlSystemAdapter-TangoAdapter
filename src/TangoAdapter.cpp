@@ -170,6 +170,31 @@ void TangoAdapter::create_Scalar_Attr(std::shared_ptr<AttributProperty> const& a
         _dynamic_attribute_list.push_back(scalar_attr_t);
         
     }
+    if (attProp->_dataType == Tango::DEV_ULONG64) {
+        auto pv =
+          boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint64_t>>(processVariable);
+        auto* scalar_attr_t = new ScalarAttribTempl<uint64_t>(pv, attProp);
+        _dynamic_attribute_list.push_back(scalar_attr_t);
+    }
+    if (attProp->_dataType == Tango::DEV_LONG64) {
+        auto pv =
+          boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int64_t>>(processVariable);
+        auto* scalar_attr_t = new ScalarAttribTempl<int64_t>(pv, attProp);
+        _dynamic_attribute_list.push_back(scalar_attr_t);
+    }
+    if (attProp->_dataType == Tango::DEV_ULONG) {
+        auto pv =
+          boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint32_t>>(processVariable);
+        auto* scalar_attr_t = new ScalarAttribTempl<uint32_t>(pv, attProp);
+        _dynamic_attribute_list.push_back(scalar_attr_t);
+    }
+    if (attProp->_dataType == Tango::DEV_LONG) {
+        auto pv =
+          boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int32_t>>(processVariable);
+        auto* scalar_attr_t = new ScalarAttribTempl<int32_t>(pv, attProp);
+        _dynamic_attribute_list.push_back(scalar_attr_t);
+    }
+
     else if (attProp->_dataType==Tango::DEV_FLOAT) {
         boost::shared_ptr<ChimeraTK::NDRegisterAccessor<float>> pv =boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<float>>(processVariable);
         ScalarAttribTempl<float>* scalar_attr_t=new ScalarAttribTempl<float>(pv,attProp);
