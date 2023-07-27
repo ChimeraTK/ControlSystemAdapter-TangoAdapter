@@ -127,9 +127,9 @@ namespace ChimeraTK {
     if(info == typeid(uint16_t)) _dataType = Tango::DEV_USHORT;
     if(info == typeid(int16_t)) _dataType = Tango::DEV_SHORT;
     if(info == typeid(uint32_t)) _dataType = Tango::DEV_ULONG;
-    if(info == typeid(int32_t)) _dataType = Tango::DEV_ULONG;
+    if(info == typeid(int32_t)) _dataType = Tango::DEV_LONG;
     if(info == typeid(uint64_t)) _dataType = Tango::DEV_ULONG64;
-    if(info == typeid(int64_t)) _dataType = Tango::DEV_ULONG64;
+    if(info == typeid(int64_t)) _dataType = Tango::DEV_LONG64;
     if(info == typeid(float)) _dataType = Tango::DEV_FLOAT;
     if(info == typeid(double)) _dataType = Tango::DEV_DOUBLE;
     if(info == typeid(std::string)) _dataType = Tango::DEV_STRING;
