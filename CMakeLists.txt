@@ -1,8 +1,8 @@
 PROJECT(ChimeraTK-ControlSystemAdapter-TangoAdapter)
 cmake_minimum_required(VERSION 2.8)
-if (UNIX)
-    add_definitions(-O2 -g -gstabs+ -std=c++17 -Wall -Wextra)
-endif()
+#if (UNIX)
+#    add_definitions(-O2 -g -gstabs+ -std=c++17 -Wall -Wextra)
+#endif()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 01)
