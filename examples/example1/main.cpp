@@ -45,16 +45,16 @@ DECLARE_CRASH_HANDLER;
 
 int main(int argc,char *argv[])
 {
-	cout << "L00 jade" << endl ;
+
 	INSTALL_CRASH_HANDLER;
-	cout << "L01" << endl ;
+
 	try
 	{
-		cout << "begin" << endl;
+
 		// Initialise the device server
 		//----------------------------------------
 		Tango::Util *tg = Tango::Util::init(argc,argv);
-		cout << "Util init" << endl;
+
 		// Create the device server singleton 
 		//	which will create everything
 		//----------------------------------------

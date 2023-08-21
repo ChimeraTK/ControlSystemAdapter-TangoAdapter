@@ -1,36 +1,40 @@
 #ifndef _SPECTRUM_ATTRIB_H_
 #define _SPECTRUM_ATTRIB_H_
 
-
 #include "AttributProperty.h"
-#include <boost/shared_ptr.hpp>
-#include <ChimeraTK/ScalarRegisterAccessor.h>
-#include <ChimeraTK/OneDRegisterAccessor.h>
- 
+#include "TangoPropertyHelper.h"
+#include <ChimeraTK/NDRegisterAccessor.h>
 
 namespace ChimeraTK {
 template <typename T>	
-class SpectrumAttribTempl : public Tango::SpectrumAttr
+class SpectrumAttribTempl : public Tango::SpectrumAttr,Tango::LogAdapter
 {
 public:
-	SpectrumAttribTempl( boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> pv, std::shared_ptr<AttributProperty>attProperty
+	SpectrumAttribTempl(TANGO_BASE_CLASS* tangoDevice, boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> pv, std::shared_ptr<AttributProperty>attProperty
 		/*const char *name, long data_type, Tango::AttrWriteType w_type*/, std::string description="description", std::string unit=""):
-		Tango::SpectrumAttr(attProperty->_name.c_str(), attProperty->_dataType, attProperty->_writeType,pv->getNumberOfSamples()),_processSpectrum(pv),_dataType(attProperty->_dataType)
+		Tango::SpectrumAttr(attProperty->_name.c_str(), attProperty->_dataType, attProperty->_writeType,pv->getNumberOfSamples()),_processSpectrum(pv),
+		_dataType(attProperty->_dataType), Tango::LogAdapter(tangoDevice)
 	{
-		//std::cout<<" SpectrumAttribTempl :"<<"type: "<<attProperty->_dataType<<" _writeType: "<<attProperty->_writeType<<std::endl;
+		DEBUG_STREAM<<" SpectrumAttribTempl::SpectrumAttribTempl  Name: "<<attProperty->_name.c_str()<<
+		              " Type"<<attProperty->_dataType<<" _writeType: "<<attProperty->_writeType<<endl;
+
 		Tango::UserDefaultAttrProp axis_prop;
 		axis_prop.set_label(attProperty->_name.c_str());
 		//axis_prop.set_format("%9.5f");
 
 		axis_prop.set_description(attProperty->_desc .c_str());
-	    axis_prop.set_unit(attProperty->_unit.c_str());
 
-	    length = _processSpectrum->getNumberOfSamples();
+		if (!(attProperty->_unit.empty()))
+	    	axis_prop.set_unit(attProperty->_unit.c_str());
+
+	    _length = _processSpectrum->getNumberOfSamples();
 
 		if constexpr (is_same<T,std::string>::value) {	    
-	    	attr_String_read = new Tango::DevString[length];
+	    	attr_String_read = new Tango::DevString[_length];
 	    }
-	    
+	    else if (_dataType == Tango::DEV_BOOLEAN){
+	    	attr_Bool_read = new Tango::DevBoolean[_length];
+	    }
 		set_default_properties(axis_prop);
 	}
 
@@ -39,38 +43,66 @@ public:
 	virtual void read(Tango::DeviceImpl *dev,
 			  Tango::Attribute &att)
 	{
-		//DEBUG_STREAM<<"SpectrumAttribTempl::read"<<endl;
+		DEBUG_STREAM<<"SpectrumAttribTempl::read "<< get_name()<<endl;
 	    try{	
         	_processSpectrum->readLatest();
     	}
     	catch (std::exception &e)
     	{
-    		std::cout<<"Exeption: "<<e.what()<<std::endl;
+    		ERROR_STREAM<<"SpectrumAttribTempl::read - Exeption: "<<e.what()<<endl;
     	}
     	catch (...)
     	{
-    		std::cout<<"Exeption inconnu"<<std::endl;
+    		ERROR_STREAM<<"SpectrumAttribTempl::read  unknown exeption from readLatest"<<endl;
     	}
 						
+		DEBUG_STREAM<<"getNumberOfSamples: "<<_processSpectrum->getNumberOfSamples()<<endl;
+
 		if constexpr (is_same<T,std::string>::value) {
-	    	for (unsigned int i = 0;i < length;i++){
+
+	    	for (unsigned int i = 0;i < _length;i++){
 		    	attr_String_read[i] = const_cast<char *>(_processSpectrum->accessData(i).c_str());
-    			att.set_value(attr_String_read,length);
+    			att.set_value(attr_String_read,_length);
     		}
 	    }
+	    else if (_dataType==Tango::DEV_BOOLEAN)
+	    {
+	    	boost::shared_ptr<ChimeraTK::NDRegisterAccessor<Boolean>> pv =boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(_processSpectrum);
+			for (unsigned int i = 0;i < _length;i++){
+				attr_Bool_read[i] = _processSpectrum->accessData(i);
+			}
+
+       		att.set_value(attr_Bool_read,_length);
+
+	    }
 	    else {
-	    	unsigned int length = _processSpectrum->getNumberOfSamples();
-			att.set_value(_processSpectrum->accessChannel(0).data(),length);
+			att.set_value(_processSpectrum->accessChannel(0).data(),_length);
+			for (unsigned int i = 0;i < _length;i++){
+				DEBUG_STREAM<<"pv["<<i<<"]= "<<_processSpectrum->accessData(i)<<endl;
+			}
+
 		}
 	}
 
 	virtual void write(Tango::DeviceImpl *dev,
 			   Tango::WAttribute &att)
 	{	
+	DEBUG_STREAM<< "SpectrumAttribTempl::write "<< get_name()<<endl;
 
     auto& processVector = _processSpectrum->accessChannel(0);
   
     long arraySize = att.get_write_value_length();
+    if ( arraySize > _length )
+    {
+		std::stringstream msg;
+		msg<< "Array size cannot be greater than"<< _length<<"\n";
+
+		ERROR_STREAM<<"WRITE_ERROR "<<msg.str()<<endl;
+
+        Tango::Except::throw_exception("WRITE_ERROR",
+                        msg.str(),
+                        "SpectrumAttribTempl::write()");
+    }
 
     switch (_dataType)
 	    {
@@ -141,19 +173,43 @@ public:
       			processVector[i] = d_value[i];
        		}
 			break;
-					
+		case Tango::DEV_BOOLEAN:
+			//	Retrieve pointer on write values (Do not delete !)
+			const Tango::DevBoolean	*w_val;
+			att.get_write_value(w_val);
+			for(size_t i = 0; i < arraySize; ++i) {
+      			processVector[i] = w_val[i];
+       		}
+			break;
+	    case Tango::DEV_STRING:
+			if constexpr (is_same<T, std::string>::value) {
+				//	Retrieve pointer on write values (Do not delete !)
+				const Tango::ConstDevString	*w_val;
+				att.get_write_value(w_val);
+				for(size_t i = 0; i < arraySize; ++i) {
+	      			processVector[i] = std::string(w_val[i]);
+	       		}
+			}
+
+			break;
 		}			
 
 	  _processSpectrum->write();
 
 	}
+	/*void initialise()
+	{
+
+
+	}*/
 
 	virtual bool is_allowed(Tango::DeviceImpl *dev,	Tango::AttReqType ty){return true;}
 
 	boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> _processSpectrum;
 	long _dataType; 
-	unsigned int length;
+	unsigned int _length;
 	Tango::DevString *attr_String_read;
+	Tango::DevBoolean *attr_Bool_read;
 protected:
 
 };

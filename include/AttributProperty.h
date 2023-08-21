@@ -1,15 +1,8 @@
 #ifndef CHIMERATK_ATTRIBUT_PROPERTY_H
 #define CHIMERATK_ATTRIBUT_PROPERTY_H
 
-#include <ChimeraTK/RegisterPath.h>
-#include <boost/any.hpp>
 #include <iostream>
-#include <list>
 #include <map>
-#include <memory>
-#include <set>
-#include <unordered_set>
-#include <string>
 #include <tango.h>
 #include <boost/algorithm/string/split.hpp> 
 #include <boost/algorithm/string/classification.hpp> 

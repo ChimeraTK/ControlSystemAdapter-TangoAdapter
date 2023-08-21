@@ -1,15 +1,9 @@
 #ifndef CHIMERATK_ATTRIBUT_MAPPER_H
 #define CHIMERATK_ATTRIBUT_MAPPER_H
 #include <ChimeraTK/ControlSystemAdapter/ControlSystemPVManager.h>
-#include <ChimeraTK/RegisterPath.h>
-#include <boost/any.hpp>
 #include <iostream>
 #include <list>
-#include <map>
-#include <memory>
 #include <set>
-#include <unordered_set>
-#include <string>
 #include <AttributProperty.h>
 
 

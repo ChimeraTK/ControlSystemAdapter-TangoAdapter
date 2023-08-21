@@ -2,7 +2,6 @@
 #include <ChimeraTK/Utilities.h>
 #include <ChimeraTK/RegisterPath.h>
 #include <algorithm>
-#include <iostream>
 #include <locale>
 #include <regex>
 
@@ -86,6 +85,8 @@ namespace ChimeraTK {
         // derive the datatype      
         auto processVariable = _controlSystemPVManager->getProcessVariable(processVariableName);
         std::type_info const& valueType = processVariable->getValueType();
+        std::cout<< "==========Type of : " << valueType.name() << endl;
+
         deriveType(valueType);
 
         // detect dataFormat
@@ -96,8 +97,9 @@ namespace ChimeraTK {
         callForType(valueType, [&](auto t) {  
           using T = decltype(t);
           boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> pv =boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<T>>(processVariable);
-            nSamples = pv->getNumberOfSamples();
-            nChannels = pv->getNumberOfChannels();
+          nSamples = pv->getNumberOfSamples();
+          nChannels = pv->getNumberOfChannels();
+
 
         });        
 
@@ -122,19 +124,24 @@ namespace ChimeraTK {
 
   /********************************************************************************************************************/
   void AttributMapper::deriveType(std::type_info const& info) {
-    if(info == typeid(uint8_t)) _dataType = Tango::DEV_UCHAR;
-    if(info == typeid(int8_t)) _dataType = Tango::DEV_SHORT;
-    if(info == typeid(uint16_t)) _dataType = Tango::DEV_USHORT;
-    if(info == typeid(int16_t)) _dataType = Tango::DEV_SHORT;
-    if(info == typeid(uint32_t)) _dataType = Tango::DEV_ULONG;
-    if(info == typeid(int32_t)) _dataType = Tango::DEV_ULONG;
-    if(info == typeid(uint64_t)) _dataType = Tango::DEV_ULONG64;
-    if(info == typeid(int64_t)) _dataType = Tango::DEV_ULONG64;
-    if(info == typeid(float)) _dataType = Tango::DEV_FLOAT;
-    if(info == typeid(double)) _dataType = Tango::DEV_DOUBLE;
-    if(info == typeid(std::string)) _dataType = Tango::DEV_STRING;
-    if(info == typeid(ChimeraTK::Boolean)) _dataType = Tango::DEV_BOOLEAN;
-    if(info == typeid(ChimeraTK::Void)) _dataType = DataType::Void;
+       _dataType = 0;
+
+      if(info == typeid(uint8_t)) _dataType = Tango::DEV_UCHAR;
+      if(info == typeid(int8_t))  _dataType = Tango::DEV_SHORT;
+
+      if (info == typeid(uint16_t)) _dataType = Tango::DEV_USHORT;
+    if (info == typeid(int16_t)) _dataType = Tango::DEV_SHORT;
+    if (info == typeid(uint32_t)) _dataType = Tango::DEV_ULONG;
+    if (info == typeid(int32_t))  _dataType = Tango::DEV_LONG;
+    if (info == typeid(uint64_t)) _dataType = Tango::DEV_ULONG64;
+    if (info == typeid(int64_t)) _dataType = Tango::DEV_LONG64;
+    if (info == typeid(float)) _dataType = Tango::DEV_FLOAT;
+    if (info == typeid(double)) _dataType = Tango::DEV_DOUBLE;
+    if (info == typeid(std::string)) _dataType = Tango::DEV_STRING;
+    if (info == typeid(ChimeraTK::Boolean)) _dataType = Tango::DEV_BOOLEAN;
+    if (info == typeid(ChimeraTK::Void))    _dataType = DataType::Void;
+
+    std::cout<<_dataType<<std::endl;
   }  
 
 } // namespace ChimeraTK
