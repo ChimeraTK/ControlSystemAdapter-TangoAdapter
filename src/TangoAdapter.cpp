@@ -1,10 +1,8 @@
 
 
-
-
 #include <stdexcept>
 
-
+#include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
 #include <ChimeraTK/ReadAnyGroup.h>
 #include <ChimeraTK/RegisterPath.h>
 #include "AttributMapper.h"
@@ -33,10 +31,36 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     _controlSystemPVManager = pvManagers.first;
     _devicePVManager = pvManagers.second;
 
-	//ApplicationBase::getInstance().getName().c_str();
-	ApplicationBase::getInstance().setPVManager(_devicePVManager);
+    // We do not get ownership of the application here. A plain pointer is used because the reference returned
+    // by getApplicationInstance cannot be stored to a variable that has been created outside of the try block,
+    // and we want to limit the scope of the try/catch to that single line.
+    ApplicationBase* appInstance = nullptr;
+    try {
+      appInstance = &ChimeraTK::ApplicationFactoryBase::getApplicationInstance();
+    }
+    catch(ChimeraTK::logic_error&) {
+      std::cerr << "*************************************************************"
+                   "***************************************"
+                << std::endl;
+      std::cerr << "Logic error when getting the application instance. The TangoAdapter requires the use of the "
+                   "ChimeraTK::ApplicationFactory instead of a static apllication instance."
+                << std::endl
+                << std::endl;
+      std::cerr << "Replace `static MyApplication theApp` with `static ChimeraTK::ApplicationFactory<MyApplication> "
+                   "theAppFactory`."
+                << std::endl
+                << std::endl
+                << std::endl;
+      std::cerr << "*************************************************************"
+                   "***************************************"
+                << std::endl;
+      throw;
+    }
 
-    ApplicationBase::getInstance().initialise();
+    //appInstance.getName().c_str();
+    appInstance->setPVManager(_devicePVManager);
+
+    appInstance->initialise();
 
     // the variable manager can only be filled after we have the CS manager  
     std::set<std::string> names= getAllVariableNames(_controlSystemPVManager);
@@ -61,9 +85,9 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     //scalar attributs are memoried and initialized by Tango
     write_inited_values();
 
-    ApplicationBase::getInstance().run();
-    
-    DEBUG_STREAM<<"TangoAdapter::TangoAdapter end"<<endl;
+    appInstance->run();
+
+    DEBUG_STREAM << "TangoAdapter::TangoAdapter end" << endl;
 }
 //+----------------------------------------------------------------------------
 //

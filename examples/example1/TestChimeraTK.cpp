@@ -37,11 +37,11 @@
 #include "TestChimeraTK.h"
 #include "TestChimeraTKClass.h"
 
-
+#include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
 #include <TangoAdapter.h>
 
 #include "MyApplication.h"
-static ExampleApp theExampleApp;
+static ChimeraTK::ApplicationFactory<ExampleApp> theExampleAppFactory;
 /*----- PROTECTED REGION END -----*/	//	TestChimeraTK.cpp
 
 /**
