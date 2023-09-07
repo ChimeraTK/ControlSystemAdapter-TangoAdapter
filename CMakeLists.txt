@@ -10,42 +10,30 @@ include(cmake/set_version_numbers.cmake)
 
 find_package(PkgConfig)
 
-find_package(ChimeraTK-ApplicationCore 03.03 REQUIRED)
 find_package(ChimeraTK-ControlSystemAdapter 02.07 REQUIRED)
 
-pkg_check_modules(TANGO tango REQUIRED )
+pkg_check_modules(TANGO REQUIRED IMPORTED_TARGET tango )
 
 FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
 
-
-
-include_directories(${CMAKE_SOURCE_DIR}/include ${ChimeraTK-ControlSystemAdapter_INCLUDE_DIRS}  )
-
-GET_DIRECTORY_PROPERTY(output INCLUDE_DIRECTORIES )
-MESSAGE(STATUS ${output})
-
 aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
-link_directories(${ChimeraTK-ControlSystemAdapter_LIBRARY_DIRS})
-link_directories(${TANGO_LIBRARY_DIRS} )
+file(GLOB library_headers ${CMAKE_SOURCE_DIR}/include/*.h)
 # C++ library
-add_library(${PROJECT_NAME} SHARED ${library_sources} )
+add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_headers})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "${ChimeraTK-ControlSystemAdapter_CXX_FLAGS} ")
-target_link_libraries(${PROJECT_NAME} ${ChimeraTK-ControlSystemAdapter_LIBRARIES} ${TANGO_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE include)
+target_link_libraries(${PROJECT_NAME} ChimeraTK::ChimeraTK-ControlSystemAdapter PkgConfig::TANGO)
 
 
 #===================================================================================================
 option(BUILD_EX "Build a test device " ON)
 if(BUILD_EX)
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ChimeraTK-ApplicationCore_CXX_FLAGS}")
+    find_package(ChimeraTK-ApplicationCore 03.03 REQUIRED)
 
-    aux_source_directory(${CMAKE_SOURCE_DIR}/examples/example1 exe_sources1)
-    include_directories(${CMAKE_SOURCE_DIR}/examples/example1 ${CMAKE_SOURCE_DIR}/include ${ChimeraTK-ControlSystemAdapter_INCLUDE_DIRS} ${TANGO_INCLUDE_DIRS} ${ChimeraTK-ApplicationCore_INCLUDE_DIRS} )
+    add_executable(ds_TestChimeraTK examples/example1/MyApplication.cc)
+    target_link_libraries(ds_TestChimeraTK ${PROJECT_NAME} PkgConfig::TANGO ChimeraTK::ChimeraTK-ApplicationCore)
 
-    add_executable(ds_TestChimeraTK ${exe_sources1})
-
-    target_link_libraries(ds_TestChimeraTK ${PROJECT_NAME} ${Boost_SYSTEM_LIBRARY} ${TANGO_LIBRARIES} ${ChimeraTK-ApplicationCore_LIBRARIES})
     file(COPY ${CMAKE_SOURCE_DIR}/examples/example1/configs/example1.dmap DESTINATION ${PROJECT_BINARY_DIR})
     file(COPY ${CMAKE_SOURCE_DIR}/examples/example1/configs/example1.xml DESTINATION ${PROJECT_BINARY_DIR})
     file(COPY ${CMAKE_SOURCE_DIR}/examples/example1/configs/oven.map DESTINATION ${PROJECT_BINARY_DIR})

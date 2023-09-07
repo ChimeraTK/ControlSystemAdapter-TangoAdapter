@@ -1,7 +1,7 @@
-/*----- PROTECTED REGION ID(TestChimeraTKClass.h) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceClass.h) ENABLED START -----*/
 //=============================================================================
 //
-// file :        TestChimeraTKClass.h
+// file :        DeviceClass.h
 //
 // description : Include for the TestChimeraTK root class.
 //               This class is the singleton class for
@@ -34,37 +34,36 @@
 //=============================================================================
 
 
-#ifndef TestChimeraTKClass_H
-#define TestChimeraTKClass_H
+#pragma once
 
 #include <tango.h>
-#include "TestChimeraTK.h"
+#include "DeviceImpl.h"
 
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass.h
+/*----- PROTECTED REGION END -----*/	//	DeviceClass.h
 
 
-namespace TestChimeraTK_ns
+namespace ChimeraTK::TangoAdapter
 {
-/*----- PROTECTED REGION ID(TestChimeraTKClass::classes for dynamic creation) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceClass::classes for dynamic creation) ENABLED START -----*/
 
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::classes for dynamic creation
+/*----- PROTECTED REGION END -----*/	//	DeviceClass::classes for dynamic creation
 
 /**
- *	The TestChimeraTKClass singleton definition
+ *	The DeviceClass singleton definition
  */
 
 #ifdef _TG_WINDOWS_
-class __declspec(dllexport)  TestChimeraTKClass : public Tango::DeviceClass
+class __declspec(dllexport)  DeviceClass : public Tango::DeviceClass
 #else
-class TestChimeraTKClass : public Tango::DeviceClass
+class DeviceClass : public Tango::DeviceClass
 #endif
 {
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::Additionnal DServer data members) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::Additionnal DServer data members) ENABLED START -----*/
 	
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::Additionnal DServer data members
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::Additionnal DServer data members
 
 	public:
 		//	write class properties data members
@@ -73,16 +72,16 @@ class TestChimeraTKClass : public Tango::DeviceClass
 		Tango::DbData	dev_def_prop;
 	
 		//	Method prototypes
-		static TestChimeraTKClass *init(const char *);
-		static TestChimeraTKClass *instance();
-		~TestChimeraTKClass();
+		static DeviceClass *init(const char *);
+		static DeviceClass *instance();
+		~DeviceClass();
 		Tango::DbDatum	get_class_property(string &);
 		Tango::DbDatum	get_default_device_property(string &);
 		Tango::DbDatum	get_default_class_property(string &);
 	
 	protected:
-		TestChimeraTKClass(string &);
-		static TestChimeraTKClass *_instance;
+		DeviceClass(string &);
+		static DeviceClass *_instance;
 		void command_factory();
 		void attribute_factory(vector<Tango::Attr *> &);
 		void pipe_factory();
@@ -101,5 +100,3 @@ class TestChimeraTKClass : public Tango::DeviceClass
 };
 
 }	//	End of namespace
-
-#endif   //	TestChimeraTK_H

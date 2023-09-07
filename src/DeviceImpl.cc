@@ -1,13 +1,13 @@
-/*----- PROTECTED REGION ID(TestChimeraTK.cpp) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceImpl.cpp) ENABLED START -----*/
 //=============================================================================
 //
-// file :        TestChimeraTK.cpp
+// file :        DeviceImpl.cpp
 //
-// description : C++ source for the TestChimeraTK class and its commands.
+// description : C++ source for the DeviceImpl class and its commands.
 //               The class is derived from Device. It represents the
 //               CORBA servant object which will be accessed from the
 //               network. All commands which can be executed on the
-//               TestChimeraTK are implemented in this file.
+//               DeviceImpl are implemented in this file.
 //
 // project :     
 //
@@ -34,18 +34,21 @@
 //=============================================================================
 
 
-#include "TestChimeraTK.h"
-#include "TestChimeraTKClass.h"
+#include "DeviceImpl.h"
+#include "DeviceClass.h"
 
+#include <ChimeraTK/Utilities.h>
 #include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
 #include <TangoAdapter.h>
 
+#if 0
 #include "MyApplication.h"
 static ChimeraTK::ApplicationFactory<ExampleApp> theExampleAppFactory;
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK.cpp
+#endif
+/*----- PROTECTED REGION END -----*/	//	DeviceImpl.cpp
 
 /**
- *  TestChimeraTK class description:
+ *  DeviceImpl class description:
  *    Test
  */
 
@@ -64,85 +67,85 @@ static ChimeraTK::ApplicationFactory<ExampleApp> theExampleAppFactory;
 //================================================================
 //================================================================
 
-namespace TestChimeraTK_ns
+namespace ChimeraTK::TangoAdapter
 {
-/*----- PROTECTED REGION ID(TestChimeraTK::namespace_starting) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceImpl::namespace_starting) ENABLED START -----*/
 
 //	static initializations
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::namespace_starting
+/*----- PROTECTED REGION END -----*/	//	DeviceImpl::namespace_starting
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTK::TestChimeraTK()
+ *	Method      : DeviceImpl::DeviceImpl()
  *	Description : Constructors for a Tango device
- *                implementing the classTestChimeraTK
+ *                implementing the classDeviceImpl
  */
 //--------------------------------------------------------
-TestChimeraTK::TestChimeraTK(Tango::DeviceClass *cl, string &s)
+DeviceImpl::DeviceImpl(Tango::DeviceClass *cl, string &s)
  : TANGO_BASE_CLASS(cl, s.c_str())
 {
-	/*----- PROTECTED REGION ID(TestChimeraTK::constructor_1) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceImpl::constructor_1) ENABLED START -----*/
 	init_device();
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::constructor_1
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::constructor_1
 }
 //--------------------------------------------------------
-TestChimeraTK::TestChimeraTK(Tango::DeviceClass *cl, const char *s)
+DeviceImpl::DeviceImpl(Tango::DeviceClass *cl, const char *s)
  : TANGO_BASE_CLASS(cl, s)
 {
-	/*----- PROTECTED REGION ID(TestChimeraTK::constructor_2) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceImpl::constructor_2) ENABLED START -----*/
 	init_device();
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::constructor_2
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::constructor_2
 }
 //--------------------------------------------------------
-TestChimeraTK::TestChimeraTK(Tango::DeviceClass *cl, const char *s, const char *d)
+DeviceImpl::DeviceImpl(Tango::DeviceClass *cl, const char *s, const char *d)
  : TANGO_BASE_CLASS(cl, s, d)
 {
-	/*----- PROTECTED REGION ID(TestChimeraTK::constructor_3) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceImpl::constructor_3) ENABLED START -----*/
 	init_device();
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::constructor_3
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::constructor_3
 }
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTK::delete_device()
+ *	Method      : DeviceImpl::delete_device()
  *	Description : will be called at device destruction or at init command
  */
 //--------------------------------------------------------
-void TestChimeraTK::delete_device()
+void DeviceImpl::delete_device()
 {
-	DEBUG_STREAM << "TestChimeraTK::delete_device() " << device_name << endl;
-	/*----- PROTECTED REGION ID(TestChimeraTK::delete_device) ENABLED START -----*/
+	DEBUG_STREAM << "DeviceImpl::delete_device() " << device_name << endl;
+	/*----- PROTECTED REGION ID(DeviceImpl::delete_device) ENABLED START -----*/
 	
 	//	Delete device allocated objects
 	delete adapter;
 	//delete theExampleApp;
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::delete_device
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::delete_device
 }
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTK::init_device()
+ *	Method      : DeviceImpl::init_device()
  *	Description : will be called at device initialization.
  */
 //--------------------------------------------------------
-void TestChimeraTK::init_device()
+void DeviceImpl::init_device()
 {
-	DEBUG_STREAM << "TestChimeraTK::init_device() create device " << device_name << endl;
-	/*----- PROTECTED REGION ID(TestChimeraTK::init_device_before) ENABLED START -----*/
+	DEBUG_STREAM << "DeviceImpl::init_device() create device " << device_name << endl;
+	/*----- PROTECTED REGION ID(DeviceImpl::init_device_before) ENABLED START -----*/
 	
 	//	Initialization before get_device_property() call
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::init_device_before
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::init_device_before
 	
 
 	//	Get the device properties from database
 	get_device_property();
 	
-	/*----- PROTECTED REGION ID(TestChimeraTK::init_device) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceImpl::init_device) ENABLED START -----*/
 	
 	//	Initialize device
     //set DMapFilePath from property
@@ -152,25 +155,25 @@ void TestChimeraTK::init_device()
     }
 
 
-	adapter = new ChimeraTK::TangoAdapter(this, attributList);
+	adapter = new AdapterImpl(this, attributList);
 
 
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::init_device
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::init_device
 }
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTK::get_device_property()
+ *	Method      : DeviceImpl::get_device_property()
  *	Description : Read database to initialize property data members.
  */
 //--------------------------------------------------------
-void TestChimeraTK::get_device_property()
+void DeviceImpl::get_device_property()
 {
-	/*----- PROTECTED REGION ID(TestChimeraTK::get_device_property_before) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceImpl::get_device_property_before) ENABLED START -----*/
 	
 	//	Initialize property data members
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::get_device_property_before
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::get_device_property_before
 
 
 	//	Read device properties from database.
@@ -185,10 +188,10 @@ void TestChimeraTK::get_device_property()
 		if (Tango::Util::instance()->_UseDb==true)
 			get_db_device()->get_property(dev_prop);
 	
-		//	get instance on TestChimeraTKClass to get class property
+		//	get instance on DeviceClass to get class property
 		Tango::DbDatum	def_prop, cl_prop;
-		TestChimeraTKClass	*ds_class =
-			(static_cast<TestChimeraTKClass *>(get_device_class()));
+		DeviceClass	*ds_class =
+			(static_cast<DeviceClass *>(get_device_class()));
 		int	i = -1;
 
 		//	Try to initialize AttributList from class property
@@ -215,81 +218,81 @@ void TestChimeraTK::get_device_property()
 
 	}
 
-	/*----- PROTECTED REGION ID(TestChimeraTK::get_device_property_after) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceImpl::get_device_property_after) ENABLED START -----*/
 	
 	//	Check device property data members init
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::get_device_property_after
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::get_device_property_after
 }
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTK::always_executed_hook()
+ *	Method      : DeviceImpl::always_executed_hook()
  *	Description : method always executed before any command is executed
  */
 //--------------------------------------------------------
-void TestChimeraTK::always_executed_hook()
+void DeviceImpl::always_executed_hook()
 {
-	//DEBUG_STREAM << "TestChimeraTK::always_executed_hook()  " << device_name << endl;
-	/*----- PROTECTED REGION ID(TestChimeraTK::always_executed_hook) ENABLED START -----*/
+	//DEBUG_STREAM << "DeviceImpl::always_executed_hook()  " << device_name << endl;
+	/*----- PROTECTED REGION ID(DeviceImpl::always_executed_hook) ENABLED START -----*/
 	
 	//	code always executed before all requests
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::always_executed_hook
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::always_executed_hook
 }
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTK::read_attr_hardware()
+ *	Method      : DeviceImpl::read_attr_hardware()
  *	Description : Hardware acquisition for attributes
  */
 //--------------------------------------------------------
-void TestChimeraTK::read_attr_hardware(TANGO_UNUSED(vector<long> &attr_list))
+void DeviceImpl::read_attr_hardware(TANGO_UNUSED(vector<long> &attr_list))
 {
-	DEBUG_STREAM << "TestChimeraTK::read_attr_hardware(vector<long> &attr_list) entering... " << endl;
-	/*----- PROTECTED REGION ID(TestChimeraTK::read_attr_hardware) ENABLED START -----*/
+	DEBUG_STREAM << "DeviceImpl::read_attr_hardware(vector<long> &attr_list) entering... " << endl;
+	/*----- PROTECTED REGION ID(DeviceImpl::read_attr_hardware) ENABLED START -----*/
 	
 	//	Add your own code
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::read_attr_hardware
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::read_attr_hardware
 }
 
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTK::add_dynamic_attributes()
+ *	Method      : DeviceImpl::add_dynamic_attributes()
  *	Description : Create the dynamic attributes if any
  *                for specified device.
  */
 //--------------------------------------------------------
-void TestChimeraTK::add_dynamic_attributes()
+void DeviceImpl::add_dynamic_attributes()
 {
-	/*----- PROTECTED REGION ID(TestChimeraTK::add_dynamic_attributes) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceImpl::add_dynamic_attributes) ENABLED START -----*/
 	
 	//	Add your own code to create and add dynamic attributes if any
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::add_dynamic_attributes
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::add_dynamic_attributes
 }
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTK::add_dynamic_commands()
+ *	Method      : DeviceImpl::add_dynamic_commands()
  *	Description : Create the dynamic commands if any
  *                for specified device.
  */
 //--------------------------------------------------------
-void TestChimeraTK::add_dynamic_commands()
+void DeviceImpl::add_dynamic_commands()
 {
-	/*----- PROTECTED REGION ID(TestChimeraTK::add_dynamic_commands) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceImpl::add_dynamic_commands) ENABLED START -----*/
 	
 	//	Add your own code to create and add dynamic commands if any
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::add_dynamic_commands
+	/*----- PROTECTED REGION END -----*/	//	DeviceImpl::add_dynamic_commands
 }
 
-/*----- PROTECTED REGION ID(TestChimeraTK::namespace_ending) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceImpl::namespace_ending) ENABLED START -----*/
 
 //	Additional Methods
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::namespace_ending
+/*----- PROTECTED REGION END -----*/	//	DeviceImpl::namespace_ending
 } //	namespace

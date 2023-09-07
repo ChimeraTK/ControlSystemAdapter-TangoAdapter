@@ -18,13 +18,13 @@
 #include "SpectrumAttribTempl.h"
 
 
-namespace ChimeraTK {
+namespace ChimeraTK::TangoAdapter {
 
-class TangoAdapter: public Tango::LogAdapter
+class AdapterImpl: public Tango::LogAdapter
 {
 public:
-    TangoAdapter(TANGO_BASE_CLASS* tangoDevice , std::vector<std::string> attributList);
-    ~TangoAdapter();
+    AdapterImpl(TANGO_BASE_CLASS* tangoDevice , std::vector<std::string> attributList);
+    ~AdapterImpl();
     
     const TANGO_BASE_CLASS* getDevice() const {return _device;}
         

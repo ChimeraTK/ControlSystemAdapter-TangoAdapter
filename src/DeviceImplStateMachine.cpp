@@ -29,7 +29,7 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-#include <TestChimeraTK.h>
+#include "DeviceImpl.h"
 
 /*----- PROTECTED REGION END -----*/	//	TestChimeraTK::TestChimeraTKStateMachine.cpp
 
@@ -38,7 +38,7 @@
 //================================================================
 
 
-namespace TestChimeraTK_ns
+namespace ChimeraTK::TangoAdapter
 {
 //=================================================
 //		Attributes Allowed Methods

@@ -11,7 +11,7 @@
 
 
 
-namespace ChimeraTK {
+namespace ChimeraTK::TangoAdapter {
 //+----------------------------------------------------------------------------
 //
 // method :        
@@ -19,9 +19,9 @@ namespace ChimeraTK {
 // description :    
 //
 //-----------------------------------------------------------------------------
-TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::string> attributList):  Tango::LogAdapter(tangoDevice) {
+AdapterImpl::AdapterImpl(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::string> attributList):  Tango::LogAdapter(tangoDevice) {
 
-    DEBUG_STREAM<<"TangoAdapter::TangoAdapter starting ... "<<endl;
+    DEBUG_STREAM<<"AdapterImpl::TangoAdapter starting ... "<<endl;
     _device = tangoDevice;
 
 
@@ -87,7 +87,7 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
 
     appInstance->run();
 
-    DEBUG_STREAM << "TangoAdapter::TangoAdapter end" << endl;
+    DEBUG_STREAM << "AdapterImpl::TangoAdapter end" << endl;
 }
 //+----------------------------------------------------------------------------
 //
@@ -96,18 +96,18 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
 // description :   
 //
 //-----------------------------------------------------------------------------
-TangoAdapter::~TangoAdapter(){
+AdapterImpl::~AdapterImpl(){
 
-	DEBUG_STREAM << " TangoAdapter::~TangoAdapter" << endl;
+	DEBUG_STREAM << " AdapterImpl::~TangoAdapter" << endl;
 	detach_dynamic_attributes_from_device();
     // Attention to shut down application here but impossible
     //ChimeraTK::ApplicationBase::getInstance().shutdown();
 
 }
 
-void TangoAdapter::write_inited_values(void){
+void AdapterImpl::write_inited_values(void){
 
-    DEBUG_STREAM << " TangoAdapter::write_inited_values " << endl;
+    DEBUG_STREAM << " AdapterImpl::write_inited_values " << endl;
     //read spectrum values from memoried properties then write as initialised values
     for (int i : _index_write_spectrum_attr_list)
     {
@@ -130,14 +130,14 @@ void TangoAdapter::write_inited_values(void){
 
 //+----------------------------------------------------------------------------
 //
-// method :         TangoAdapter::create_dynamic_attributes()
+// method :         AdapterImpl::create_dynamic_attributes()
 //
 // description :    This method creates the dynamic attrs.
 //
 //-----------------------------------------------------------------------------
-void TangoAdapter::create_dynamic_attributes(void){
+void AdapterImpl::create_dynamic_attributes(void){
 
-    DEBUG_STREAM << " TangoAdapter::create_dynamic_attributes " << endl;
+    DEBUG_STREAM << " AdapterImpl::create_dynamic_attributes " << endl;
 
     auto descList = AttributMapper::getInstance().getAttDescList();
     for (auto attDesc:descList)
@@ -167,14 +167,14 @@ void TangoAdapter::create_dynamic_attributes(void){
 
 //+----------------------------------------------------------------------------
 //
-// method :         TangoAdapter::create_Scalar_Attr()
+// method :         AdapterImpl::create_Scalar_Attr()
 //
 // description :    This method creates the scalar attr.
 //
 //-----------------------------------------------------------------------------
-void TangoAdapter::create_Scalar_Attr(std::shared_ptr<AttributProperty> const& attProp)
+void AdapterImpl::create_Scalar_Attr(std::shared_ptr<AttributProperty> const& attProp)
 {
-    DEBUG_STREAM<<"TangoAdapter::create_Scalar_Attr"<<endl;
+    DEBUG_STREAM<<"AdapterImpl::create_Scalar_Attr"<<endl;
     
  	ProcessVariable::SharedPtr processVariable = _controlSystemPVManager->getProcessVariable(attProp->_path);
 
@@ -282,14 +282,14 @@ void TangoAdapter::create_Scalar_Attr(std::shared_ptr<AttributProperty> const& a
 
 //+----------------------------------------------------------------------------
 //
-// method :         TangoAdapter::create_Spectrum_Attr()
+// method :         AdapterImpl::create_Spectrum_Attr()
 //
 // description :    This method creates the scalar attr.
 //
 //-----------------------------------------------------------------------------
-void TangoAdapter::create_Spectrum_Attr(std::shared_ptr<AttributProperty> const& attProp)
+void AdapterImpl::create_Spectrum_Attr(std::shared_ptr<AttributProperty> const& attProp)
 {
-    DEBUG_STREAM <<"TangoAdapter::create_Spectrum_Attr"<<endl;
+    DEBUG_STREAM <<"AdapterImpl::create_Spectrum_Attr"<<endl;
     
     ProcessVariable::SharedPtr processVariable = _controlSystemPVManager->getProcessVariable(attProp->_path);
     
@@ -396,14 +396,14 @@ void TangoAdapter::create_Spectrum_Attr(std::shared_ptr<AttributProperty> const&
 
 //+----------------------------------------------------------------------------
 //
-// method :         TangoAdapter::attach_dynamic_attributes_to_device()
+// method :         AdapterImpl::attach_dynamic_attributes_to_device()
 //
 // description :    This method attachs the dynamics attributes to the device.
 //
 //-----------------------------------------------------------------------------
-void TangoAdapter::attach_dynamic_attributes_to_device(void)
+void AdapterImpl::attach_dynamic_attributes_to_device(void)
 {
-    DEBUG_STREAM <<"TangoAdapter::attach_dynamic_attributes_to_device"<<endl;
+    DEBUG_STREAM <<"AdapterImpl::attach_dynamic_attributes_to_device"<<endl;
 
     for(size_t i = 0; i < _dynamic_attribute_list.size(); ++i) {    
         _device->add_attribute(_dynamic_attribute_list[i]);
@@ -414,14 +414,14 @@ void TangoAdapter::attach_dynamic_attributes_to_device(void)
 
 //+----------------------------------------------------------------------------
 //
-// method :         TangoAdapter::detach_dynamic_attributes_from_device()
+// method :         AdapterImpl::detach_dynamic_attributes_from_device()
 //
 // description :    This method detachs the dynamics attributes from the device.
 //
 //-----------------------------------------------------------------------------
-void TangoAdapter::detach_dynamic_attributes_from_device(void)
+void AdapterImpl::detach_dynamic_attributes_from_device(void)
 {
-    DEBUG_STREAM <<"TangoAdapter::detach_dynamic_attributes_from_device"<<endl;
+    DEBUG_STREAM <<"AdapterImpl::detach_dynamic_attributes_from_device"<<endl;
 
     for(size_t i = 0; i < _dynamic_attribute_list.size(); ++i)
         _device->remove_attribute(_dynamic_attribute_list[i], false);

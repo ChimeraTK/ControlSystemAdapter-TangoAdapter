@@ -1,13 +1,13 @@
-/*----- PROTECTED REGION ID(TestChimeraTKClass.cpp) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceClass.cpp) ENABLED START -----*/
 //=============================================================================
 //
-// file :        TestChimeraTKClass.cpp
+// file :        DeviceClass.cpp
 //
-// description : C++ source for the TestChimeraTKClass.
+// description : C++ source for the DeviceClass.
 //               A singleton class derived from DeviceClass.
 //               It implements the command and attribute list
 //               and all properties and methods required
-//               by the TestChimeraTK once per process.
+//               by the DeviceImpl once per process.
 //
 // project :     
 //
@@ -34,13 +34,13 @@
 //=============================================================================
 
 
-#include <TestChimeraTKClass.h>
+#include "DeviceClass.h"
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass.cpp
+/*----- PROTECTED REGION END -----*/	//	DeviceClass.cpp
 
 //-------------------------------------------------------------------
 /**
- *	Create TestChimeraTKClass singleton and
+ *	Create DeviceClass singleton and
  *	return it in a C function for Python usage
  */
 //-------------------------------------------------------------------
@@ -51,50 +51,50 @@ __declspec(dllexport)
 
 #endif
 
-	Tango::DeviceClass *_create_TestChimeraTK_class(const char *name) {
-		return TestChimeraTK_ns::TestChimeraTKClass::init(name);
+	Tango::DeviceClass *_create_DeviceImpl_class(const char *name) {
+		return ChimeraTK::TangoAdapter::DeviceClass::init(name);
 	}
 }
 
-namespace TestChimeraTK_ns
+namespace ChimeraTK::TangoAdapter
 {
 //===================================================================
 //	Initialize pointer for singleton pattern
 //===================================================================
-TestChimeraTKClass *TestChimeraTKClass::_instance = NULL;
+DeviceClass *DeviceClass::_instance = NULL;
 
 //--------------------------------------------------------
 /**
- * method : 		TestChimeraTKClass::TestChimeraTKClass(string &s)
- * description : 	constructor for the TestChimeraTKClass
+ * method : 		DeviceClass::DeviceClass(string &s)
+ * description : 	constructor for the DeviceClass
  *
  * @param s	The class name
  */
 //--------------------------------------------------------
-TestChimeraTKClass::TestChimeraTKClass(string &s):Tango::DeviceClass(s)
+DeviceClass::DeviceClass(string &s):Tango::DeviceClass(s)
 {
-	cout2 << "Entering TestChimeraTKClass constructor" << endl;
+	cout2 << "Entering DeviceClass constructor" << endl;
 	set_default_property();
 	write_class_property();
 
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::constructor) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::constructor) ENABLED START -----*/
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::constructor
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::constructor
 
-	cout2 << "Leaving TestChimeraTKClass constructor" << endl;
+	cout2 << "Leaving DeviceClass constructor" << endl;
 }
 
 //--------------------------------------------------------
 /**
- * method : 		TestChimeraTKClass::~TestChimeraTKClass()
- * description : 	destructor for the TestChimeraTKClass
+ * method : 		DeviceClass::~DeviceClass()
+ * description : 	destructor for the DeviceClass
  */
 //--------------------------------------------------------
-TestChimeraTKClass::~TestChimeraTKClass()
+DeviceClass::~DeviceClass()
 {
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::destructor) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::destructor) ENABLED START -----*/
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::destructor
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::destructor
 
 	_instance = NULL;
 }
@@ -102,21 +102,21 @@ TestChimeraTKClass::~TestChimeraTKClass()
 
 //--------------------------------------------------------
 /**
- * method : 		TestChimeraTKClass::init
+ * method : 		DeviceClass::init
  * description : 	Create the object if not already done.
  *                  Otherwise, just return a pointer to the object
  *
  * @param	name	The class name
  */
 //--------------------------------------------------------
-TestChimeraTKClass *TestChimeraTKClass::init(const char *name)
+DeviceClass *DeviceClass::init(const char *name)
 {
 	if (_instance == NULL)
 	{
 		try
 		{
 			string s(name);
-			_instance = new TestChimeraTKClass(s);
+			_instance = new DeviceClass(s);
 		}
 		catch (bad_alloc &)
 		{
@@ -128,12 +128,12 @@ TestChimeraTKClass *TestChimeraTKClass::init(const char *name)
 
 //--------------------------------------------------------
 /**
- * method : 		TestChimeraTKClass::instance
+ * method : 		DeviceClass::instance
  * description : 	Check if object already created,
  *                  and return a pointer to the object
  */
 //--------------------------------------------------------
-TestChimeraTKClass *TestChimeraTKClass::instance()
+DeviceClass *DeviceClass::instance()
 {
 	if (_instance == NULL)
 	{
@@ -154,11 +154,11 @@ TestChimeraTKClass *TestChimeraTKClass::instance()
 //===================================================================
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTKClass::get_class_property()
+ *	Method      : DeviceClass::get_class_property()
  *	Description : Get the class property for specified name.
  */
 //--------------------------------------------------------
-Tango::DbDatum TestChimeraTKClass::get_class_property(string &prop_name)
+Tango::DbDatum DeviceClass::get_class_property(string &prop_name)
 {
 	for (unsigned int i=0 ; i<cl_prop.size() ; i++)
 		if (cl_prop[i].name == prop_name)
@@ -169,11 +169,11 @@ Tango::DbDatum TestChimeraTKClass::get_class_property(string &prop_name)
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTKClass::get_default_device_property()
+ *	Method      : DeviceClass::get_default_device_property()
  *	Description : Return the default value for device property.
  */
 //--------------------------------------------------------
-Tango::DbDatum TestChimeraTKClass::get_default_device_property(string &prop_name)
+Tango::DbDatum DeviceClass::get_default_device_property(string &prop_name)
 {
 	for (unsigned int i=0 ; i<dev_def_prop.size() ; i++)
 		if (dev_def_prop[i].name == prop_name)
@@ -184,11 +184,11 @@ Tango::DbDatum TestChimeraTKClass::get_default_device_property(string &prop_name
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTKClass::get_default_class_property()
+ *	Method      : DeviceClass::get_default_class_property()
  *	Description : Return the default value for class property.
  */
 //--------------------------------------------------------
-Tango::DbDatum TestChimeraTKClass::get_default_class_property(string &prop_name)
+Tango::DbDatum DeviceClass::get_default_class_property(string &prop_name)
 {
 	for (unsigned int i=0 ; i<cl_def_prop.size() ; i++)
 		if (cl_def_prop[i].name == prop_name)
@@ -200,14 +200,14 @@ Tango::DbDatum TestChimeraTKClass::get_default_class_property(string &prop_name)
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTKClass::set_default_property()
+ *	Method      : DeviceClass::set_default_property()
  *	Description : Set default property (class and device) for wizard.
  *                For each property, add to wizard property name and description.
  *                If default value has been set, add it to wizard property and
  *                store it in a DbDatum.
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::set_default_property()
+void DeviceClass::set_default_property()
 {
 	string	prop_name;
 	string	prop_desc;
@@ -247,11 +247,11 @@ void TestChimeraTKClass::set_default_property()
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTKClass::write_class_property()
+ *	Method      : DeviceClass::write_class_property()
  *	Description : Set class description fields as property in database
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::write_class_property()
+void DeviceClass::write_class_property()
 {
 	//	First time, check if database used
 	if (Tango::Util::_UseDb == false)
@@ -292,24 +292,24 @@ void TestChimeraTKClass::write_class_property()
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTKClass::device_factory()
+ *	Method      : DeviceClass::device_factory()
  *	Description : Create the device object(s)
  *                and store them in the device list
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::device_factory(const Tango::DevVarStringArray *devlist_ptr)
+void DeviceClass::device_factory(const Tango::DevVarStringArray *devlist_ptr)
 {
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::device_factory_before) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::device_factory_before) ENABLED START -----*/
 	
 	//	Add your own code
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::device_factory_before
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::device_factory_before
 
 	//	Create devices and add it into the device list
 	for (unsigned long i=0 ; i<devlist_ptr->length() ; i++)
 	{
 		cout4 << "Device name : " << (*devlist_ptr)[i].in() << endl;
-		device_list.push_back(new TestChimeraTK(this, (*devlist_ptr)[i]));
+		device_list.push_back(new DeviceImpl(this, (*devlist_ptr)[i]));
 	}
 
 	//	Manage dynamic attributes if any
@@ -319,7 +319,7 @@ void TestChimeraTKClass::device_factory(const Tango::DevVarStringArray *devlist_
 	for (unsigned long i=1 ; i<=devlist_ptr->length() ; i++)
 	{
 		//	Add dynamic attributes if any
-		TestChimeraTK *dev = static_cast<TestChimeraTK *>(device_list[device_list.size()-i]);
+		DeviceImpl *dev = static_cast<DeviceImpl *>(device_list[device_list.size()-i]);
 		dev->add_dynamic_attributes();
 
 		//	Check before if database used.
@@ -329,76 +329,76 @@ void TestChimeraTKClass::device_factory(const Tango::DevVarStringArray *devlist_
 			export_device(dev, dev->get_name().c_str());
 	}
 
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::device_factory_after) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::device_factory_after) ENABLED START -----*/
 	
 	//	Add your own code
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::device_factory_after
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::device_factory_after
 }
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTKClass::attribute_factory()
+ *	Method      : DeviceClass::attribute_factory()
  *	Description : Create the attribute object(s)
  *                and store them in the attribute list
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::attribute_factory(vector<Tango::Attr *> &att_list)
+void DeviceClass::attribute_factory(vector<Tango::Attr *> &att_list)
 {
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::attribute_factory_before) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::attribute_factory_before) ENABLED START -----*/
 	
 	//	Add your own code
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::attribute_factory_before
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::attribute_factory_before
 
 	//	Create a list of static attributes
 	create_static_attribute_list(get_class_attr()->get_attr_list());
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::attribute_factory_after) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::attribute_factory_after) ENABLED START -----*/
 	
 	//	Add your own code
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::attribute_factory_after
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::attribute_factory_after
 }
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTKClass::pipe_factory()
+ *	Method      : DeviceClass::pipe_factory()
  *	Description : Create the pipe object(s)
  *                and store them in the pipe list
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::pipe_factory()
+void DeviceClass::pipe_factory()
 {
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::pipe_factory_before) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::pipe_factory_before) ENABLED START -----*/
 	
 	//	Add your own code
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::pipe_factory_before
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::pipe_factory_after) ENABLED START -----*/
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::pipe_factory_before
+	/*----- PROTECTED REGION ID(DeviceClass::pipe_factory_after) ENABLED START -----*/
 	
 	//	Add your own code
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::pipe_factory_after
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::pipe_factory_after
 }
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTKClass::command_factory()
+ *	Method      : DeviceClass::command_factory()
  *	Description : Create the command object(s)
  *                and store them in the command list
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::command_factory()
+void DeviceClass::command_factory()
 {
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::command_factory_before) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::command_factory_before) ENABLED START -----*/
 	
 	//	Add your own code
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::command_factory_before
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::command_factory_before
 
 
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::command_factory_after) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::command_factory_after) ENABLED START -----*/
 	
 	//	Add your own code
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::command_factory_after
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::command_factory_after
 }
 
 //===================================================================
@@ -407,13 +407,13 @@ void TestChimeraTKClass::command_factory()
 
 //--------------------------------------------------------
 /**
- * method : 		TestChimeraTKClass::create_static_attribute_list
+ * method : 		DeviceClass::create_static_attribute_list
  * description : 	Create the a list of static attributes
  *
  * @param	att_list	the ceated attribute list
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::create_static_attribute_list(vector<Tango::Attr *> &att_list)
+void DeviceClass::create_static_attribute_list(vector<Tango::Attr *> &att_list)
 {
 	for (unsigned long i=0 ; i<att_list.size() ; i++)
 	{
@@ -424,29 +424,29 @@ void TestChimeraTKClass::create_static_attribute_list(vector<Tango::Attr *> &att
 
 	cout2 << defaultAttList.size() << " attributes in default list" << endl;
 
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::create_static_att_list) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::create_static_att_list) ENABLED START -----*/
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::create_static_att_list
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::create_static_att_list
 }
 
 
 //--------------------------------------------------------
 /**
- * method : 		TestChimeraTKClass::erase_dynamic_attributes
+ * method : 		DeviceClass::erase_dynamic_attributes
  * description : 	delete the dynamic attributes if any.
  *
  * @param	devlist_ptr	the device list pointer
  * @param	list of all attributes
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::erase_dynamic_attributes(const Tango::DevVarStringArray *devlist_ptr, vector<Tango::Attr *> &att_list)
+void DeviceClass::erase_dynamic_attributes(const Tango::DevVarStringArray *devlist_ptr, vector<Tango::Attr *> &att_list)
 {
 	Tango::Util *tg = Tango::Util::instance();
 
 	for (unsigned long i=0 ; i<devlist_ptr->length() ; i++)
 	{
 		Tango::DeviceImpl *dev_impl = tg->get_device_by_name(((string)(*devlist_ptr)[i]).c_str());
-		TestChimeraTK *dev = static_cast<TestChimeraTK *> (dev_impl);
+		DeviceImpl *dev = static_cast<DeviceImpl *> (dev_impl);
 
 		vector<Tango::Attribute *> &dev_att_list = dev->get_device_attr()->get_attribute_list();
 		vector<Tango::Attribute *>::iterator ite_att;
@@ -465,18 +465,18 @@ void TestChimeraTKClass::erase_dynamic_attributes(const Tango::DevVarStringArray
 			}
 		}
 	}
-	/*----- PROTECTED REGION ID(TestChimeraTKClass::erase_dynamic_attributes) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(DeviceClass::erase_dynamic_attributes) ENABLED START -----*/
 	
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::erase_dynamic_attributes
+	/*----- PROTECTED REGION END -----*/	//	DeviceClass::erase_dynamic_attributes
 }
 
 //--------------------------------------------------------
 /**
- *	Method      : TestChimeraTKClass::get_attr_object_by_name()
+ *	Method      : DeviceClass::get_attr_object_by_name()
  *	Description : returns Tango::Attr * object found by name
  */
 //--------------------------------------------------------
-Tango::Attr *TestChimeraTKClass::get_attr_object_by_name(vector<Tango::Attr *> &att_list, string attname)
+Tango::Attr *DeviceClass::get_attr_object_by_name(vector<Tango::Attr *> &att_list, string attname)
 {
 	vector<Tango::Attr *>::iterator it;
 	for (it=att_list.begin() ; it<att_list.end() ; ++it)
@@ -487,7 +487,7 @@ Tango::Attr *TestChimeraTKClass::get_attr_object_by_name(vector<Tango::Attr *> &
 }
 
 
-/*----- PROTECTED REGION ID(TestChimeraTKClass::Additional Methods) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceClass::Additional Methods) ENABLED START -----*/
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::Additional Methods
+/*----- PROTECTED REGION END -----*/	//	DeviceClass::Additional Methods
 } //	namespace

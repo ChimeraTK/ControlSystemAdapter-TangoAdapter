@@ -2,7 +2,6 @@
 #define _SPECTRUM_ATTRIB_H_
 
 #include "AttributProperty.h"
-#include "TangoPropertyHelper.h"
 #include <ChimeraTK/NDRegisterAccessor.h>
 
 namespace ChimeraTK {

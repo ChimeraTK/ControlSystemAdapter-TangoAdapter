@@ -46,24 +46,24 @@
  *    Test
  */
 
-namespace TestChimeraTK_ns
+namespace ChimeraTK::TangoAdapter
 {
-/*----- PROTECTED REGION ID(TestChimeraTK::Additional Class Declarations) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceImpl::Additional Class Declarations) ENABLED START -----*/
 
 //	Additional Class Declarations
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::Additional Class Declarations
+/*----- PROTECTED REGION END -----*/	//	DeviceImpl::Additional Class Declarations
 
-class TestChimeraTK : public TANGO_BASE_CLASS
+class DeviceImpl : public TANGO_BASE_CLASS
 {
 
-/*----- PROTECTED REGION ID(TestChimeraTK::Data Members) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceImpl::Data Members) ENABLED START -----*/
 
 //	Add your own data members
 private: 
-	ChimeraTK::TangoAdapter* adapter;
+	AdapterImpl* adapter;
 	//ExampleApp *theExampleApp;
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::Data Members
+/*----- PROTECTED REGION END -----*/	//	DeviceImpl::Data Members
 
 //	Device property data members
 public:
@@ -81,14 +81,14 @@ public:
 	 *	@param cl	Class.
 	 *	@param s 	Device Name
 	 */
-	TestChimeraTK(Tango::DeviceClass *cl,string &s);
+	DeviceImpl(Tango::DeviceClass *cl,string &s);
 	/**
 	 * Constructs a newly device object.
 	 *
 	 *	@param cl	Class.
 	 *	@param s 	Device Name
 	 */
-	TestChimeraTK(Tango::DeviceClass *cl,const char *s);
+	DeviceImpl(Tango::DeviceClass *cl,const char *s);
 	/**
 	 * Constructs a newly device object.
 	 *
@@ -96,11 +96,11 @@ public:
 	 *	@param s 	Device name
 	 *	@param d	Device description.
 	 */
-	TestChimeraTK(Tango::DeviceClass *cl,const char *s,const char *d);
+	DeviceImpl(Tango::DeviceClass *cl,const char *s,const char *d);
 	/**
 	 * The device object destructor.
 	 */
-	~TestChimeraTK() {delete_device();};
+	~DeviceImpl() {delete_device();};
 
 
 //	Miscellaneous methods
@@ -127,7 +127,7 @@ public:
 public:
 	//--------------------------------------------------------
 	/*
-	 *	Method      : TestChimeraTK::read_attr_hardware()
+	 *	Method      : DeviceImpl::read_attr_hardware()
 	 *	Description : Hardware acquisition for attributes.
 	 */
 	//--------------------------------------------------------
@@ -136,7 +136,7 @@ public:
 
 	//--------------------------------------------------------
 	/**
-	 *	Method      : TestChimeraTK::add_dynamic_attributes()
+	 *	Method      : DeviceImpl::add_dynamic_attributes()
 	 *	Description : Add dynamic attributes if any.
 	 */
 	//--------------------------------------------------------
@@ -151,24 +151,24 @@ public:
 
 	//--------------------------------------------------------
 	/**
-	 *	Method      : TestChimeraTK::add_dynamic_commands()
+	 *	Method      : DeviceImpl::add_dynamic_commands()
 	 *	Description : Add dynamic commands if any.
 	 */
 	//--------------------------------------------------------
 	void add_dynamic_commands();
 
-/*----- PROTECTED REGION ID(TestChimeraTK::Additional Method prototypes) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceImpl::Additional Method prototypes) ENABLED START -----*/
 
 //	Additional Method prototypes
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::Additional Method prototypes
+/*----- PROTECTED REGION END -----*/	//	DeviceImpl::Additional Method prototypes
 };
 
-/*----- PROTECTED REGION ID(TestChimeraTK::Additional Classes Definitions) ENABLED START -----*/
+/*----- PROTECTED REGION ID(DeviceImpl::Additional Classes Definitions) ENABLED START -----*/
 
 //	Additional Classes Definitions
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::Additional Classes Definitions
+/*----- PROTECTED REGION END -----*/	//	DeviceImpl::Additional Classes Definitions
 
 }	//	End of namespace
 

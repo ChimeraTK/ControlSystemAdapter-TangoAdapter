@@ -33,7 +33,7 @@
 //=============================================================================
 
 #include <tango.h>
-#include "TestChimeraTKClass.h"
+#include "DeviceClass.h"
 
 //	Add class header files if needed
 
@@ -45,6 +45,7 @@
 void Tango::DServer::class_factory()
 {
 	//	Add method class init if needed
-	add_class(TestChimeraTK_ns::TestChimeraTKClass::init("TestChimeraTK"));
+	// FIXME: Need to put some name there...
+	add_class(ChimeraTK::TangoAdapter::DeviceClass::init("TestChimeraTK"));
 }
 /*----- PROTECTED REGION END -----*/	//	TestChimeraTK::ClassFactory.cpp

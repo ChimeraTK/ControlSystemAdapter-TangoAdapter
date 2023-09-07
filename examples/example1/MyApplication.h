@@ -51,12 +51,8 @@ struct Automation : public ctk::ApplicationModule {
 };
 
 struct ExampleApp final : public ctk::Application {
-  ExampleApp() : Application("TestChimeraTK") {
-    if(config.get<int>("enableAutomation")) {
-      automation = Automation(this, "Automation", "Slow setpoint ramping algorithm");
-    }
-  }
-  ~ExampleApp() final { shutdown(); }
+  ExampleApp();
+ ~ExampleApp() final { shutdown(); }
 
 
   ctk::SetDMapFilePath dmapPath{"example1.dmap"};
