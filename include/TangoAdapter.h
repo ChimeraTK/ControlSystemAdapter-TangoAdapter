@@ -1,8 +1,4 @@
-
-#ifndef TANGO_ADPATER_H
-#define TANGO_ADPATER_H
-
-
+#pragma once
 
 
 #include <string>
@@ -14,9 +10,8 @@
 #include <ChimeraTK/ControlSystemAdapter/PVManager.h>
 #include <ChimeraTK/ControlSystemAdapter/ApplicationBase.h>
 
-#include "ScalarAttribTempl.h"
-#include "SpectrumAttribTempl.h"
 
+#include "TangoUpdater.h"
 
 namespace ChimeraTK {
 
@@ -46,14 +41,18 @@ public:
        return _controlSystemPVManager;
   }
 private:
+    boost::shared_ptr<TangoUpdater> _updater;
     TANGO_BASE_CLASS *_device;
     vector<string>  _attributeList;
     boost::shared_ptr<ControlSystemPVManager> _controlSystemPVManager;
     boost::shared_ptr<DevicePVManager> _devicePVManager;
+    //
     std::vector<Tango::Attr *> _dynamic_attribute_list;
-    std::vector<int> _index_write_spectrum_attr_list;
+    //
+    std::map<std::shared_ptr<AttributProperty>,int> _write_spectrum_attr_list;
+
         
     };
 
 } // namespace ChimeraTK
-#endif // TANGO_ADPATER_H
+
