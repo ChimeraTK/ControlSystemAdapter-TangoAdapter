@@ -1,6 +1,4 @@
-#ifndef _SCALAR_ATTRIB_H_
-#define _SCALAR_ATTRIB_H_
-
+#pragma once
 
 #include "AttributProperty.h"
 
@@ -81,8 +79,16 @@ public:
 	    else {
 			att.set_value(&_processScalar->accessData(0));
 		}
-
-
+/*
+    auto archiverStatus = ArchiveStatus::sts_ok;
+    if(_processScalar->dataValidity() != ChimeraTK::DataValidity::ok) {
+      archiverStatus = ArchiveStatus::sts_err;
+      // set data invalid in DOOCS for current data
+      this->d_error(stale_data);
+    }
+    else {
+      this->d_error(no_error);
+    }*/
 	}
 
 	virtual void write(Tango::DeviceImpl *dev,
@@ -192,4 +198,4 @@ protected:
 
 } // namespace ChimeraTK
 
-#endif // _SCALAR_ATTRIB_H_
+

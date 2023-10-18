@@ -1,5 +1,4 @@
-#ifndef CHIMERATK_ATTRIBUT_PROPERTY_H
-#define CHIMERATK_ATTRIBUT_PROPERTY_H
+#pragma once
 
 #include <iostream>
 #include <map>
@@ -90,4 +89,4 @@ enum AttrDataFormat{SCALAR,SPECTRUM,IMAGE};
 
 } // namespace ChimeraTK
 
-#endif // CHIMERATK_ATTRIBUT_PROPERTY_H
+

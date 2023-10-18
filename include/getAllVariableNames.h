@@ -1,5 +1,4 @@
-#ifndef GET_ALL_VARIABLENAMES_H
-#define GET_ALL_VARIABLENAMES_H
+#pragma once
 
 #include <ChimeraTK/ControlSystemAdapter/ControlSystemPVManager.h>
 #include <set>
@@ -13,4 +12,4 @@ namespace ChimeraTK {
 
 } //  namespace ChimeraTK
 
-#endif // GET_ALL_VARIABLENAMES_H
+

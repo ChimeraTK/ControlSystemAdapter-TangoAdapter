@@ -1,5 +1,5 @@
-#ifndef MYAPPLICATION_H
-#define MYAPPLICATION_H
+
+#pragma once
 
 #include <ChimeraTK/ApplicationCore/ApplicationCore.h>
 #include <ChimeraTK/ApplicationCore/ConfigReader.h>
@@ -25,7 +25,7 @@ struct Controller : public ctk::ApplicationModule {
   void mainLoop() {
     const float gain = 100.0;
     while(true) {
-      
+
       readAll(); // waits until rb updated, then reads sp
       cur = gain * (sp - rb);
       writeAll(); // writes any outputs
@@ -70,6 +70,3 @@ struct ExampleApp final : public ctk::Application {
 
 };
 
-
-
-#endif

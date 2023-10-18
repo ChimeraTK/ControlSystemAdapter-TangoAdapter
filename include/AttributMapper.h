@@ -1,5 +1,4 @@
-#ifndef CHIMERATK_ATTRIBUT_MAPPER_H
-#define CHIMERATK_ATTRIBUT_MAPPER_H
+#pragma once
 #include <ChimeraTK/ControlSystemAdapter/ControlSystemPVManager.h>
 #include <iostream>
 #include <list>
@@ -57,4 +56,3 @@ namespace ChimeraTK {
 
 } // namespace ChimeraTK
 
-#endif // CHIMERATK_ATTRIBUT_MAPPER_H

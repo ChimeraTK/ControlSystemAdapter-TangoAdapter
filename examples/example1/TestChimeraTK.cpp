@@ -37,7 +37,6 @@
 #include "TestChimeraTK.h"
 #include "TestChimeraTKClass.h"
 
-
 #include <TangoAdapter.h>
 
 #include "MyApplication.h"
@@ -119,7 +118,7 @@ void TestChimeraTK::delete_device()
 	
 	//	Delete device allocated objects
 	delete adapter;
-	//delete theExampleApp;
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::delete_device
 }
 
@@ -153,7 +152,6 @@ void TestChimeraTK::init_device()
 
 
 	adapter = new ChimeraTK::TangoAdapter(this, attributList);
-
 
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::init_device
 }
