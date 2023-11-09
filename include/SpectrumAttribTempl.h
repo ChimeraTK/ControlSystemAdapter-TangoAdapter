@@ -51,17 +51,6 @@ public:
 			  Tango::Attribute &att)
 	{
 		DEBUG_STREAM<<"SpectrumAttribTempl::read "<< get_name()<<endl;
-		try{
-        		_processSpectrum->readLatest();
-		}
-		catch (std::exception &e)
-		{
-    		ERROR_STREAM<<"SpectrumAttribTempl::read - Exeption: "<<e.what()<<endl;
-		}
-		catch (...)
-		{
-    		ERROR_STREAM<<"SpectrumAttribTempl::read  unknown exeption from readLatest"<<endl;
-		}
 						
 		DEBUG_STREAM<<"getNumberOfSamples: "<<_processSpectrum->getNumberOfSamples()<<endl;
 
@@ -89,7 +78,14 @@ public:
 				DEBUG_STREAM<<"pv["<<i<<"]= "<<_processSpectrum->accessData(i)<<endl;
 			}
 
+		}/*
+		if(_processSpectrum->dataValidity() != ChimeraTK::DataValidity::ok) {
+			// set data invalid
+			att.set_quality(Tango::ATTR_INVALID, true);
 		}
+		else {
+			att.set_quality(Tango::ATTR_VALID, true);
+		}*/
 	}
 
 	virtual void write(Tango::DeviceImpl *dev,

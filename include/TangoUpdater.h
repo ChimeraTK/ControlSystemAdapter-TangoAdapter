@@ -22,9 +22,9 @@ namespace ChimeraTK {
    * the stop() function which returns after the thread has been joined). This
    * happens latest in the destructor.
    */
-  class TangoUpdater : public boost::noncopyable {
+  class TangoUpdater : public boost::noncopyable, Tango::LogAdapter {
    public:
-    TangoUpdater(TANGO_BASE_CLASS* tangoDevice) {_device = tangoDevice;}
+    TangoUpdater(TANGO_BASE_CLASS* tangoDevice): Tango::LogAdapter(tangoDevice),_device(tangoDevice){}
     ~TangoUpdater();
     void update(); // Update all variables once. This is a convenience function
                    // for testing.

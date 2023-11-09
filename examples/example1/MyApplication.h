@@ -55,6 +55,7 @@ struct ExampleApp final : public ctk::Application {
     if(config.get<int>("enableAutomation")) {
       automation = Automation(this, "Automation", "Slow setpoint ramping algorithm");
     }
+    //debugMakeConnections ();
   }
   ~ExampleApp() final { shutdown(); }
 

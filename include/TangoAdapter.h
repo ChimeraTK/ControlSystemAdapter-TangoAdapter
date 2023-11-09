@@ -43,12 +43,12 @@ public:
 private:
     boost::shared_ptr<TangoUpdater> _updater;
     TANGO_BASE_CLASS *_device;
-    vector<string>  _attributeList;
+
     boost::shared_ptr<ControlSystemPVManager> _controlSystemPVManager;
     boost::shared_ptr<DevicePVManager> _devicePVManager;
-    //
+    // dynamic attribute list
     std::vector<Tango::Attr *> _dynamic_attribute_list;
-    //
+    // list W spectrum attributs for initialization
     std::map<std::shared_ptr<AttributProperty>,int> _write_spectrum_attr_list;
 
         

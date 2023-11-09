@@ -49,18 +49,6 @@ public:
 	{	
 
 		DEBUG_STREAM<< "ScalarAttribTempl::read "<< get_name()<<endl;
-	    try{	
-        	_processScalar->readLatest();
-    	}
-    	catch (std::exception &e)
-    	{
-    		ERROR_STREAM<<"Exception: "<<e.what()<<endl;
-    	}
-    	catch (...)
-    	{
-    		ERROR_STREAM<<"unknown Exception from readLatest"<<endl;
-    	}
-		
 		
 		if constexpr (is_same<T,std::string>::value) {
 
@@ -79,16 +67,15 @@ public:
 	    else {
 			att.set_value(&_processScalar->accessData(0));
 		}
-/*
-    auto archiverStatus = ArchiveStatus::sts_ok;
-    if(_processScalar->dataValidity() != ChimeraTK::DataValidity::ok) {
-      archiverStatus = ArchiveStatus::sts_err;
-      // set data invalid in DOOCS for current data
-      this->d_error(stale_data);
-    }
+		if(_processScalar->dataValidity() != ChimeraTK::DataValidity::ok) 
+		{
+			ERROR_STREAM<< "ScalarAttribTempl::read "<< get_name() <<" is not valid"<<endl;
+			//att.set_quality(Tango::ATTR_INVALID, true);
+		}
     else {
-      this->d_error(no_error);
-    }*/
+    	// crash
+      //att.set_quality(Tango::ATTR_VALID, true);
+    }
 	}
 
 	virtual void write(Tango::DeviceImpl *dev,

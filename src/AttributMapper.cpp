@@ -15,7 +15,7 @@ namespace ChimeraTK {
   }
   /********************************************************************************************************************/
   void AttributMapper::directImport(std::set<std::string> inputVariables){
-    std::cout<<"AttributMapper::directImport "<<std::endl;
+
     clear();
    
     _inputVariables = inputVariables;    
@@ -61,7 +61,7 @@ namespace ChimeraTK {
       if(processVariableName.find(importSource + "/") == 0) {
         // processVariableName starts with wanted source
         auto nameSource = processVariableName.substr(importSource.size() + 1); // add the slash to be removed
-        std::cout<<"nameSource: "<<nameSource<<std::endl;
+
         // we use the register path because it removes duplicate separators and
         // allows to use . as separater to replace all / with .
         ChimeraTK::RegisterPath propertyName;
@@ -73,10 +73,12 @@ namespace ChimeraTK {
         propertyName.setAltSeparator(".");
         
         //erase the first "/" 
-        std::string attrName=propertyName.getWithAltSeparator();
+        std::string attrName=locationName+"_"+propertyName.getWithAltSeparator();
+
         std::string::size_type i = attrName.find("/");
         if (i != std::string::npos)
            attrName.erase(i, 1);
+
         if(locationName.empty()) {
           throw std::logic_error(std::string("Invalid XML content in global import of ") +
               (importSource.empty() ? "/" : importSource) + ":  Cannot create location name from '" + nameSource +
@@ -85,7 +87,7 @@ namespace ChimeraTK {
         // derive the datatype      
         auto processVariable = _controlSystemPVManager->getProcessVariable(processVariableName);
         std::type_info const& valueType = processVariable->getValueType();
-        std::cout<< "==========Type of : " << valueType.name() << endl;
+
 
         deriveType(valueType);
 
@@ -141,7 +143,7 @@ namespace ChimeraTK {
     if (info == typeid(ChimeraTK::Boolean)) _dataType = Tango::DEV_BOOLEAN;
     if (info == typeid(ChimeraTK::Void))    _dataType = DataType::Void;
 
-    std::cout<<_dataType<<std::endl;
+    //std::cout<<_dataType<<std::endl;
   }  
 
 } // namespace ChimeraTK

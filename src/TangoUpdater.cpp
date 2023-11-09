@@ -13,7 +13,7 @@ namespace ChimeraTK {
   void TangoUpdater::addVariable(
       TransferElementAbstractor variable, std::string attrId, AttrDataFormat attrDataFormat, long dataType) {
 
-    std::cout<<" TangoUpdater::addVariable "<<attrId<<std::endl;
+    INFO_STREAM<<" TangoUpdater::addVariable "<<attrId<<endl;
 
     if(variable.isReadable()) {
       auto id = variable.getId();
@@ -38,8 +38,7 @@ namespace ChimeraTK {
     for(auto& transferElem : _elementsToRead) {
       if(transferElem.readLatest()) {
           auto& descriptor = _descriptorMap[transferElem.getId()];
-          //do nothing now
-          //updateFonction();
+          updateFonction(descriptor.attributID[0],descriptor.attributFormat[0],descriptor.dataType[0]);
       }
     }
   }
@@ -52,7 +51,7 @@ namespace ChimeraTK {
 
     long idx = att.get_attr_idx();
 
-    std::cout<<" updateFonction: "<<attrName<<std::endl;
+    DEBUG_STREAM<<"TangoUpdater::updateFonction  "<<attrName<<endl;
 
     switch (dataType){
         case Tango::DEV_UCHAR :
