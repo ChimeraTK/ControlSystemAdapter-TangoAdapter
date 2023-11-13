@@ -33,14 +33,13 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
+#include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
+#include <TangoAdapter.h>
 
 #include "TestChimeraTK.h"
 #include "TestChimeraTKClass.h"
-
-#include <TangoAdapter.h>
-
 #include "MyApplication.h"
-static ExampleApp theExampleApp;
+static ChimeraTK::ApplicationFactory<ExampleApp> theExampleAppFactory;
 /*----- PROTECTED REGION END -----*/	//	TestChimeraTK.cpp
 
 /**
@@ -131,9 +130,12 @@ void TestChimeraTK::delete_device()
 void TestChimeraTK::init_device()
 {
 	DEBUG_STREAM << "TestChimeraTK::init_device() create device " << device_name << endl;
+
 	/*----- PROTECTED REGION ID(TestChimeraTK::init_device_before) ENABLED START -----*/
-	
+
 	//	Initialization before get_device_property() call
+    set_state(Tango::INIT);
+    set_status("Initiasilation ...");
 	
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::init_device_before
 	
@@ -145,14 +147,35 @@ void TestChimeraTK::init_device()
 	
 	//	Initialize device
     //set DMapFilePath from property
-    if (!dMapFilePath.empty())
+    if (dMapFilePath.empty())
     {
-        ChimeraTK::setDMapFilePath(dMapFilePath);
+    	ERROR_STREAM << "init_device: The property dMapFilePath is empty"<<endl;
+    	set_state(Tango::FAULT);
+    	set_status("The property dMapFilePath is not configured");
+    	return;
     }
 
+   	DEBUG_STREAM << "dMapFilePath: "<<dMapFilePath<<endl;
+   	try
+   	{
+   		ChimeraTK::setDMapFilePath(dMapFilePath);
+   	}
+    catch (ChimeraTK::logic_error& e) {
+      ERROR_STREAM << "init_device: "<< e.what()<<endl;
+      set_state(Tango::FAULT);
+      set_status(e.what());
+      return;
+    }
 
 	adapter = new ChimeraTK::TangoAdapter(this, attributList);
+	if (adapter==nullptr)
+	{
+      set_state(Tango::FAULT);
+      set_status("Can not create TangoAdapter");
+      return;
+	}
 
+	DEBUG_STREAM << "TestChimeraTK::init_device() end of init_device " << endl;
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK::init_device
 }
 

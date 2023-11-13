@@ -1,6 +1,6 @@
 
-
 #include <stdexcept>
+#include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
 #include <ChimeraTK/ReadAnyGroup.h>
 #include <ChimeraTK/RegisterPath.h>
 #include <algorithm>
@@ -31,10 +31,35 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     _controlSystemPVManager = pvManagers.first;
     _devicePVManager = pvManagers.second;
 
-	//ApplicationBase::getInstance().getName().c_str();
-	ApplicationBase::getInstance().setPVManager(_devicePVManager);
+   // We do not get ownership of the application here. A plain pointer is used because the reference returned
+    // by getApplicationInstance cannot be stored to a variable that has been created outside of the try block,
+    // and we want to limit the scope of the try/catch to that single line.
+    ApplicationBase* appInstance =nullptr;
+    try {
+      appInstance = &ChimeraTK::ApplicationFactoryBase::getApplicationInstance();
+    }
+    catch(ChimeraTK::logic_error& e) {
+      ERROR_STREAM << "*************************************************************"
+                   "***************************************"
+                << endl;
+      ERROR_STREAM << "Logic error when getting the application instance. The TangoAdapter requires the use of the "
+                   "ChimeraTK::ApplicationFactory instead of a static apllication instance."
+                << endl;
 
-    ApplicationBase::getInstance().initialise();
+      ERROR_STREAM << "Replace `static MyApplication theApp` with `static ChimeraTK::ApplicationFactory<MyApplication> "
+                   "theAppFactory`."
+                << endl;
+      ERROR_STREAM << "*************************************************************"
+                   "***************************************"
+                << std::endl;
+
+      ERROR_STREAM<<e.what()<<endl;
+      _device->set_state(Tango::FAULT);
+      _device->set_status(e.what());
+      return;
+    }
+    appInstance->setPVManager(_devicePVManager);
+    appInstance->initialise();
 
     // the variable manager can only be filled after we have the CS manager  
     std::set<std::string> names= getAllVariableNames(_controlSystemPVManager);
@@ -66,8 +91,10 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     write_inited_values();
 
     //start the application
-    ApplicationBase::getInstance().run();
+    appInstance->run();
     _updater->run();
+    _device->set_state(Tango::ON);
+    _device->set_status("Application is running.");
     DEBUG_STREAM<<"TangoAdapter::TangoAdapter end"<<endl;
 }
 //+----------------------------------------------------------------------------
@@ -85,9 +112,7 @@ TangoAdapter::~TangoAdapter(){
 
 	detach_dynamic_attributes_from_device();
     // Attention to stop application here but impossible
-    // shutdown is to remove the global pointer to the instance
-    // maybe a stop ()?
-    //ChimeraTK::ApplicationBase::getInstance().shutdown();
+    //_appInstance->_applicationInstance.shutdown()();
 
 }
 //+----------------------------------------------------------------------------

@@ -60,7 +60,6 @@ struct ExampleApp final : public ctk::Application {
   ~ExampleApp() final { shutdown(); }
 
 
-  ctk::SetDMapFilePath dmapPath{"example1.dmap"};
   ctk::ConfigReader config{this, "config", "example1.xml"};
   Controller controller{this, "Controller", "The Controller"};
   Automation automation;

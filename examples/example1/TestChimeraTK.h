@@ -62,7 +62,7 @@ class TestChimeraTK : public TANGO_BASE_CLASS
 //	Add your own data members
 private: 
 	ChimeraTK::TangoAdapter* adapter;
-	//ExampleApp *theExampleApp;
+
 /*----- PROTECTED REGION END -----*/	//	TestChimeraTK::Data Members
 
 //	Device property data members

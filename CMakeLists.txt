@@ -10,13 +10,14 @@ include(cmake/set_version_numbers.cmake)
 
 find_package(PkgConfig)
 
-find_package(ChimeraTK-ApplicationCore 03.00 REQUIRED)
+find_package(ChimeraTK-ApplicationCore 03.03 REQUIRED)
+find_package(ChimeraTK-ControlSystemAdapter 02.07 REQUIRED)
 
 pkg_check_modules(TANGO tango REQUIRED )
 
 FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
 
-
+message("===========" ${ChimeraTK-ControlSystemAdapter_INCLUDE_DIRS})
 
 include_directories(${CMAKE_SOURCE_DIR}/include ${ChimeraTK-ControlSystemAdapter_INCLUDE_DIRS}  )
 
