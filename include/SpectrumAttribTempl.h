@@ -8,8 +8,8 @@ template <typename T>
 class SpectrumAttribTempl : public Tango::SpectrumAttr,Tango::LogAdapter
 {
 public:
-	SpectrumAttribTempl(TANGO_BASE_CLASS* tangoDevice, boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> pv, std::shared_ptr<AttributProperty>attProperty
-		/*const char *name, long data_type, Tango::AttrWriteType w_type*/, std::string description="description", std::string unit=""):
+	SpectrumAttribTempl(TANGO_BASE_CLASS* tangoDevice, boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> pv, std::shared_ptr<AttributProperty>attProperty,
+	    std::string description="description", std::string unit=""):
 		Tango::SpectrumAttr(attProperty->_name.c_str(), attProperty->_dataType, attProperty->_writeType,pv->getNumberOfSamples()),_processSpectrum(pv),
 		_dataType(attProperty->_dataType), Tango::LogAdapter(tangoDevice)
 	{
@@ -22,7 +22,6 @@ public:
 
 		Tango::UserDefaultAttrProp axis_prop;
 		axis_prop.set_label(attProperty->_name.c_str());
-		//axis_prop.set_format("%9.5f");
 
 		axis_prop.set_description(attProperty->_desc .c_str());
 
@@ -51,8 +50,6 @@ public:
 			  Tango::Attribute &att)
 	{
 		DEBUG_STREAM<<"SpectrumAttribTempl::read "<< get_name()<<endl;
-						
-		DEBUG_STREAM<<"getNumberOfSamples: "<<_processSpectrum->getNumberOfSamples()<<endl;
 
 		if constexpr (is_same<T,std::string>::value) {
 
@@ -78,14 +75,12 @@ public:
 				DEBUG_STREAM<<"pv["<<i<<"]= "<<_processSpectrum->accessData(i)<<endl;
 			}
 
-		}/*
-		if(_processSpectrum->dataValidity() != ChimeraTK::DataValidity::ok) {
-			// set data invalid
-			att.set_quality(Tango::ATTR_INVALID, true);
 		}
-		else {
-			att.set_quality(Tango::ATTR_VALID, true);
-		}*/
+		if(_processSpectrum->dataValidity() != ChimeraTK::DataValidity::ok)
+		{
+			ERROR_STREAM<< "SpectrumAttribTempl::read "<< get_name() <<" is not valid"<<endl;
+		}
+
 	}
 
 	virtual void write(Tango::DeviceImpl *dev,
@@ -189,15 +184,14 @@ public:
 		case Tango::DEV_FLOAT:			
 		{
 			const float *f_value;
-			att.get_write_value(f_value);				
-			DEBUG_STREAM<< "arraySize "<<arraySize<<endl;
+			att.get_write_value(f_value);
+
 			for(size_t i = 0; i < arraySize; ++i) {
-      				processVector[i] = f_value[i];
-      				DEBUG_STREAM<<"processVector["<<i<<"] =" <<f_value[i]<<endl;
-      			}
-      			memoried_value = array_to_string(f_value,_length);
+      			processVector[i] = f_value[i];
       		}
-			break;
+      		memoried_value = array_to_string(f_value,_length);
+      	}
+		break;
 		case Tango::DEV_DOUBLE:
 	    	{
 			const double *d_value;
@@ -247,7 +241,6 @@ public:
 	Tango::DevString *attr_String_read;
 	Tango::DevBoolean *attr_Bool_read;
 	std::string _memoried_property_name;
-
 
 
 };

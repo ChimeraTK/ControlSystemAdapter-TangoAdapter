@@ -64,9 +64,11 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     // the variable manager can only be filled after we have the CS manager  
     std::set<std::string> names= getAllVariableNames(_controlSystemPVManager);
     std::string tickname;
+
+    INFO_STREAM<<"TangoAdapter::TangoAdapter list of variable"<<endl;
     for (std::set<std::string>::iterator it=names.begin(); it!=names.end(); ++it)
     {
-        DEBUG_STREAM<< *it <<endl;
+        INFO_STREAM<< *it <<endl;
         if ((*it).find("/tick")!=string::npos)
             tickname = *it;
     }
@@ -74,7 +76,7 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     // no configuration, import all
     if (attributList.size()==0 || (attributList.size()==1&& attributList[0]==""))
     {
-        DEBUG_STREAM<< "Direct import" <<endl;
+        INFO_STREAM<< "Direct import" <<endl;
         names.erase (tickname);
         ChimeraTK::AttributMapper::getInstance().setCSPVManager(_controlSystemPVManager);
         ChimeraTK::AttributMapper::getInstance().directImport(names);   
@@ -95,6 +97,7 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     _updater->run();
     _device->set_state(Tango::ON);
     _device->set_status("Application is running.");
+
     DEBUG_STREAM<<"TangoAdapter::TangoAdapter end"<<endl;
 }
 //+----------------------------------------------------------------------------

@@ -16,33 +16,37 @@ public:
 	{
 	
 		//memory the written value and write at initialization
-        if (attProperty->_writeType==Tango::READ_WRITE || attProperty->_writeType==Tango::WRITE )
-        {
-        	set_memorized ();
-        	set_memorized_init(true);
-        }
+		if (attProperty->_writeType==Tango::READ_WRITE || attProperty->_writeType==Tango::WRITE )
+		{
+			set_memorized ();
+			set_memorized_init(true);
+		}
+
 		Tango::UserDefaultAttrProp att_prop;
 		att_prop.set_label(attProperty->_name.c_str());
 
 		att_prop.set_description(attProperty->_desc .c_str());
 
 		if (!(attProperty->_unit.empty()))
-		    att_prop.set_unit(attProperty->_unit.c_str());
+			att_prop.set_unit(attProperty->_unit.c_str());
 	    
 		set_default_properties(att_prop);
 
 		if constexpr (is_same<T,std::string>::value) {
-			attr_String_read = new Tango::DevString;
+			attr_String_read = new Tango::DevString[1];
 		}
+
 		if (_dataType==Tango::DEV_BOOLEAN){
-			attr_Bool_read = new Tango::DevBoolean;
+			attr_Bool_read = new Tango::DevBoolean[1];
 		}
 		
 	}
 
-
-
-	virtual ~ScalarAttribTempl(void) {};
+	virtual ~ScalarAttribTempl(void)
+	{
+		if (attr_Bool_read != nullptr) delete attr_Bool_read;
+		if (attr_String_read != nullptr) delete attr_String_read;
+	}
 
 	virtual void read(Tango::DeviceImpl *dev,
 			  Tango::Attribute &att)
@@ -52,30 +56,27 @@ public:
 		
 		if constexpr (is_same<T,std::string>::value) {
 
-       		*attr_String_read = const_cast<char *>(_processScalar->accessData(0).c_str());
-       		att.set_value(attr_String_read);
+			*attr_String_read = const_cast<char *>(_processScalar->accessData(0).c_str());
+			att.set_value(attr_String_read);
 
-	    }
-	    else if (_dataType==Tango::DEV_BOOLEAN) //constexpr (is_same<T,bool>::value)
-	    {
-	    	boost::shared_ptr<ChimeraTK::NDRegisterAccessor<Boolean>> pv =boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(_processScalar);
+		}
+		else if (_dataType==Tango::DEV_BOOLEAN)
+	  {
+	    boost::shared_ptr<ChimeraTK::NDRegisterAccessor<Boolean>> pv =boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(_processScalar);
 
 			*attr_Bool_read= _processScalar->accessData(0);
-       		att.set_value(attr_Bool_read);
+      att.set_value(attr_Bool_read);
 
-	    }
-	    else {
+	  }
+	  else {
 			att.set_value(&_processScalar->accessData(0));
 		}
+
 		if(_processScalar->dataValidity() != ChimeraTK::DataValidity::ok) 
 		{
 			ERROR_STREAM<< "ScalarAttribTempl::read "<< get_name() <<" is not valid"<<endl;
-			//att.set_quality(Tango::ATTR_INVALID, true);
 		}
-    else {
-    	// crash
-      //att.set_quality(Tango::ATTR_VALID, true);
-    }
+
 	}
 
 	virtual void write(Tango::DeviceImpl *dev,
@@ -83,8 +84,8 @@ public:
 	{	
 		DEBUG_STREAM<< "ScalarAttribTempl::write "<< get_name()<<endl;
 
-	    switch (_dataType)
-	    {
+		switch (_dataType)
+		{
 	    case Tango::DEV_UCHAR:
 	    {
 			uint8_t c_value;
@@ -151,7 +152,6 @@ public:
 	    case Tango::DEV_BOOLEAN:
 	    {
 			auto pv =boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(_processScalar);
-			std::cout<<"Boolean"<<std::endl;
 			bool b_value;
 			att.get_write_value(b_value);
 			pv->accessData(0) = b_value;
@@ -175,11 +175,11 @@ public:
 	virtual bool is_allowed(Tango::DeviceImpl *dev,
 				Tango::AttReqType ty){return true;};
 
+
 	boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> _processScalar;
-	long _dataType; 
-    Tango::DevString  *attr_String_read ;
-    Tango::DevBoolean *attr_Bool_read;
-protected:
+	long _dataType;
+  Tango::DevString  *attr_String_read ;
+  Tango::DevBoolean *attr_Bool_read;
 
 };
 
