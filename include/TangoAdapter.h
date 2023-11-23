@@ -18,7 +18,8 @@ namespace ChimeraTK {
 class TangoAdapter: public Tango::LogAdapter
 {
 public:
-    TangoAdapter(TANGO_BASE_CLASS* tangoDevice , std::vector<std::string> attributList);
+TangoAdapter(TANGO_BASE_CLASS* tangoDevice , std::vector<std::string> attributList,
+        std::pair<boost::shared_ptr<ControlSystemPVManager>, boost::shared_ptr<DevicePVManager>> pvManagers, bool initApp);
     ~TangoAdapter();
     
     const TANGO_BASE_CLASS* getDevice() const {return _device;}

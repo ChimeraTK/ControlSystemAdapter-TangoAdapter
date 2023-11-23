@@ -158,7 +158,19 @@ void TestChimeraTK::init_device()
    	DEBUG_STREAM << "dMapFilePath: "<<dMapFilePath<<endl;
    	try
    	{
-   		ChimeraTK::setDMapFilePath(dMapFilePath);
+   		if (memoriedDMFilePath.empty())
+   		{
+   			ChimeraTK::setDMapFilePath(dMapFilePath);
+   			DEBUG_STREAM << "Create PVManager with : "<<dMapFilePath<<endl;
+   			pvManagers = ChimeraTK::createPVManager();
+   			memoriedDMFilePath = dMapFilePath;
+   			initApp = true;
+   		}
+   		else
+   		{
+   			DEBUG_STREAM << "Init only device but not the ChimeraTK application "<<endl;
+   			initApp = false;
+   		}
    	}
     catch (ChimeraTK::logic_error& e) {
       ERROR_STREAM << "init_device: "<< e.what()<<endl;
@@ -167,7 +179,7 @@ void TestChimeraTK::init_device()
       return;
     }
 
-	adapter = new ChimeraTK::TangoAdapter(this, attributList);
+	adapter = new ChimeraTK::TangoAdapter(this, attributList, pvManagers, initApp);
 	if (adapter==nullptr)
 	{
       set_state(Tango::FAULT);

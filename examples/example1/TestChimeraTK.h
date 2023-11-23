@@ -62,7 +62,9 @@ class TestChimeraTK : public TANGO_BASE_CLASS
 //	Add your own data members
 private: 
 	ChimeraTK::TangoAdapter* adapter;
-
+	std::pair<boost::shared_ptr<ChimeraTK::ControlSystemPVManager>, boost::shared_ptr<ChimeraTK::DevicePVManager>> pvManagers;
+	std::string memoriedDMFilePath ="";
+	bool initApp = false;
 /*----- PROTECTED REGION END -----*/	//	TestChimeraTK::Data Members
 
 //	Device property data members

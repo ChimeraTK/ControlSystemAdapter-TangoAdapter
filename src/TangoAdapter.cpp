@@ -18,14 +18,17 @@ namespace ChimeraTK {
 // description :    
 //
 //-----------------------------------------------------------------------------
-TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::string> attributList):  Tango::LogAdapter(tangoDevice) {
+TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::string> attributList,
+        std::pair<boost::shared_ptr<ControlSystemPVManager>, boost::shared_ptr<DevicePVManager>> pvManagers, bool initApp):
+        Tango::LogAdapter(tangoDevice)
+{
 
     DEBUG_STREAM<<"TangoAdapter::TangoAdapter starting ... "<<endl;
     _device = tangoDevice;
-
+/*
     std::pair<boost::shared_ptr<ControlSystemPVManager>, boost::shared_ptr<DevicePVManager>> pvManagers =
         createPVManager();
-
+*/
     _updater = boost::make_shared<TangoUpdater>(tangoDevice);
 
     _controlSystemPVManager = pvManagers.first;
@@ -58,8 +61,12 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
       _device->set_status(e.what());
       return;
     }
-    appInstance->setPVManager(_devicePVManager);
-    appInstance->initialise();
+
+    if (initApp)
+    {
+        appInstance->setPVManager(_devicePVManager);
+        appInstance->initialise();
+    }
 
     // the variable manager can only be filled after we have the CS manager  
     std::set<std::string> names= getAllVariableNames(_controlSystemPVManager);
@@ -93,7 +100,9 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     write_inited_values();
 
     //start the application
-    appInstance->run();
+    if (initApp)
+        appInstance->run();
+
     _updater->run();
     _device->set_state(Tango::ON);
     _device->set_status("Application is running.");
