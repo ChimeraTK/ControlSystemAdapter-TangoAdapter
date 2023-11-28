@@ -22,7 +22,7 @@ file(GLOB library_headers ${CMAKE_SOURCE_DIR}/include/*.h)
 add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_headers})
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
-target_link_libraries(${PROJECT_NAME} ChimeraTK::ChimeraTK-ControlSystemAdapter PkgConfig::TANGO)
+target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter PRIVATE PkgConfig::TANGO)
 
 
 #===================================================================================================
