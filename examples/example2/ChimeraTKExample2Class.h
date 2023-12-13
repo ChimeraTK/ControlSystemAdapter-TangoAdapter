@@ -6,26 +6,26 @@
 // description : Include for the ChimeraTKExample2 root class.
 //               This class is the singleton class for
 //                the ChimeraTKExample2 device class.
-//               It contains all properties and methods which the 
+//               It contains all properties and methods which the
 //               ChimeraTKExample2 requires only once e.g. the commands.
 //
-// project :     
+// project :
 //
 // This file is part of Tango device class.
-// 
+//
 // Tango is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Tango is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Tango.  If not, see <http://www.gnu.org/licenses/>.
-// 
+//
 //
 //
 //=============================================================================
@@ -37,7 +37,7 @@
 #ifndef ChimeraTKExample2Class_H
 #define ChimeraTKExample2Class_H
 
-#include <tango.h>
+#include <tango/tango.h>
 #include <ChimeraTKExample2.h>
 
 
@@ -62,8 +62,8 @@ class ChimeraTKExample2Class : public Tango::DeviceClass
 #endif
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::Additionnal DServer data members) ENABLED START -----*/
-	
-	
+
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::Additionnal DServer data members
 
 	public:
@@ -71,7 +71,7 @@ class ChimeraTKExample2Class : public Tango::DeviceClass
 		Tango::DbData	cl_prop;
 		Tango::DbData	cl_def_prop;
 		Tango::DbData	dev_def_prop;
-	
+
 		//	Method prototypes
 		static ChimeraTKExample2Class *init(const char *);
 		static ChimeraTKExample2Class *instance();
@@ -79,7 +79,7 @@ class ChimeraTKExample2Class : public Tango::DeviceClass
 		Tango::DbDatum	get_class_property(string &);
 		Tango::DbDatum	get_default_device_property(string &);
 		Tango::DbDatum	get_default_class_property(string &);
-	
+
 	protected:
 		ChimeraTKExample2Class(string &);
 		static ChimeraTKExample2Class *_instance;
@@ -91,7 +91,7 @@ class ChimeraTKExample2Class : public Tango::DeviceClass
 		void get_class_property();
 		string get_cvstag();
 		string get_cvsroot();
-	
+
 	private:
 		void device_factory(const Tango::DevVarStringArray *);
 		void create_static_attribute_list(vector<Tango::Attr *> &);

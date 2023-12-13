@@ -6,7 +6,7 @@
 
 
 namespace ChimeraTK {
-template <typename T>	
+template <typename T>
 class ScalarAttribTempl : public Tango::Attr,Tango::LogAdapter
 {
 public:
@@ -14,7 +14,7 @@ public:
 		Tango::Attr(attProperty->_name.c_str(), attProperty->_dataType, attProperty->_writeType),_processScalar(pv),
 		_dataType(attProperty->_dataType), Tango::LogAdapter(tangoDevice)
 	{
-	
+
 		//memory the written value and write at initialization
 		if (attProperty->_writeType==Tango::READ_WRITE || attProperty->_writeType==Tango::WRITE )
 		{
@@ -29,17 +29,17 @@ public:
 
 		if (!(attProperty->_unit.empty()))
 			att_prop.set_unit(attProperty->_unit.c_str());
-	    
+
 		set_default_properties(att_prop);
 
-		if constexpr (is_same<T,std::string>::value) {
+		if constexpr (std::is_same<T,std::string>::value) {
 			attr_String_read = new Tango::DevString[1];
 		}
 
 		if (_dataType==Tango::DEV_BOOLEAN){
 			attr_Bool_read = new Tango::DevBoolean[1];
 		}
-		
+
 	}
 
 	virtual ~ScalarAttribTempl(void)
@@ -50,11 +50,11 @@ public:
 
 	virtual void read(Tango::DeviceImpl *dev,
 			  Tango::Attribute &att)
-	{	
+	{
 
-		DEBUG_STREAM<< "ScalarAttribTempl::read "<< get_name()<<endl;
-		
-		if constexpr (is_same<T,std::string>::value) {
+		DEBUG_STREAM<< "ScalarAttribTempl::read "<< get_name()<<std::endl;
+
+		if constexpr (std::is_same<T,std::string>::value) {
 
 			*attr_String_read = const_cast<char *>(_processScalar->accessData(0).c_str());
 			att.set_value(attr_String_read);
@@ -72,17 +72,17 @@ public:
 			att.set_value(&_processScalar->accessData(0));
 		}
 
-		if(_processScalar->dataValidity() != ChimeraTK::DataValidity::ok) 
+		if(_processScalar->dataValidity() != ChimeraTK::DataValidity::ok)
 		{
-			ERROR_STREAM<< "ScalarAttribTempl::read "<< get_name() <<" is not valid"<<endl;
+			ERROR_STREAM<< "ScalarAttribTempl::read "<< get_name() <<" is not valid"<<std::endl;
 		}
 
 	}
 
 	virtual void write(Tango::DeviceImpl *dev,
 			   Tango::WAttribute &att)
-	{	
-		DEBUG_STREAM<< "ScalarAttribTempl::write "<< get_name()<<endl;
+	{
+		DEBUG_STREAM<< "ScalarAttribTempl::write "<< get_name()<<std::endl;
 
 		switch (_dataType)
 		{
@@ -93,7 +93,7 @@ public:
 			_processScalar->accessData(0) = c_value;
 			break;
 		}
-		case Tango::DEV_USHORT:		
+		case Tango::DEV_USHORT:
 		{
 			uint16_t us_value;
 			att.get_write_value(us_value);
@@ -158,17 +158,17 @@ public:
 			break;
 		}
 	    case Tango::DEV_STRING:
-			if constexpr (is_same<T, std::string>::value) {
+			if constexpr (std::is_same<T, std::string>::value) {
 				Tango::DevString st_value;
 				att.get_write_value(st_value);
-				_processScalar->accessData(0) = std::string(st_value);				
-			}	
+				_processScalar->accessData(0) = std::string(st_value);
+			}
 
 			break;
 		default:
 
 			break;
-		}	
+		}
 		 _processScalar->write();
 	}
 
@@ -184,5 +184,3 @@ public:
 };
 
 } // namespace ChimeraTK
-
-

@@ -9,23 +9,23 @@
 //               and all properties and methods required
 //               by the ChimeraTKExample2 once per process.
 //
-// project :     
+// project :
 //
 // This file is part of Tango device class.
-// 
+//
 // Tango is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Tango is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Tango.  If not, see <http://www.gnu.org/licenses/>.
-// 
+//
 //
 //
 //=============================================================================
@@ -73,15 +73,15 @@ ChimeraTKExample2Class *ChimeraTKExample2Class::_instance = NULL;
 //--------------------------------------------------------
 ChimeraTKExample2Class::ChimeraTKExample2Class(string &s):Tango::DeviceClass(s)
 {
-	cout2 << "Entering ChimeraTKExample2Class constructor" << endl;
+	cout2 << "Entering ChimeraTKExample2Class constructor" << std::endl;
 	set_default_property();
 	write_class_property();
 
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::constructor) ENABLED START -----*/
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::constructor
 
-	cout2 << "Leaving ChimeraTKExample2Class constructor" << endl;
+	cout2 << "Leaving ChimeraTKExample2Class constructor" << std::endl;
 }
 
 //--------------------------------------------------------
@@ -93,7 +93,7 @@ ChimeraTKExample2Class::ChimeraTKExample2Class(string &s):Tango::DeviceClass(s)
 ChimeraTKExample2Class::~ChimeraTKExample2Class()
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::destructor) ENABLED START -----*/
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::destructor
 
 	_instance = NULL;
@@ -118,7 +118,7 @@ ChimeraTKExample2Class *ChimeraTKExample2Class::init(const char *name)
 			string s(name);
 			_instance = new ChimeraTKExample2Class(s);
 		}
-		catch (bad_alloc &)
+		catch (std::bad_alloc &)
 		{
 			throw;
 		}
@@ -137,7 +137,7 @@ ChimeraTKExample2Class *ChimeraTKExample2Class::instance()
 {
 	if (_instance == NULL)
 	{
-		cerr << "Class is not initialised !!" << endl;
+		cerr << "Class is not initialised !!" << std::endl;
 		exit(-1);
 	}
 	return _instance;
@@ -300,15 +300,15 @@ void ChimeraTKExample2Class::write_class_property()
 void ChimeraTKExample2Class::device_factory(const Tango::DevVarStringArray *devlist_ptr)
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::device_factory_before) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::device_factory_before
 
 	//	Create devices and add it into the device list
 	for (unsigned long i=0 ; i<devlist_ptr->length() ; i++)
 	{
-		cout4 << "Device name : " << (*devlist_ptr)[i].in() << endl;
+		cout4 << "Device name : " << (*devlist_ptr)[i].in() << std::endl;
 		device_list.push_back(new ChimeraTKExample2(this, (*devlist_ptr)[i]));
 	}
 
@@ -330,9 +330,9 @@ void ChimeraTKExample2Class::device_factory(const Tango::DevVarStringArray *devl
 	}
 
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::device_factory_after) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::device_factory_after
 }
 //--------------------------------------------------------
@@ -345,17 +345,17 @@ void ChimeraTKExample2Class::device_factory(const Tango::DevVarStringArray *devl
 void ChimeraTKExample2Class::attribute_factory(vector<Tango::Attr *> &att_list)
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::attribute_factory_before) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::attribute_factory_before
 
 	//	Create a list of static attributes
 	create_static_attribute_list(get_class_attr()->get_attr_list());
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::attribute_factory_after) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::attribute_factory_after
 }
 //--------------------------------------------------------
@@ -368,14 +368,14 @@ void ChimeraTKExample2Class::attribute_factory(vector<Tango::Attr *> &att_list)
 void ChimeraTKExample2Class::pipe_factory()
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::pipe_factory_before) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::pipe_factory_before
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::pipe_factory_after) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::pipe_factory_after
 }
 //--------------------------------------------------------
@@ -388,16 +388,16 @@ void ChimeraTKExample2Class::pipe_factory()
 void ChimeraTKExample2Class::command_factory()
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::command_factory_before) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::command_factory_before
 
 
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::command_factory_after) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::command_factory_after
 }
 
@@ -422,10 +422,10 @@ void ChimeraTKExample2Class::create_static_attribute_list(vector<Tango::Attr *> 
 		defaultAttList.push_back(att_name);
 	}
 
-	cout2 << defaultAttList.size() << " attributes in default list" << endl;
+	cout2 << defaultAttList.size() << " attributes in default list" << std::endl;
 
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::create_static_att_list) ENABLED START -----*/
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::create_static_att_list
 }
 
@@ -458,7 +458,7 @@ void ChimeraTKExample2Class::erase_dynamic_attributes(const Tango::DevVarStringA
 			vector<string>::iterator ite_str = find(defaultAttList.begin(), defaultAttList.end(), att_name);
 			if (ite_str == defaultAttList.end())
 			{
-				cout2 << att_name << " is a UNWANTED dynamic attribute for device " << (*devlist_ptr)[i] << endl;
+				cout2 << att_name << " is a UNWANTED dynamic attribute for device " << (*devlist_ptr)[i] << std::endl;
 				Tango::Attribute &att = dev->get_device_attr()->get_attr_by_name(att_name.c_str());
 				dev->remove_attribute(att_list[att.get_attr_idx()], true, false);
 				--ite_att;
@@ -466,7 +466,7 @@ void ChimeraTKExample2Class::erase_dynamic_attributes(const Tango::DevVarStringA
 		}
 	}
 	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::erase_dynamic_attributes) ENABLED START -----*/
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::erase_dynamic_attributes
 }
 

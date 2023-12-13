@@ -13,7 +13,7 @@ namespace ChimeraTK {
   void TangoUpdater::addVariable(
       TransferElementAbstractor variable, std::string attrId, AttrDataFormat attrDataFormat, long dataType) {
 
-    INFO_STREAM<<" TangoUpdater::addVariable "<<attrId<<endl;
+    INFO_STREAM<<" TangoUpdater::addVariable "<<attrId<<std::endl;
 
     if(variable.isReadable()) {
       auto id = variable.getId();
@@ -45,13 +45,12 @@ namespace ChimeraTK {
 
   void TangoUpdater::updateFonction(const std::string attrName, const AttrDataFormat attrDataFormat, const long dataType) {
 
-    vector<Tango::Attr *> &attr_vect = _device->get_device_class()->get_class_attr()->get_attr_list();
+    std::vector<Tango::Attr *> &attr_vect = _device->get_device_class()->get_class_attr()->get_attr_list();
     Tango::Attribute &att = _device->get_device_attr()->get_attr_by_name(attrName.c_str());
-    vector<Tango::Attr *>::iterator ite;
 
     long idx = att.get_attr_idx();
 
-    DEBUG_STREAM<<"TangoUpdater::updateFonction  "<<attrName<<endl;
+    DEBUG_STREAM<<"TangoUpdater::updateFonction  "<<attrName<<std::endl;
 
     switch (dataType){
         case Tango::DEV_UCHAR :
@@ -234,7 +233,7 @@ namespace ChimeraTK {
     while(true) {
       // Wait until any variable got an update
       auto notification = group.waitAny(); //inside has a //handlePreRead TransferElement
-      auto updatedElement = notification.getId();//1 ID 
+      auto updatedElement = notification.getId();//1 ID
       auto& descriptor = _descriptorMap[updatedElement]; //one descriptor
 
       // Complete the read transfer of the process variable

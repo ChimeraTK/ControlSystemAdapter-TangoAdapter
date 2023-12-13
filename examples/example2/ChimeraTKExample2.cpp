@@ -9,23 +9,23 @@
 //               network. All commands which can be executed on the
 //               ChimeraTKExample2 are implemented in this file.
 //
-// project :     
+// project :
 //
 // This file is part of Tango device class.
-// 
+//
 // Tango is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Tango is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Tango.  If not, see <http://www.gnu.org/licenses/>.
-// 
+//
 //
 //
 //=============================================================================
@@ -84,7 +84,7 @@ ChimeraTKExample2::ChimeraTKExample2(Tango::DeviceClass *cl, string &s)
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::constructor_1) ENABLED START -----*/
 	init_device();
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::constructor_1
 }
 //--------------------------------------------------------
@@ -93,7 +93,7 @@ ChimeraTKExample2::ChimeraTKExample2(Tango::DeviceClass *cl, const char *s)
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::constructor_2) ENABLED START -----*/
 	init_device();
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::constructor_2
 }
 //--------------------------------------------------------
@@ -102,7 +102,7 @@ ChimeraTKExample2::ChimeraTKExample2(Tango::DeviceClass *cl, const char *s, cons
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::constructor_3) ENABLED START -----*/
 	init_device();
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::constructor_3
 }
 
@@ -114,9 +114,9 @@ ChimeraTKExample2::ChimeraTKExample2(Tango::DeviceClass *cl, const char *s, cons
 //--------------------------------------------------------
 void ChimeraTKExample2::delete_device()
 {
-	DEBUG_STREAM << "ChimeraTKExample2::delete_device() " << device_name << endl;
+	DEBUG_STREAM << "ChimeraTKExample2::delete_device() " << device_name << std::endl;
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::delete_device) ENABLED START -----*/
-	
+
 	//	Delete device allocated objects
 	delete adapter;
 	//delete theExampleApp;
@@ -131,19 +131,19 @@ void ChimeraTKExample2::delete_device()
 //--------------------------------------------------------
 void ChimeraTKExample2::init_device()
 {
-	DEBUG_STREAM << "ChimeraTKExample2::init_device() create device " << device_name << endl;
+	DEBUG_STREAM << "ChimeraTKExample2::init_device() create device " << device_name << std::endl;
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::init_device_before) ENABLED START -----*/
-	
+
 	//	Initialization before get_device_property() call
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::init_device_before
-	
+
 
 	//	Get the device properties from database
 	get_device_property();
-	
+
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::init_device) ENABLED START -----*/
-	
+
 	//	Initialize device
     //set DMapFilePath from property
     if (!dMapFilePath.empty())
@@ -167,9 +167,9 @@ void ChimeraTKExample2::init_device()
 void ChimeraTKExample2::get_device_property()
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::get_device_property_before) ENABLED START -----*/
-	
+
 	//	Initialize property data members
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::get_device_property_before
 
 
@@ -184,7 +184,7 @@ void ChimeraTKExample2::get_device_property()
 		//	Call database and extract values
 		if (Tango::Util::instance()->_UseDb==true)
 			get_db_device()->get_property(dev_prop);
-	
+
 		//	get instance on ChimeraTKExample2Class to get class property
 		Tango::DbDatum	def_prop, cl_prop;
 		ChimeraTKExample2Class	*ds_class =
@@ -216,9 +216,9 @@ void ChimeraTKExample2::get_device_property()
 	}
 
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::get_device_property_after) ENABLED START -----*/
-	
+
 	//	Check device property data members init
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::get_device_property_after
 }
 
@@ -230,11 +230,11 @@ void ChimeraTKExample2::get_device_property()
 //--------------------------------------------------------
 void ChimeraTKExample2::always_executed_hook()
 {
-	DEBUG_STREAM << "ChimeraTKExample2::always_executed_hook()  " << device_name << endl;
+	DEBUG_STREAM << "ChimeraTKExample2::always_executed_hook()  " << device_name << std::endl;
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::always_executed_hook) ENABLED START -----*/
-	
+
 	//	code always executed before all requests
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::always_executed_hook
 }
 
@@ -246,11 +246,11 @@ void ChimeraTKExample2::always_executed_hook()
 //--------------------------------------------------------
 void ChimeraTKExample2::read_attr_hardware(TANGO_UNUSED(vector<long> &attr_list))
 {
-	DEBUG_STREAM << "ChimeraTKExample2::read_attr_hardware(vector<long> &attr_list) entering... " << endl;
+	DEBUG_STREAM << "ChimeraTKExample2::read_attr_hardware(vector<long> &attr_list) entering... " << std::endl;
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::read_attr_hardware) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::read_attr_hardware
 }
 
@@ -265,9 +265,9 @@ void ChimeraTKExample2::read_attr_hardware(TANGO_UNUSED(vector<long> &attr_list)
 void ChimeraTKExample2::add_dynamic_attributes()
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::add_dynamic_attributes) ENABLED START -----*/
-	
+
 	//	Add your own code to create and add dynamic attributes if any
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::add_dynamic_attributes
 }
 
@@ -281,9 +281,9 @@ void ChimeraTKExample2::add_dynamic_attributes()
 void ChimeraTKExample2::add_dynamic_commands()
 {
 	/*----- PROTECTED REGION ID(ChimeraTKExample2::add_dynamic_commands) ENABLED START -----*/
-	
+
 	//	Add your own code to create and add dynamic commands if any
-	
+
 	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::add_dynamic_commands
 }
 

@@ -5,23 +5,23 @@
 //
 // description : Include file for the ChimeraTKExample2 class
 //
-// project :     
+// project :
 //
 // This file is part of Tango device class.
-// 
+//
 // Tango is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Tango is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Tango.  If not, see <http://www.gnu.org/licenses/>.
-// 
+//
 //
 //
 //=============================================================================
@@ -33,7 +33,7 @@
 #ifndef ChimeraTKExample2_H
 #define ChimeraTKExample2_H
 
-#include <tango.h>
+#include <tango/tango.h>
 #include <AttributProperty.h>
 #include <TangoAdapter.h>
 //#include "MyApplication.h"
@@ -60,7 +60,7 @@ class ChimeraTKExample2 : public TANGO_BASE_CLASS
 /*----- PROTECTED REGION ID(ChimeraTKExample2::Data Members) ENABLED START -----*/
 
 //	Add your own data members
-private: 
+private:
 	ChimeraTK::TangoAdapter* adapter;
 	//ExampleApp *theExampleApp;
 /*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::Data Members

@@ -8,7 +8,7 @@
 // ============================================================================
 // DEPENDENCIES
 // ============================================================================
-#include <tango.h>
+#include <tango/tango.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -88,7 +88,7 @@ T get_property(Tango::DeviceImpl* dev_p, const std::string& property_name)
 template <class T>
 void create_property_if_empty(Tango::DeviceImpl* dev_p,
                                               Tango::DbData& dev_prop,
-                                              T value, string property_name)
+                                              T value, std::string property_name)
 {
   std::size_t iNbProperties = dev_prop.size();
   std::size_t i;
@@ -140,7 +140,7 @@ std::vector<T> string_to_array(std::string memoried_value)
   std::cout<<"===== string_to_array: "<<memoried_value<<std::endl;
   while(std::getline(property_value, intermediate, SEPERATOR))
   {
-    stringstream tmp(intermediate);
+    std::stringstream tmp(intermediate);
     tmp >> element;
     spectrum_values.push_back(element);
   }
