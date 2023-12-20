@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <ChimeraTK/ApplicationCore/ApplicationCore.h>
@@ -15,12 +14,12 @@ struct Controller : public ctk::ApplicationModule {
   ctk::ScalarPollInput<float> sp{this, "temperatureSetpoint", "degC", "Description"};
   ctk::ScalarPushInput<float> rb{this, "/heater/temperatureReadback", "degC", "..."};
   ctk::ScalarOutput<float> cur{this, "/heater/heatingCurrent", "mA", "..."};
-  ctk::ArrayPushInput<float> voltage{this, "/heater/supplyVoltages", "V", 4,"..."};
+  ctk::ArrayPollInput<float> voltage{this, "/heater/supplyVoltages", "V", 4,"..."};
   //test boolean
-  ctk::ScalarPollInput<ChimeraTK::Boolean> bool_scalar{this, "/heater/bool_scalar","", "..."};
-  ctk::ArrayOutput<ChimeraTK::Boolean> bool_arr{this, "/heater/bool_array","",2, "..."};
-  //ctk::ArrayPushInput<ChimeraTK::Boolean> bool_arr{this, "/heater/bool_array","",2, "..."};
-  //ctk::ScalarOutput<std::string> text{this, "/heater/SCALAR","", "..."};//
+  //ctk::ScalarPollInput<ChimeraTK::Boolean> bool_scalar{this, "/heater/bool_scalar","", "..."};
+  //test boolean array
+  //ctk::ArrayOutput<ChimeraTK::Boolean> bool_arr{this, "/heater/bool_array","",2, "..."};
+
 
   void mainLoop() {
     const float gain = 100.0;
@@ -69,4 +68,3 @@ struct ExampleApp final : public ctk::Application {
   ctk::DeviceModule oven{this, "oven", "/Timer/tick"};
 
 };
-

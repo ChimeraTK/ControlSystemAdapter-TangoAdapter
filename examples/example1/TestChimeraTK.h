@@ -34,9 +34,8 @@
 #define TestChimeraTK_H
 
 #include <tango.h>
-#include <AttributProperty.h>
-#include <TangoAdapter.h>
-//#include "MyApplication.h"
+#include <ChimeraTK/AttributProperty.h>
+#include <ChimeraTK/TangoAdapter.h>
 
 
 /*----- PROTECTED REGION END -----*/	//	TestChimeraTK.h
