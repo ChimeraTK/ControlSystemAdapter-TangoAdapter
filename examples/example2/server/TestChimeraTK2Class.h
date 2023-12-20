@@ -1,13 +1,13 @@
-/*----- PROTECTED REGION ID(ChimeraTKExample2Class.h) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2Class.h) ENABLED START -----*/
 //=============================================================================
 //
-// file :        ChimeraTKExample2Class.h
+// file :        TestChimeraTK2Class.h
 //
-// description : Include for the ChimeraTKExample2 root class.
+// description : Include for the TestChimeraTK2 root class.
 //               This class is the singleton class for
-//                the ChimeraTKExample2 device class.
+//                the TestChimeraTK2 device class.
 //               It contains all properties and methods which the 
-//               ChimeraTKExample2 requires only once e.g. the commands.
+//               TestChimeraTK2 requires only once e.g. the commands.
 //
 // project :     
 //
@@ -34,37 +34,37 @@
 //=============================================================================
 
 
-#ifndef ChimeraTKExample2Class_H
-#define ChimeraTKExample2Class_H
+#ifndef TestChimeraTK2Class_H
+#define TestChimeraTK2Class_H
 
 #include <tango.h>
-#include <ChimeraTKExample2.h>
+#include "TestChimeraTK2.h"
 
 
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class.h
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2Class.h
 
 
-namespace ChimeraTKExample2_ns
+namespace TestChimeraTK2_ns
 {
-/*----- PROTECTED REGION ID(ChimeraTKExample2Class::classes for dynamic creation) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2Class::classes for dynamic creation) ENABLED START -----*/
 
 
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::classes for dynamic creation
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2Class::classes for dynamic creation
 
 /**
- *	The ChimeraTKExample2Class singleton definition
+ *	The TestChimeraTK2Class singleton definition
  */
 
 #ifdef _TG_WINDOWS_
-class __declspec(dllexport)  ChimeraTKExample2Class : public Tango::DeviceClass
+class __declspec(dllexport)  TestChimeraTK2Class : public Tango::DeviceClass
 #else
-class ChimeraTKExample2Class : public Tango::DeviceClass
+class TestChimeraTK2Class : public Tango::DeviceClass
 #endif
 {
-	/*----- PROTECTED REGION ID(ChimeraTKExample2Class::Additionnal DServer data members) ENABLED START -----*/
+	/*----- PROTECTED REGION ID(TestChimeraTK2Class::Additionnal DServer data members) ENABLED START -----*/
 	
 	
-	/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2Class::Additionnal DServer data members
+	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2Class::Additionnal DServer data members
 
 	public:
 		//	write class properties data members
@@ -73,16 +73,16 @@ class ChimeraTKExample2Class : public Tango::DeviceClass
 		Tango::DbData	dev_def_prop;
 	
 		//	Method prototypes
-		static ChimeraTKExample2Class *init(const char *);
-		static ChimeraTKExample2Class *instance();
-		~ChimeraTKExample2Class();
+		static TestChimeraTK2Class *init(const char *);
+		static TestChimeraTK2Class *instance();
+		~TestChimeraTK2Class();
 		Tango::DbDatum	get_class_property(string &);
 		Tango::DbDatum	get_default_device_property(string &);
 		Tango::DbDatum	get_default_class_property(string &);
 	
 	protected:
-		ChimeraTKExample2Class(string &);
-		static ChimeraTKExample2Class *_instance;
+		TestChimeraTK2Class(string &);
+		static TestChimeraTK2Class *_instance;
 		void command_factory();
 		void attribute_factory(vector<Tango::Attr *> &);
 		void pipe_factory();
@@ -102,4 +102,4 @@ class ChimeraTKExample2Class : public Tango::DeviceClass
 
 }	//	End of namespace
 
-#endif   //	ChimeraTKExample2_H
+#endif   //	TestChimeraTK2_H

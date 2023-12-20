@@ -1,9 +1,9 @@
-/*----- PROTECTED REGION ID(ChimeraTKExample2StateMachine.cpp) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2StateMachine.cpp) ENABLED START -----*/
 //=============================================================================
 //
-// file :        ChimeraTKExample2StateMachine.cpp
+// file :        TestChimeraTK2StateMachine.cpp
 //
-// description : State machine file for the ChimeraTKExample2 class
+// description : State machine file for the TestChimeraTK2 class
 //
 // project :     
 //
@@ -29,16 +29,19 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-#include <ChimeraTKExample2.h>
+#include "TestChimeraTK2.h"
 
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::ChimeraTKExample2StateMachine.cpp
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::TestChimeraTK2StateMachine.cpp
 
 //================================================================
-//  States  |  Description
+//  States   |  Description
 //================================================================
+//  FAULT    |  
+//  RUNNING  |  
+//  INIT     |  Server is in init state
 
 
-namespace ChimeraTKExample2_ns
+namespace TestChimeraTK2_ns
 {
 //=================================================
 //		Attributes Allowed Methods
@@ -50,10 +53,10 @@ namespace ChimeraTKExample2_ns
 //=================================================
 
 
-/*----- PROTECTED REGION ID(ChimeraTKExample2::ChimeraTKExample2StateAllowed.AdditionalMethods) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2::TestChimeraTK2StateAllowed.AdditionalMethods) ENABLED START -----*/
 
 //	Additional Methods
 
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::ChimeraTKExample2StateAllowed.AdditionalMethods
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::TestChimeraTK2StateAllowed.AdditionalMethods
 
 }	//	End of namespace

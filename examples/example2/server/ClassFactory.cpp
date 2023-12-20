@@ -1,4 +1,4 @@
-/*----- PROTECTED REGION ID(ChimeraTKExample2::ClassFactory.cpp) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2::ClassFactory.cpp) ENABLED START -----*/
 //=============================================================================
 //
 // file :        ClassFactory.cpp
@@ -33,18 +33,18 @@
 //=============================================================================
 
 #include <tango.h>
-#include <ChimeraTKExample2Class.h>
+#include "TestChimeraTK2Class.h"
 
 //	Add class header files if needed
 
 
 /**
- *	Create ChimeraTKExample2 Class singleton and store it in DServer object.
+ *	Create TestChimeraTK2 Class singleton and store it in DServer object.
  */
 
 void Tango::DServer::class_factory()
 {
 	//	Add method class init if needed
-	add_class(ChimeraTKExample2_ns::ChimeraTKExample2Class::init("ChimeraTKExample2"));
+	add_class(TestChimeraTK2_ns::TestChimeraTK2Class::init("TestChimeraTK2"));
 }
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::ClassFactory.cpp
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::ClassFactory.cpp

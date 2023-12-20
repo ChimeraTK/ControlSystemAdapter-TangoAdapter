@@ -1,9 +1,9 @@
-/*----- PROTECTED REGION ID(ChimeraTKExample2::main.cpp) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2::main.cpp) ENABLED START -----*/
 //=============================================================================
 //
 // file :        main.cpp
 //
-// description : C++ source for the ChimeraTKExample2 device server main.
+// description : C++ source for the TestChimeraTK2 device server main.
 //               The main rule is to initialise (and create) the Tango
 //               system and to create the DServerClass singleton.
 //               The main should be the same for every Tango device server.
@@ -78,4 +78,4 @@ int main(int argc,char *argv[])
 	return(0);
 }
 
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::main.cpp
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::main.cpp

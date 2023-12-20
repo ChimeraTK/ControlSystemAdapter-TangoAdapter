@@ -1,9 +1,9 @@
-/*----- PROTECTED REGION ID(ChimeraTKExample2.h) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2.h) ENABLED START -----*/
 //=============================================================================
 //
-// file :        ChimeraTKExample2.h
+// file :        TestChimeraTK2.h
 //
-// description : Include file for the ChimeraTKExample2 class
+// description : Include file for the TestChimeraTK2 class
 //
 // project :     
 //
@@ -30,40 +30,35 @@
 //=============================================================================
 
 
-#ifndef ChimeraTKExample2_H
-#define ChimeraTKExample2_H
+#ifndef TestChimeraTK2_H
+#define TestChimeraTK2_H
 
 #include <tango.h>
-#include <AttributProperty.h>
-#include <TangoAdapter.h>
-//#include "MyApplication.h"
+#include <ChimeraTK/TangoAdapter.h>
 
-
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2.h
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2.h
 
 /**
- *  ChimeraTKExample2 class description:
+ *  TestChimeraTK2 class description:
  *    Test of TangoAdapterfor ChimeraTK
  */
 
-namespace ChimeraTKExample2_ns
+namespace TestChimeraTK2_ns
 {
-/*----- PROTECTED REGION ID(ChimeraTKExample2::Additional Class Declarations) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2::Additional Class Declarations) ENABLED START -----*/
 
 //	Additional Class Declarations
 
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::Additional Class Declarations
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::Additional Class Declarations
 
-class ChimeraTKExample2 : public TANGO_BASE_CLASS
+class TestChimeraTK2 : public TANGO_BASE_CLASS
 {
 
-/*----- PROTECTED REGION ID(ChimeraTKExample2::Data Members) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2::Data Members) ENABLED START -----*/
 
 //	Add your own data members
-private: 
-	ChimeraTK::TangoAdapter* adapter;
-	//ExampleApp *theExampleApp;
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::Data Members
+	ChimeraTK::TangoAdapter* tangoAdapter;
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::Data Members
 
 //	Device property data members
 public:
@@ -81,14 +76,14 @@ public:
 	 *	@param cl	Class.
 	 *	@param s 	Device Name
 	 */
-	ChimeraTKExample2(Tango::DeviceClass *cl,string &s);
+	TestChimeraTK2(Tango::DeviceClass *cl,string &s);
 	/**
 	 * Constructs a newly device object.
 	 *
 	 *	@param cl	Class.
 	 *	@param s 	Device Name
 	 */
-	ChimeraTKExample2(Tango::DeviceClass *cl,const char *s);
+	TestChimeraTK2(Tango::DeviceClass *cl,const char *s);
 	/**
 	 * Constructs a newly device object.
 	 *
@@ -96,11 +91,11 @@ public:
 	 *	@param s 	Device name
 	 *	@param d	Device description.
 	 */
-	ChimeraTKExample2(Tango::DeviceClass *cl,const char *s,const char *d);
+	TestChimeraTK2(Tango::DeviceClass *cl,const char *s,const char *d);
 	/**
 	 * The device object destructor.
 	 */
-	~ChimeraTKExample2() {delete_device();};
+	~TestChimeraTK2() {delete_device();};
 
 
 //	Miscellaneous methods
@@ -127,7 +122,7 @@ public:
 public:
 	//--------------------------------------------------------
 	/*
-	 *	Method      : ChimeraTKExample2::read_attr_hardware()
+	 *	Method      : TestChimeraTK2::read_attr_hardware()
 	 *	Description : Hardware acquisition for attributes.
 	 */
 	//--------------------------------------------------------
@@ -136,7 +131,7 @@ public:
 
 	//--------------------------------------------------------
 	/**
-	 *	Method      : ChimeraTKExample2::add_dynamic_attributes()
+	 *	Method      : TestChimeraTK2::add_dynamic_attributes()
 	 *	Description : Add dynamic attributes if any.
 	 */
 	//--------------------------------------------------------
@@ -151,25 +146,25 @@ public:
 
 	//--------------------------------------------------------
 	/**
-	 *	Method      : ChimeraTKExample2::add_dynamic_commands()
+	 *	Method      : TestChimeraTK2::add_dynamic_commands()
 	 *	Description : Add dynamic commands if any.
 	 */
 	//--------------------------------------------------------
 	void add_dynamic_commands();
 
-/*----- PROTECTED REGION ID(ChimeraTKExample2::Additional Method prototypes) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2::Additional Method prototypes) ENABLED START -----*/
 
 //	Additional Method prototypes
 
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::Additional Method prototypes
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::Additional Method prototypes
 };
 
-/*----- PROTECTED REGION ID(ChimeraTKExample2::Additional Classes Definitions) ENABLED START -----*/
+/*----- PROTECTED REGION ID(TestChimeraTK2::Additional Classes Definitions) ENABLED START -----*/
 
 //	Additional Classes Definitions
 
-/*----- PROTECTED REGION END -----*/	//	ChimeraTKExample2::Additional Classes Definitions
+/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::Additional Classes Definitions
 
 }	//	End of namespace
 
-#endif   //	ChimeraTKExample2_H
+#endif   //	TestChimeraTK2_H
