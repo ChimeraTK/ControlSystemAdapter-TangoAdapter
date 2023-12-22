@@ -579,6 +579,6 @@ void TangoAdapter::detach_dynamic_attributes_from_device(void)
     DEBUG_STREAM <<"TangoAdapter::detach_dynamic_attributes_from_device"<<endl;
 
     for(size_t i = 0; i < _dynamic_attribute_list.size(); ++i)
-        _device->remove_attribute(_dynamic_attribute_list[i], false);
+        _device->remove_attribute(_dynamic_attribute_list[i], false, false /*do not cleanup tangodb when removing this dyn. attr*/);
 }
 } // namespace ChimeraTK
