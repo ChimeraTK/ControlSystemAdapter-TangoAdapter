@@ -15,12 +15,12 @@ namespace ChimeraTK {
 //
 // method :    Constructor
 //
-// description :    
+// description :
 //
 //-----------------------------------------------------------------------------
 TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::string> attributList):  Tango::LogAdapter(tangoDevice) {
 
-    DEBUG_STREAM<<"TangoAdapter::TangoAdapter starting ... "<<endl;
+    DEBUG_STREAM<<"TangoAdapter::TangoAdapter starting ... "<<std::endl;
     _device = tangoDevice;
 
     std::pair<boost::shared_ptr<ControlSystemPVManager>, boost::shared_ptr<DevicePVManager>> pvManagers =
@@ -41,19 +41,19 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     catch(ChimeraTK::logic_error& e) {
       ERROR_STREAM << "*************************************************************"
                    "***************************************"
-                << endl;
+                << std::endl;
       ERROR_STREAM << "Logic error when getting the application instance. The TangoAdapter requires the use of the "
                    "ChimeraTK::ApplicationFactory instead of a static apllication instance."
-                << endl;
+                << std::endl;
 
       ERROR_STREAM << "Replace `static MyApplication theApp` with `static ChimeraTK::ApplicationFactory<MyApplication> "
                    "theAppFactory`."
-                << endl;
+                << std::endl;
       ERROR_STREAM << "*************************************************************"
                    "***************************************"
                 << std::endl;
 
-      ERROR_STREAM<<e.what()<<endl;
+      ERROR_STREAM<<e.what()<<std::endl;
       _device->set_state(Tango::FAULT);
       _device->set_status(e.what());
       return;
@@ -61,29 +61,29 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     appInstance->setPVManager(_devicePVManager);
     appInstance->initialise();
 
-    // the variable manager can only be filled after we have the CS manager  
+    // the variable manager can only be filled after we have the CS manager
     std::set<std::string> names= getAllVariableNames(_controlSystemPVManager);
     std::string tickname;
 
-    INFO_STREAM<<"TangoAdapter::TangoAdapter list of variable"<<endl;
+    INFO_STREAM<<"TangoAdapter::TangoAdapter list of variable"<<std::endl;
     for (std::set<std::string>::iterator it=names.begin(); it!=names.end(); ++it)
     {
-        INFO_STREAM<< *it <<endl;
-        if ((*it).find("/tick")!=string::npos)
+        INFO_STREAM<< *it <<std::endl;
+        if ((*it).find("/tick")!=std::string::npos)
             tickname = *it;
     }
 
     // no configuration, import all
     if (attributList.size()==0 || (attributList.size()==1&& attributList[0]==""))
     {
-        INFO_STREAM<< "Direct import" <<endl;
+        INFO_STREAM<< "Direct import" <<std::endl;
         names.erase (tickname);
         ChimeraTK::AttributMapper::getInstance().setCSPVManager(_controlSystemPVManager);
-        ChimeraTK::AttributMapper::getInstance().directImport(names);   
+        ChimeraTK::AttributMapper::getInstance().directImport(names);
     }
     // configured attributs from property
     else {
-        ChimeraTK::AttributMapper::getInstance().prepareOutput(attributList); 
+        ChimeraTK::AttributMapper::getInstance().prepareOutput(attributList);
     }
     // create the dynamic attributes for Tango devices
     create_dynamic_attributes();
@@ -98,18 +98,18 @@ TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice,  std::vector<std::stri
     _device->set_state(Tango::ON);
     _device->set_status("Application is running.");
 
-    DEBUG_STREAM<<"TangoAdapter::TangoAdapter end"<<endl;
+    DEBUG_STREAM<<"TangoAdapter::TangoAdapter end"<<std::endl;
 }
 //+----------------------------------------------------------------------------
 //
 // method :  Destructor
 //
-// description :   
+// description :
 //
 //-----------------------------------------------------------------------------
 TangoAdapter::~TangoAdapter(){
 
-	DEBUG_STREAM << " TangoAdapter::~TangoAdapter" << endl;
+	DEBUG_STREAM << " TangoAdapter::~TangoAdapter" << std::endl;
 
     _updater->stop();
 
@@ -127,7 +127,7 @@ TangoAdapter::~TangoAdapter(){
 //-----------------------------------------------------------------------------
 void TangoAdapter::write_inited_values(void){
 
-    DEBUG_STREAM << " TangoAdapter::write_inited_values " << _write_spectrum_attr_list.size()<<endl;
+    DEBUG_STREAM << " TangoAdapter::write_inited_values " << _write_spectrum_attr_list.size()<<std::endl;
 
     /* WRITE MEMORIED SPECTRUM VALUES
        //There is error in Tango lib, the manual write does not work (method set_write_value of WAttribute)
@@ -137,12 +137,12 @@ void TangoAdapter::write_inited_values(void){
     for (const auto& [attProp, index] : _write_spectrum_attr_list)
     {
         //auto attProp = tmp.first;
-        DEBUG_STREAM <<"name: "<<attProp->_name<<" type:"<<attProp->_dataType<<endl;
+        DEBUG_STREAM <<"name: "<<attProp->_name<<" type:"<<attProp->_dataType<<std::endl;
         Tango::WAttribute &write_attribute = _device->get_device_attr()->get_w_attr_by_name(attProp->_name.c_str());
         std::string mem_value = get_property<std::string>(_device, "__Memoried_" + attProp->_name);
         if (mem_value.empty())
             continue;
-        DEBUG_STREAM <<"__Memoried_"<<attProp->_name<<" mem_value: "<<mem_value<<endl;
+        DEBUG_STREAM <<"__Memoried_"<<attProp->_name<<" mem_value: "<<mem_value<<std::endl;
         Tango::Attr *base_attr = _dynamic_attribute_list[index];
 
         switch (attProp->_dataType)
@@ -249,7 +249,7 @@ void TangoAdapter::write_inited_values(void){
             break;
             }
         default:
-            ERROR_STREAM<<"TangoAdapter::write_inited_values - unknown datatype: "<< attProp->_dataType <<endl;
+            ERROR_STREAM<<"TangoAdapter::write_inited_values - unknown datatype: "<< attProp->_dataType <<std::endl;
 
     }
 
@@ -259,7 +259,7 @@ void TangoAdapter::write_inited_values(void){
     // once at server start.
     for(auto& pv : _controlSystemPVManager->getAllProcessVariables()) {
         if(!pv->isWriteable()) continue;
-  
+
         if(pv->getVersionNumber() == ChimeraTK::VersionNumber(nullptr)) {
             // The variable has not yet been written. Do it now, even if we just send a 0.
             pv->write();
@@ -278,7 +278,7 @@ void TangoAdapter::write_inited_values(void){
 //-----------------------------------------------------------------------------
 void TangoAdapter::create_dynamic_attributes(void){
 
-    DEBUG_STREAM << " TangoAdapter::create_dynamic_attributes " << endl;
+    DEBUG_STREAM << " TangoAdapter::create_dynamic_attributes " << std::endl;
 
     auto descList = AttributMapper::getInstance().getAttDescList();
     for (auto attDesc:descList)
@@ -286,16 +286,16 @@ void TangoAdapter::create_dynamic_attributes(void){
 
         if (attDesc->getDataFormat()==SCALAR)
         {
-            create_Scalar_Attr(attDesc);            
+            create_Scalar_Attr(attDesc);
         }
         else if (attDesc->getDataFormat()==SPECTRUM)
         {
-            create_Spectrum_Attr(attDesc);    
+            create_Spectrum_Attr(attDesc);
         }
     }
 
     attach_dynamic_attributes_to_device();
-	
+
 }
 
 
@@ -308,8 +308,8 @@ void TangoAdapter::create_dynamic_attributes(void){
 //-----------------------------------------------------------------------------
 void TangoAdapter::create_Scalar_Attr(std::shared_ptr<AttributProperty> const& attProp)
 {
-    DEBUG_STREAM<<"TangoAdapter::create_Scalar_Attr"<<endl;
-    
+    DEBUG_STREAM<<"TangoAdapter::create_Scalar_Attr"<<std::endl;
+
  	ProcessVariable::SharedPtr processVariable = _controlSystemPVManager->getProcessVariable(attProp->_path);
 
     if (processVariable->isWriteable() && processVariable->isReadable()){
@@ -318,7 +318,7 @@ void TangoAdapter::create_Scalar_Attr(std::shared_ptr<AttributProperty> const& a
     else if (processVariable->isWriteable()){
         attProp->_writeType = Tango::WRITE;
     }
-    else { 
+    else {
         attProp->_writeType = Tango::READ;
     }
 
@@ -420,10 +420,10 @@ void TangoAdapter::create_Scalar_Attr(std::shared_ptr<AttributProperty> const& a
         }
         default:
 
-            ERROR_STREAM <<" Not supported data type in scalar: "<< attProp->_dataType<<endl;
+            ERROR_STREAM <<" Not supported data type in scalar: "<< attProp->_dataType<<std::endl;
             break;
     }
-    
+
 }
 
 //+----------------------------------------------------------------------------
@@ -435,17 +435,17 @@ void TangoAdapter::create_Scalar_Attr(std::shared_ptr<AttributProperty> const& a
 //-----------------------------------------------------------------------------
 void TangoAdapter::create_Spectrum_Attr(std::shared_ptr<AttributProperty> const& attProp)
 {
-    DEBUG_STREAM <<"TangoAdapter::create_Spectrum_Attr"<<endl;
-    
+    DEBUG_STREAM <<"TangoAdapter::create_Spectrum_Attr"<<std::endl;
+
     ProcessVariable::SharedPtr processVariable = _controlSystemPVManager->getProcessVariable(attProp->_path);
-    
+
     if (processVariable->isWriteable() && processVariable->isReadable()){
         attProp->_writeType = Tango::READ_WRITE;
     }
     else if (processVariable->isWriteable()){
         attProp->_writeType = Tango::WRITE;
     }
-    else { 
+    else {
         attProp->_writeType = Tango::READ;
     }
 
@@ -558,9 +558,9 @@ void TangoAdapter::create_Spectrum_Attr(std::shared_ptr<AttributProperty> const&
 //-----------------------------------------------------------------------------
 void TangoAdapter::attach_dynamic_attributes_to_device(void)
 {
-    DEBUG_STREAM <<"TangoAdapter::attach_dynamic_attributes_to_device"<<endl;
+    DEBUG_STREAM <<"TangoAdapter::attach_dynamic_attributes_to_device"<<std::endl;
 
-    for(size_t i = 0; i < _dynamic_attribute_list.size(); ++i) {    
+    for(size_t i = 0; i < _dynamic_attribute_list.size(); ++i) {
         _device->add_attribute(_dynamic_attribute_list[i]);
     }
 
@@ -576,7 +576,7 @@ void TangoAdapter::attach_dynamic_attributes_to_device(void)
 //-----------------------------------------------------------------------------
 void TangoAdapter::detach_dynamic_attributes_from_device(void)
 {
-    DEBUG_STREAM <<"TangoAdapter::detach_dynamic_attributes_from_device"<<endl;
+    DEBUG_STREAM <<"TangoAdapter::detach_dynamic_attributes_from_device"<<std::endl;
 
     for(size_t i = 0; i < _dynamic_attribute_list.size(); ++i)
         _device->remove_attribute(_dynamic_attribute_list[i], false, false /*do not cleanup tangodb when removing this dyn. attr*/);

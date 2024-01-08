@@ -9,23 +9,23 @@
 //               and all properties and methods required
 //               by the TestChimeraTK once per process.
 //
-// project :     
+// project :
 //
 // This file is part of Tango device class.
-// 
+//
 // Tango is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Tango is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Tango.  If not, see <http://www.gnu.org/licenses/>.
-// 
+//
 //
 //
 //=============================================================================
@@ -35,6 +35,14 @@
 
 
 #include <TestChimeraTKClass.h>
+
+#ifndef cout4
+#  define cout4 TANGO_LOG_DEBUG
+#endif
+
+#ifndef cout2
+#  define cout2 TANGO_LOG_DEBUG
+#endif
 
 /*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass.cpp
 
@@ -71,17 +79,17 @@ TestChimeraTKClass *TestChimeraTKClass::_instance = NULL;
  * @param s	The class name
  */
 //--------------------------------------------------------
-TestChimeraTKClass::TestChimeraTKClass(string &s):Tango::DeviceClass(s)
+TestChimeraTKClass::TestChimeraTKClass(std::string &s):Tango::DeviceClass(s)
 {
-	cout2 << "Entering TestChimeraTKClass constructor" << endl;
+	cout2 << "Entering TestChimeraTKClass constructor" << std::endl;
 	set_default_property();
 	write_class_property();
 
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::constructor) ENABLED START -----*/
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::constructor
 
-	cout2 << "Leaving TestChimeraTKClass constructor" << endl;
+	cout2 << "Leaving TestChimeraTKClass constructor" << std::endl;
 }
 
 //--------------------------------------------------------
@@ -93,7 +101,7 @@ TestChimeraTKClass::TestChimeraTKClass(string &s):Tango::DeviceClass(s)
 TestChimeraTKClass::~TestChimeraTKClass()
 {
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::destructor) ENABLED START -----*/
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::destructor
 
 	_instance = NULL;
@@ -115,10 +123,10 @@ TestChimeraTKClass *TestChimeraTKClass::init(const char *name)
 	{
 		try
 		{
-			string s(name);
+			std::string s(name);
 			_instance = new TestChimeraTKClass(s);
 		}
-		catch (bad_alloc &)
+		catch (std::bad_alloc &)
 		{
 			throw;
 		}
@@ -137,7 +145,7 @@ TestChimeraTKClass *TestChimeraTKClass::instance()
 {
 	if (_instance == NULL)
 	{
-		cerr << "Class is not initialised !!" << endl;
+		std::cerr << "Class is not initialised !!" << std::endl;
 		exit(-1);
 	}
 	return _instance;
@@ -158,7 +166,7 @@ TestChimeraTKClass *TestChimeraTKClass::instance()
  *	Description : Get the class property for specified name.
  */
 //--------------------------------------------------------
-Tango::DbDatum TestChimeraTKClass::get_class_property(string &prop_name)
+Tango::DbDatum TestChimeraTKClass::get_class_property(std::string &prop_name)
 {
 	for (unsigned int i=0 ; i<cl_prop.size() ; i++)
 		if (cl_prop[i].name == prop_name)
@@ -173,7 +181,7 @@ Tango::DbDatum TestChimeraTKClass::get_class_property(string &prop_name)
  *	Description : Return the default value for device property.
  */
 //--------------------------------------------------------
-Tango::DbDatum TestChimeraTKClass::get_default_device_property(string &prop_name)
+Tango::DbDatum TestChimeraTKClass::get_default_device_property(std::string &prop_name)
 {
 	for (unsigned int i=0 ; i<dev_def_prop.size() ; i++)
 		if (dev_def_prop[i].name == prop_name)
@@ -188,15 +196,12 @@ Tango::DbDatum TestChimeraTKClass::get_default_device_property(string &prop_name
  *	Description : Return the default value for class property.
  */
 //--------------------------------------------------------
-Tango::DbDatum TestChimeraTKClass::get_default_class_property(string &prop_name)
-{
-	for (unsigned int i=0 ; i<cl_def_prop.size() ; i++)
-		if (cl_def_prop[i].name == prop_name)
-			return cl_def_prop[i];
-	//	if not found, return  an empty DbDatum
-	return Tango::DbDatum(prop_name);
+Tango::DbDatum TestChimeraTKClass::get_default_class_property(std::string& prop_name) {
+  for(unsigned int i = 0; i < cl_def_prop.size(); i++)
+    if(cl_def_prop[i].name == prop_name) return cl_def_prop[i];
+  //	if not found, return  an empty DbDatum
+  return Tango::DbDatum(prop_name);
 }
-
 
 //--------------------------------------------------------
 /**
@@ -209,10 +214,10 @@ Tango::DbDatum TestChimeraTKClass::get_default_class_property(string &prop_name)
 //--------------------------------------------------------
 void TestChimeraTKClass::set_default_property()
 {
-	string	prop_name;
-	string	prop_desc;
-	string	prop_def;
-	vector<string>	vect_data;
+	std::string	prop_name;
+	std::string	prop_desc;
+	std::string	prop_def;
+	std::vector<std::string>	vect_data;
 
 	//	Set Default Class Properties
 
@@ -258,26 +263,26 @@ void TestChimeraTKClass::write_class_property()
 		return;
 
 	Tango::DbData	data;
-	string	classname = get_name();
-	string	header;
-	string::size_type	start, end;
+	std::string	classname = get_name();
+	std::string	header;
+	std::string::size_type	start, end;
 
 	//	Put title
 	Tango::DbDatum	title("ProjectTitle");
-	string	str_title("");
+	std::string	str_title("");
 	title << str_title;
 	data.push_back(title);
 
 	//	Put Description
 	Tango::DbDatum	description("Description");
-	vector<string>	str_desc;
+	std::vector<std::string>	str_desc;
 	str_desc.push_back("Test");
 	description << str_desc;
 	data.push_back(description);
 
 	//  Put inheritance
 	Tango::DbDatum	inher_datum("InheritedFrom");
-	vector<string> inheritance;
+	std::vector<std::string> inheritance;
 	inheritance.push_back("TANGO_BASE_CLASS");
 	inher_datum << inheritance;
 	data.push_back(inher_datum);
@@ -300,15 +305,15 @@ void TestChimeraTKClass::write_class_property()
 void TestChimeraTKClass::device_factory(const Tango::DevVarStringArray *devlist_ptr)
 {
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::device_factory_before) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::device_factory_before
 
 	//	Create devices and add it into the device list
 	for (unsigned long i=0 ; i<devlist_ptr->length() ; i++)
 	{
-		cout4 << "Device name : " << (*devlist_ptr)[i].in() << endl;
+		cout4 << "Device name : " << (*devlist_ptr)[i].in() << std::endl;
 		device_list.push_back(new TestChimeraTK(this, (*devlist_ptr)[i]));
 	}
 
@@ -330,9 +335,9 @@ void TestChimeraTKClass::device_factory(const Tango::DevVarStringArray *devlist_
 	}
 
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::device_factory_after) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::device_factory_after
 }
 //--------------------------------------------------------
@@ -342,20 +347,20 @@ void TestChimeraTKClass::device_factory(const Tango::DevVarStringArray *devlist_
  *                and store them in the attribute list
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::attribute_factory(vector<Tango::Attr *> &att_list)
+void TestChimeraTKClass::attribute_factory(std::vector<Tango::Attr *> &att_list)
 {
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::attribute_factory_before) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::attribute_factory_before
 
 	//	Create a list of static attributes
 	create_static_attribute_list(get_class_attr()->get_attr_list());
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::attribute_factory_after) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::attribute_factory_after
 }
 //--------------------------------------------------------
@@ -368,14 +373,14 @@ void TestChimeraTKClass::attribute_factory(vector<Tango::Attr *> &att_list)
 void TestChimeraTKClass::pipe_factory()
 {
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::pipe_factory_before) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::pipe_factory_before
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::pipe_factory_after) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::pipe_factory_after
 }
 //--------------------------------------------------------
@@ -388,16 +393,16 @@ void TestChimeraTKClass::pipe_factory()
 void TestChimeraTKClass::command_factory()
 {
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::command_factory_before) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::command_factory_before
 
 
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::command_factory_after) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::command_factory_after
 }
 
@@ -413,19 +418,19 @@ void TestChimeraTKClass::command_factory()
  * @param	att_list	the ceated attribute list
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::create_static_attribute_list(vector<Tango::Attr *> &att_list)
+void TestChimeraTKClass::create_static_attribute_list(std::vector<Tango::Attr *> &att_list)
 {
 	for (unsigned long i=0 ; i<att_list.size() ; i++)
 	{
-		string att_name(att_list[i]->get_name());
-		transform(att_name.begin(), att_name.end(), att_name.begin(), ::tolower);
+		std::string att_name(att_list[i]->get_name());
+		std::transform(att_name.begin(), att_name.end(), att_name.begin(), ::tolower);
 		defaultAttList.push_back(att_name);
 	}
 
-	cout2 << defaultAttList.size() << " attributes in default list" << endl;
+	cout2 << defaultAttList.size() << " attributes in default list" << std::endl;
 
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::create_static_att_list) ENABLED START -----*/
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::create_static_att_list
 }
 
@@ -439,26 +444,26 @@ void TestChimeraTKClass::create_static_attribute_list(vector<Tango::Attr *> &att
  * @param	list of all attributes
  */
 //--------------------------------------------------------
-void TestChimeraTKClass::erase_dynamic_attributes(const Tango::DevVarStringArray *devlist_ptr, vector<Tango::Attr *> &att_list)
+void TestChimeraTKClass::erase_dynamic_attributes(const Tango::DevVarStringArray *devlist_ptr, std::vector<Tango::Attr *> &att_list)
 {
 	Tango::Util *tg = Tango::Util::instance();
 
 	for (unsigned long i=0 ; i<devlist_ptr->length() ; i++)
 	{
-		Tango::DeviceImpl *dev_impl = tg->get_device_by_name(((string)(*devlist_ptr)[i]).c_str());
+		Tango::DeviceImpl *dev_impl = tg->get_device_by_name(((std::string)(*devlist_ptr)[i]).c_str());
 		TestChimeraTK *dev = static_cast<TestChimeraTK *> (dev_impl);
 
-		vector<Tango::Attribute *> &dev_att_list = dev->get_device_attr()->get_attribute_list();
-		vector<Tango::Attribute *>::iterator ite_att;
+		auto &dev_att_list = dev->get_device_attr()->get_attribute_list();
+		std::vector<Tango::Attribute *>::iterator ite_att;
 		for (ite_att=dev_att_list.begin() ; ite_att != dev_att_list.end() ; ++ite_att)
 		{
-			string att_name((*ite_att)->get_name_lower());
+			std::string att_name((*ite_att)->get_name_lower());
 			if ((att_name == "state") || (att_name == "status"))
 				continue;
-			vector<string>::iterator ite_str = find(defaultAttList.begin(), defaultAttList.end(), att_name);
+			auto ite_str = find(defaultAttList.begin(), defaultAttList.end(), att_name);
 			if (ite_str == defaultAttList.end())
 			{
-				cout2 << att_name << " is a UNWANTED dynamic attribute for device " << (*devlist_ptr)[i] << endl;
+				cout2 << att_name << " is a UNWANTED dynamic attribute for device " << (*devlist_ptr)[i] << std::endl;
 				Tango::Attribute &att = dev->get_device_attr()->get_attr_by_name(att_name.c_str());
 				dev->remove_attribute(att_list[att.get_attr_idx()], true, false);
 				--ite_att;
@@ -466,7 +471,7 @@ void TestChimeraTKClass::erase_dynamic_attributes(const Tango::DevVarStringArray
 		}
 	}
 	/*----- PROTECTED REGION ID(TestChimeraTKClass::erase_dynamic_attributes) ENABLED START -----*/
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTKClass::erase_dynamic_attributes
 }
 
@@ -476,9 +481,9 @@ void TestChimeraTKClass::erase_dynamic_attributes(const Tango::DevVarStringArray
  *	Description : returns Tango::Attr * object found by name
  */
 //--------------------------------------------------------
-Tango::Attr *TestChimeraTKClass::get_attr_object_by_name(vector<Tango::Attr *> &att_list, string attname)
+Tango::Attr *TestChimeraTKClass::get_attr_object_by_name(std::vector<Tango::Attr *> &att_list, std::string attname)
 {
-	vector<Tango::Attr *>::iterator it;
+	std::vector<Tango::Attr *>::iterator it;
 	for (it=att_list.begin() ; it<att_list.end() ; ++it)
 		if ((*it)->get_name()==attname)
 			return (*it);

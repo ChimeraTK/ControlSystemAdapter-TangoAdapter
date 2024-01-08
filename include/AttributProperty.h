@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include <map>
-#include <tango.h>
-#include <boost/algorithm/string/split.hpp> 
-#include <boost/algorithm/string/classification.hpp> 
+#include <tango/tango.h>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #define TOKEN ";"
 
 namespace ChimeraTK {
@@ -13,7 +13,7 @@ enum AttrDataFormat{SCALAR,SPECTRUM,IMAGE};
 
   class AttributProperty {
    public:
-    //Speed;Board/Reg;SCALAR;DEVShort 
+    //Speed;Board/Reg;SCALAR;DEVShort
     AttributProperty(std::string name,std::string path,AttrDataFormat dataFormat, long dataType,std::string desc,std::string unit){
 
       _name = name;
@@ -70,23 +70,21 @@ enum AttrDataFormat{SCALAR,SPECTRUM,IMAGE};
 
     void operator=(AttributProperty const&) = delete;
 
-    long getTangoType(){return _dataType;} 
+    long getTangoType(){return _dataType;}
 
-    ChimeraTK::AttrDataFormat getDataFormat(){return _attrDataFormat;} 
-    
-    
-    std::map<std::string,ChimeraTK::AttrDataFormat>regTypeMap={ {"SCALAR", ChimeraTK::AttrDataFormat::SCALAR}, {"SPECTRUM",ChimeraTK::AttrDataFormat::SPECTRUM },{"IMAGE",ChimeraTK::AttrDataFormat::IMAGE} };    
+    ChimeraTK::AttrDataFormat getDataFormat(){return _attrDataFormat;}
+
+
+    std::map<std::string,ChimeraTK::AttrDataFormat>regTypeMap={ {"SCALAR", ChimeraTK::AttrDataFormat::SCALAR}, {"SPECTRUM",ChimeraTK::AttrDataFormat::SPECTRUM },{"IMAGE",ChimeraTK::AttrDataFormat::IMAGE} };
     public:
-    std::string _unit;  
+    std::string _unit;
     std::string _desc;
-    std::string _name;  
+    std::string _name;
     std::string _path;
     ChimeraTK::AttrDataFormat _attrDataFormat;
     long _dataType;
-    Tango::AttrWriteType _writeType;    
+    Tango::AttrWriteType _writeType;
  };
 
 
 } // namespace ChimeraTK
-
-

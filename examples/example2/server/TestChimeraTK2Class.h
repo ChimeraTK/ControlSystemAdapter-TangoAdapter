@@ -6,26 +6,26 @@
 // description : Include for the TestChimeraTK2 root class.
 //               This class is the singleton class for
 //                the TestChimeraTK2 device class.
-//               It contains all properties and methods which the 
+//               It contains all properties and methods which the
 //               TestChimeraTK2 requires only once e.g. the commands.
 //
-// project :     
+// project :
 //
 // This file is part of Tango device class.
-// 
+//
 // Tango is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Tango is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Tango.  If not, see <http://www.gnu.org/licenses/>.
-// 
+//
 //
 //
 //=============================================================================
@@ -37,7 +37,7 @@
 #ifndef TestChimeraTK2Class_H
 #define TestChimeraTK2Class_H
 
-#include <tango.h>
+#include <tango/tango.h>
 #include "TestChimeraTK2.h"
 
 
@@ -62,8 +62,8 @@ class TestChimeraTK2Class : public Tango::DeviceClass
 #endif
 {
 	/*----- PROTECTED REGION ID(TestChimeraTK2Class::Additionnal DServer data members) ENABLED START -----*/
-	
-	
+
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2Class::Additionnal DServer data members
 
 	public:
@@ -71,33 +71,33 @@ class TestChimeraTK2Class : public Tango::DeviceClass
 		Tango::DbData	cl_prop;
 		Tango::DbData	cl_def_prop;
 		Tango::DbData	dev_def_prop;
-	
+
 		//	Method prototypes
 		static TestChimeraTK2Class *init(const char *);
 		static TestChimeraTK2Class *instance();
 		~TestChimeraTK2Class();
-		Tango::DbDatum	get_class_property(string &);
-		Tango::DbDatum	get_default_device_property(string &);
-		Tango::DbDatum	get_default_class_property(string &);
-	
+		Tango::DbDatum	get_class_property(std::string &);
+		Tango::DbDatum	get_default_device_property(std::string &);
+		Tango::DbDatum	get_default_class_property(std::string &);
+
 	protected:
-		TestChimeraTK2Class(string &);
+		TestChimeraTK2Class(std::string &);
 		static TestChimeraTK2Class *_instance;
 		void command_factory();
-		void attribute_factory(vector<Tango::Attr *> &);
+		void attribute_factory(std::vector<Tango::Attr *> &);
 		void pipe_factory();
 		void write_class_property();
 		void set_default_property();
 		void get_class_property();
-		string get_cvstag();
-		string get_cvsroot();
-	
+        std::string get_cvstag();
+        std::string get_cvsroot();
+
 	private:
 		void device_factory(const Tango::DevVarStringArray *);
-		void create_static_attribute_list(vector<Tango::Attr *> &);
-		void erase_dynamic_attributes(const Tango::DevVarStringArray *,vector<Tango::Attr *> &);
-		vector<string>	defaultAttList;
-		Tango::Attr *get_attr_object_by_name(vector<Tango::Attr *> &att_list, string attname);
+		void create_static_attribute_list(std::vector<Tango::Attr *> &);
+		void erase_dynamic_attributes(const Tango::DevVarStringArray *,std::vector<Tango::Attr *> &);
+        std::vector<std::string>	defaultAttList;
+		Tango::Attr *get_attr_object_by_name(std::vector<Tango::Attr *> &att_list, std::string attname);
 };
 
 }	//	End of namespace

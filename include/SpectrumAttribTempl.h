@@ -4,7 +4,7 @@
 #include <ChimeraTK/NDRegisterAccessor.h>
 
 namespace ChimeraTK {
-template <typename T>	
+template <typename T>
 class SpectrumAttribTempl : public Tango::SpectrumAttr,Tango::LogAdapter
 {
 public:
@@ -14,7 +14,7 @@ public:
 		_dataType(attProperty->_dataType), Tango::LogAdapter(tangoDevice)
 	{
 		DEBUG_STREAM<<" SpectrumAttribTempl::SpectrumAttribTempl  Name: "<<attProperty->_name.c_str()<<
-		              " Type"<<attProperty->_dataType<<" _writeType: "<<attProperty->_writeType<<endl;
+		              " Type"<<attProperty->_dataType<<" _writeType: "<<attProperty->_writeType<<std::endl;
 
 		if (attProperty->_writeType != Tango::READ)
 			_memoried_property_name = "__Memoried_" + attProperty->_name;
@@ -30,7 +30,7 @@ public:
 
 		_length = _processSpectrum->getNumberOfSamples();
 
-		if constexpr (is_same<T,std::string>::value) {	    
+		if constexpr (std::is_same<T,std::string>::value) {
 	    	attr_String_read = new Tango::DevString[_length];
 	    }
 	    else if (_dataType == Tango::DEV_BOOLEAN){
@@ -49,9 +49,9 @@ public:
 	virtual void read(Tango::DeviceImpl *dev,
 			  Tango::Attribute &att)
 	{
-		DEBUG_STREAM<<"SpectrumAttribTempl::read "<< get_name()<<endl;
+		DEBUG_STREAM<<"SpectrumAttribTempl::read "<< get_name()<<std::endl;
 
-		if constexpr (is_same<T,std::string>::value) {
+		if constexpr (std::is_same<T,std::string>::value) {
 
 			for (unsigned int i = 0;i < _length;i++){
 	    			attr_String_read[i] = const_cast<char *>(_processSpectrum->accessData(i).c_str());
@@ -72,24 +72,24 @@ public:
 		{
 			att.set_value(_processSpectrum->accessChannel(0).data(),_length);
 			for (unsigned int i = 0;i < _length;i++){
-				DEBUG_STREAM<<"pv["<<i<<"]= "<<_processSpectrum->accessData(i)<<endl;
+				DEBUG_STREAM<<"pv["<<i<<"]= "<<_processSpectrum->accessData(i)<<std::endl;
 			}
 
 		}
 		if(_processSpectrum->dataValidity() != ChimeraTK::DataValidity::ok)
 		{
-			ERROR_STREAM<< "SpectrumAttribTempl::read "<< get_name() <<" is not valid"<<endl;
+			ERROR_STREAM<< "SpectrumAttribTempl::read "<< get_name() <<" is not valid"<<std::endl;
 		}
 
 	}
 
 	virtual void write(Tango::DeviceImpl *dev,
 			   Tango::WAttribute &att)
-	{	
-		DEBUG_STREAM<< "SpectrumAttribTempl::write "<< get_name()<<endl;
+	{
+		DEBUG_STREAM<< "SpectrumAttribTempl::write "<< get_name()<<std::endl;
 
 		auto& processVector = _processSpectrum->accessChannel(0);
-  
+
 		long arraySize = att.get_write_value_length();
 		std::string memoried_value;
 
@@ -98,7 +98,7 @@ public:
 		std::stringstream msg;
 		msg<< "Array size cannot be greater than"<< _length<<"\n";
 
-		ERROR_STREAM<<"WRITE_ERROR "<<msg.str()<<endl;
+		ERROR_STREAM<<"WRITE_ERROR "<<msg.str()<<std::endl;
 
 		Tango::Except::throw_exception("WRITE_ERROR",
                         msg.str(),
@@ -117,7 +117,7 @@ public:
       			memoried_value = array_to_string(c_value,_length);
       		}
 			break;
-		case Tango::DEV_USHORT:		
+		case Tango::DEV_USHORT:
 	    	{
 			const Tango::DevUShort *us_value;
 			att.get_write_value(us_value);
@@ -127,7 +127,7 @@ public:
       			memoried_value = array_to_string(us_value,_length);
       		}
 			break;
-		
+
 		case Tango::DEV_ULONG:
 	    	{
 			const uint32_t *ul_value;
@@ -141,17 +141,17 @@ public:
 		case Tango::DEV_ULONG64:
 	    	{
 			const uint64_t *ul64_value;
-			att.get_write_value(ul64_value);			
+			att.get_write_value(ul64_value);
 			for(size_t i = 0; i < arraySize; ++i) {
       			processVector[i] = ul64_value[i];
       			}
       			memoried_value = array_to_string(ul64_value,_length);
       		}
 			break;
-		case  Tango::DEV_SHORT:				
+		case  Tango::DEV_SHORT:
 	    	{
 			const int16_t *s_value;
-			att.get_write_value(s_value);				
+			att.get_write_value(s_value);
 			for (size_t i = 0; i < arraySize; ++i) {
       				processVector[i] = s_value[i];
       			}
@@ -159,7 +159,7 @@ public:
 		}
 			break;
 
-		case Tango::DEV_LONG:				
+		case Tango::DEV_LONG:
 	    	{
 			const int32_t *l_value;
 			att.get_write_value(l_value);
@@ -169,11 +169,11 @@ public:
 	        	memoried_value = array_to_string(l_value,_length);
 		}
 			break;
-		    		
-		case Tango::DEV_LONG64:				
+
+		case Tango::DEV_LONG64:
 	    	{
 			const int64_t *l64_value;
-			att.get_write_value(l64_value);	
+			att.get_write_value(l64_value);
 			for (size_t i = 0; i < arraySize; ++i) {
       			processVector[i] = l64_value[i];
       			}
@@ -181,7 +181,7 @@ public:
       		}
 			break;
 
-		case Tango::DEV_FLOAT:			
+		case Tango::DEV_FLOAT:
 		{
 			const float *f_value;
 			att.get_write_value(f_value);
@@ -213,7 +213,7 @@ public:
        		}
 			break;
 		case Tango::DEV_STRING:
-			if constexpr (is_same<T, std::string>::value) {
+			if constexpr (std::is_same<T, std::string>::value) {
 				const Tango::ConstDevString *w_val;
 				att.get_write_value(w_val);
 				for(size_t i = 0; i < arraySize; ++i) {
@@ -223,20 +223,20 @@ public:
 			}
 			break;
 		default:
-			ERROR_STREAM<<" SpectrumAttribTempl::write unsupported dataTye "<<_dataType<< endl;
+			ERROR_STREAM<<" SpectrumAttribTempl::write unsupported dataTye "<<_dataType<< std::endl;
 		}
 
 		_processSpectrum->write();
 
 		set_property<std::string>(dev, _memoried_property_name,memoried_value);
-		DEBUG_STREAM<< "SpectrumAttribTempl::write END"<< endl;
+		DEBUG_STREAM<< "SpectrumAttribTempl::write END"<< std::endl;
 	}
 
 
 	virtual bool is_allowed(Tango::DeviceImpl *dev,	Tango::AttReqType ty){return true;}
 
 	boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> _processSpectrum;
-	long _dataType; 
+	long _dataType;
 	unsigned int _length;
 	Tango::DevString *attr_String_read;
 	Tango::DevBoolean *attr_Bool_read;
@@ -246,4 +246,3 @@ public:
 };
 
 } // namespace ChimeraTK
-

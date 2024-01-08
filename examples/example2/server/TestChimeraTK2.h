@@ -5,23 +5,23 @@
 //
 // description : Include file for the TestChimeraTK2 class
 //
-// project :     
+// project :
 //
 // This file is part of Tango device class.
-// 
+//
 // Tango is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Tango is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Tango.  If not, see <http://www.gnu.org/licenses/>.
-// 
+//
 //
 //
 //=============================================================================
@@ -33,7 +33,7 @@
 #ifndef TestChimeraTK2_H
 #define TestChimeraTK2_H
 
-#include <tango.h>
+#include <tango/tango.h>
 #include <ChimeraTK/TangoAdapter.h>
 
 /*----- PROTECTED REGION END -----*/	//	TestChimeraTK2.h
@@ -63,9 +63,9 @@ class TestChimeraTK2 : public TANGO_BASE_CLASS
 //	Device property data members
 public:
 	//	AttributList:	AttributList
-	vector<string>	attributList;
+    std::vector<std::string>	attributList;
 	//	DMapFilePath:	DMapFilePath
-	string	dMapFilePath;
+    std::string	dMapFilePath;
 
 
 //	Constructors and destructors
@@ -76,7 +76,7 @@ public:
 	 *	@param cl	Class.
 	 *	@param s 	Device Name
 	 */
-	TestChimeraTK2(Tango::DeviceClass *cl,string &s);
+	TestChimeraTK2(Tango::DeviceClass *cl,std::string &s);
 	/**
 	 * Constructs a newly device object.
 	 *
@@ -126,7 +126,7 @@ public:
 	 *	Description : Hardware acquisition for attributes.
 	 */
 	//--------------------------------------------------------
-	virtual void read_attr_hardware(vector<long> &attr_list);
+	virtual void read_attr_hardware(std::vector<long> &attr_list);
 
 
 	//--------------------------------------------------------

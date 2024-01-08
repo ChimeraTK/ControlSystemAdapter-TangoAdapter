@@ -9,23 +9,23 @@
 //               network. All commands which can be executed on the
 //               TestChimeraTK2 are implemented in this file.
 //
-// project :     
+// project :
 //
 // This file is part of Tango device class.
-// 
+//
 // Tango is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Tango is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Tango.  If not, see <http://www.gnu.org/licenses/>.
-// 
+//
 //
 //
 //=============================================================================
@@ -77,12 +77,12 @@ namespace TestChimeraTK2_ns
  *                implementing the classTestChimeraTK2
  */
 //--------------------------------------------------------
-TestChimeraTK2::TestChimeraTK2(Tango::DeviceClass *cl, string &s)
+TestChimeraTK2::TestChimeraTK2(Tango::DeviceClass *cl, std::string &s)
  : TANGO_BASE_CLASS(cl, s.c_str())
 {
 	/*----- PROTECTED REGION ID(TestChimeraTK2::constructor_1) ENABLED START -----*/
 	init_device();
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::constructor_1
 }
 //--------------------------------------------------------
@@ -91,7 +91,7 @@ TestChimeraTK2::TestChimeraTK2(Tango::DeviceClass *cl, const char *s)
 {
 	/*----- PROTECTED REGION ID(TestChimeraTK2::constructor_2) ENABLED START -----*/
 	init_device();
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::constructor_2
 }
 //--------------------------------------------------------
@@ -100,7 +100,7 @@ TestChimeraTK2::TestChimeraTK2(Tango::DeviceClass *cl, const char *s, const char
 {
 	/*----- PROTECTED REGION ID(TestChimeraTK2::constructor_3) ENABLED START -----*/
 	init_device();
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::constructor_3
 }
 
@@ -112,9 +112,9 @@ TestChimeraTK2::TestChimeraTK2(Tango::DeviceClass *cl, const char *s, const char
 //--------------------------------------------------------
 void TestChimeraTK2::delete_device()
 {
-	DEBUG_STREAM << "TestChimeraTK2::delete_device() " << device_name << endl;
+	DEBUG_STREAM << "TestChimeraTK2::delete_device() " << device_name << std::endl;
 	/*----- PROTECTED REGION ID(TestChimeraTK2::delete_device) ENABLED START -----*/
-	
+
 	//	Delete device allocated objects
 	delete tangoAdapter;
 	
@@ -129,36 +129,36 @@ void TestChimeraTK2::delete_device()
 //--------------------------------------------------------
 void TestChimeraTK2::init_device()
 {
-	DEBUG_STREAM << "TestChimeraTK2::init_device() create device " << device_name << endl;
+	DEBUG_STREAM << "TestChimeraTK2::init_device() create device " << device_name << std::endl;
 	/*----- PROTECTED REGION ID(TestChimeraTK2::init_device_before) ENABLED START -----*/
-	
+
 	//	Initialization before get_device_property() call
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::init_device_before
-	
+
 
 	//	Get the device properties from database
 	get_device_property();
-	
+
 	/*----- PROTECTED REGION ID(TestChimeraTK2::init_device) ENABLED START -----*/
-	
+
 	//	Initialize device
     //set DMapFilePath from property
     if (dMapFilePath.empty())
     {
-    	ERROR_STREAM << "init_device: The property dMapFilePath is empty"<<endl;
+    	ERROR_STREAM << "init_device: The property dMapFilePath is empty"<<std::endl;
     	set_state(Tango::FAULT);
     	set_status("The property dMapFilePath is not configured");
     	return;
     }
 
-   	DEBUG_STREAM << "dMapFilePath: "<<dMapFilePath<<endl;
+   	DEBUG_STREAM << "dMapFilePath: "<<dMapFilePath<<std::endl;
    	try
    	{
    		ChimeraTK::setDMapFilePath(dMapFilePath);
    	}
     catch (ChimeraTK::logic_error& e) {
-      ERROR_STREAM << "init_device: "<< e.what()<<endl;
+      ERROR_STREAM << "init_device: "<< e.what()<<std::endl;
       set_state(Tango::FAULT);
       set_status(e.what());
       return;
@@ -172,7 +172,7 @@ void TestChimeraTK2::init_device()
       return;
 	}
 
-	DEBUG_STREAM << "ChimeraTKExample2::init_device() end of init_device " << endl;
+	DEBUG_STREAM << "ChimeraTKExample2::init_device() end of init_device " << std::endl;
 	
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::init_device
 }
@@ -186,9 +186,9 @@ void TestChimeraTK2::init_device()
 void TestChimeraTK2::get_device_property()
 {
 	/*----- PROTECTED REGION ID(TestChimeraTK2::get_device_property_before) ENABLED START -----*/
-	
+
 	//	Initialize property data members
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::get_device_property_before
 
 
@@ -203,7 +203,7 @@ void TestChimeraTK2::get_device_property()
 		//	Call database and extract values
 		if (Tango::Util::instance()->_UseDb==true)
 			get_db_device()->get_property(dev_prop);
-	
+
 		//	get instance on TestChimeraTK2Class to get class property
 		Tango::DbDatum	def_prop, cl_prop;
 		TestChimeraTK2Class	*ds_class =
@@ -235,9 +235,9 @@ void TestChimeraTK2::get_device_property()
 	}
 
 	/*----- PROTECTED REGION ID(TestChimeraTK2::get_device_property_after) ENABLED START -----*/
-	
+
 	//	Check device property data members init
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::get_device_property_after
 }
 
@@ -249,11 +249,11 @@ void TestChimeraTK2::get_device_property()
 //--------------------------------------------------------
 void TestChimeraTK2::always_executed_hook()
 {
-	//DEBUG_STREAM << "TestChimeraTK2::always_executed_hook()  " << device_name << endl;
+	//DEBUG_STREAM << "TestChimeraTK2::always_executed_hook()  " << device_name << std::endl;
 	/*----- PROTECTED REGION ID(TestChimeraTK2::always_executed_hook) ENABLED START -----*/
-	
+
 	//	code always executed before all requests
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::always_executed_hook
 }
 
@@ -263,13 +263,13 @@ void TestChimeraTK2::always_executed_hook()
  *	Description : Hardware acquisition for attributes
  */
 //--------------------------------------------------------
-void TestChimeraTK2::read_attr_hardware(TANGO_UNUSED(vector<long> &attr_list))
+void TestChimeraTK2::read_attr_hardware(TANGO_UNUSED(std::vector<long> &attr_list))
 {
-	//DEBUG_STREAM << "TestChimeraTK2::read_attr_hardware(vector<long> &attr_list) entering... " << endl;
+	//DEBUG_STREAM << "TestChimeraTK2::read_attr_hardware(vector<long> &attr_list) entering... " << std::endl;
 	/*----- PROTECTED REGION ID(TestChimeraTK2::read_attr_hardware) ENABLED START -----*/
-	
+
 	//	Add your own code
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::read_attr_hardware
 }
 
@@ -284,9 +284,9 @@ void TestChimeraTK2::read_attr_hardware(TANGO_UNUSED(vector<long> &attr_list))
 void TestChimeraTK2::add_dynamic_attributes()
 {
 	/*----- PROTECTED REGION ID(TestChimeraTK2::add_dynamic_attributes) ENABLED START -----*/
-	
+
 	//	Add your own code to create and add dynamic attributes if any
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::add_dynamic_attributes
 }
 
@@ -300,9 +300,9 @@ void TestChimeraTK2::add_dynamic_attributes()
 void TestChimeraTK2::add_dynamic_commands()
 {
 	/*----- PROTECTED REGION ID(TestChimeraTK2::add_dynamic_commands) ENABLED START -----*/
-	
+
 	//	Add your own code to create and add dynamic commands if any
-	
+
 	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::add_dynamic_commands
 }
 
