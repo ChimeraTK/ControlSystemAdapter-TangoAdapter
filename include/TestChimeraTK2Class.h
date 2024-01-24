@@ -33,73 +33,69 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-
 #ifndef TestChimeraTK2Class_H
 #define TestChimeraTK2Class_H
 
-#include <tango/tango.h>
 #include "TestChimeraTK2.h"
+#include <tango/tango.h>
 
+/*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class.h
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2Class.h
+namespace TestChimeraTK2_ns {
+  /*----- PROTECTED REGION ID(TestChimeraTK2Class::classes for dynamic creation) ENABLED START -----*/
 
+  /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::classes for dynamic creation
 
-namespace TestChimeraTK2_ns
-{
-/*----- PROTECTED REGION ID(TestChimeraTK2Class::classes for dynamic creation) ENABLED START -----*/
-
-
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2Class::classes for dynamic creation
-
-/**
- *	The TestChimeraTK2Class singleton definition
- */
+  /**
+   *	The TestChimeraTK2Class singleton definition
+   */
 
 #ifdef _TG_WINDOWS_
-class __declspec(dllexport)  TestChimeraTK2Class : public Tango::DeviceClass
+  class __declspec(dllexport) TestChimeraTK2Class : public Tango::DeviceClass
 #else
-class TestChimeraTK2Class : public Tango::DeviceClass
+  class TestChimeraTK2Class : public Tango::DeviceClass
 #endif
-{
-	/*----- PROTECTED REGION ID(TestChimeraTK2Class::Additionnal DServer data members) ENABLED START -----*/
+  {
+    ;
+    /*----- PROTECTED REGION ID(TestChimeraTK2Class::Additionnal DServer data members) ENABLED START -----*/
 
+    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::Additionnal DServer data members
 
-	/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2Class::Additionnal DServer data members
+   public:
+    //	write class properties data members
+    Tango::DbData cl_prop;
+    Tango::DbData cl_def_prop;
+    Tango::DbData dev_def_prop;
 
-	public:
-		//	write class properties data members
-		Tango::DbData	cl_prop;
-		Tango::DbData	cl_def_prop;
-		Tango::DbData	dev_def_prop;
+    //	Method prototypes
+    static std::string getClassName();
+    static TestChimeraTK2Class* init(const char*);
+    static TestChimeraTK2Class* instance();
+    ~TestChimeraTK2Class();
+    Tango::DbDatum get_class_property(std::string&);
+    Tango::DbDatum get_default_device_property(std::string&);
+    Tango::DbDatum get_default_class_property(std::string&);
 
-		//	Method prototypes
-		static TestChimeraTK2Class *init(const char *);
-		static TestChimeraTK2Class *instance();
-		~TestChimeraTK2Class();
-		Tango::DbDatum	get_class_property(std::string &);
-		Tango::DbDatum	get_default_device_property(std::string &);
-		Tango::DbDatum	get_default_class_property(std::string &);
+   protected:
+    TestChimeraTK2Class(std::string&);
+    static TestChimeraTK2Class* _instance;
+    void command_factory();
+    void attribute_factory(std::vector<Tango::Attr*>&);
+    void pipe_factory();
+    void write_class_property();
+    void set_default_property();
+    void get_class_property();
+    std::string get_cvstag();
+    std::string get_cvsroot();
 
-	protected:
-		TestChimeraTK2Class(std::string &);
-		static TestChimeraTK2Class *_instance;
-		void command_factory();
-		void attribute_factory(std::vector<Tango::Attr *> &);
-		void pipe_factory();
-		void write_class_property();
-		void set_default_property();
-		void get_class_property();
-        std::string get_cvstag();
-        std::string get_cvsroot();
+   private:
+    void device_factory(const Tango::DevVarStringArray*);
+    void create_static_attribute_list(std::vector<Tango::Attr*>&);
+    void erase_dynamic_attributes(const Tango::DevVarStringArray*, std::vector<Tango::Attr*>&);
+    std::vector<std::string> defaultAttList;
+    Tango::Attr* get_attr_object_by_name(std::vector<Tango::Attr*>& att_list, std::string attname);
+  };
 
-	private:
-		void device_factory(const Tango::DevVarStringArray *);
-		void create_static_attribute_list(std::vector<Tango::Attr *> &);
-		void erase_dynamic_attributes(const Tango::DevVarStringArray *,std::vector<Tango::Attr *> &);
-        std::vector<std::string>	defaultAttList;
-		Tango::Attr *get_attr_object_by_name(std::vector<Tango::Attr *> &att_list, std::string attname);
-};
+} // namespace TestChimeraTK2_ns
 
-}	//	End of namespace
-
-#endif   //	TestChimeraTK2_H
+#endif //	TestChimeraTK2_H

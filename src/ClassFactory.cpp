@@ -32,19 +32,21 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-#include <tango/tango.h>
 #include "TestChimeraTK2Class.h"
+#include <tango/tango.h>
 
 //	Add class header files if needed
-
 
 /**
  *	Create TestChimeraTK2 Class singleton and store it in DServer object.
  */
 
-void Tango::DServer::class_factory()
-{
-	//	Add method class init if needed
-	add_class(TestChimeraTK2_ns::TestChimeraTK2Class::init("TestChimeraTK2"));
+void Tango::DServer::class_factory() {
+  // Heuristics - if our application name starts with "ds_", "ds" or ends with "ds", strip
+  // from application name and
+  //	Add method class init if needed
+
+  add_class(
+      TestChimeraTK2_ns::TestChimeraTK2Class::init(TestChimeraTK2_ns::TestChimeraTK2Class::getClassName().c_str()));
 }
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::ClassFactory.cpp
+/*----- PROTECTED REGION END -----*/ //	TestChimeraTK2::ClassFactory.cpp
