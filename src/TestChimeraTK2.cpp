@@ -135,10 +135,16 @@ namespace TestChimeraTK2_ns {
     //	Initialize device
     // set DMapFilePath from property
     if(dMapFilePath.empty()) {
-      ERROR_STREAM << "init_device: The property dMapFilePath is empty" << std::endl;
-      set_state(Tango::FAULT);
-      set_status("The property dMapFilePath is not configured");
-      return;
+      if(!Tango::Util::instance()->_UseDb) {
+        DEBUG_STREAM << "Running without database connection, falling back to devices.dmap" << std::endl;
+        dMapFilePath = "devices.dmap";
+      }
+      else {
+        ERROR_STREAM << "init_device: The property dMapFilePath is empty" << std::endl;
+        set_state(Tango::FAULT);
+        set_status("The property dMapFilePath is not configured");
+        return;
+      }
     }
 
     DEBUG_STREAM << "dMapFilePath: " << dMapFilePath << std::endl;
