@@ -8,23 +8,21 @@
 
 namespace ctk = ChimeraTK;
 
-//example 2a
 struct Controller : public ctk::ApplicationModule {
   using ctk::ApplicationModule::ApplicationModule;
   ctk::ScalarPollInput<float> sp{this, "temperatureSetpoint", "degC", "Description"};
   ctk::ScalarPushInput<float> rb{this, "/heater/temperatureReadback", "degC", "..."};
   ctk::ScalarOutput<float> cur{this, "/heater/heatingCurrent", "mA", "..."};
-  ctk::ArrayPollInput<float> voltage{this, "/heater/supplyVoltages", "V", 4,"..."};
-  //test boolean
-  //ctk::ScalarPollInput<ChimeraTK::Boolean> bool_scalar{this, "/heater/bool_scalar","", "..."};
-  //test boolean array
-  //ctk::ArrayOutput<ChimeraTK::Boolean> bool_arr{this, "/heater/bool_array","",2, "..."};
-
+  //test INTERUPT
+  ctk::ScalarPollInput<ChimeraTK::Boolean> bool_scalar{this, "/heater/bool_scalar","", "..."};
+  // float array - WRITE
+  ctk::ArrayPollInput<float> voltage{this, "/heater/supplyVoltages", "V", 4,"..."};  //Write spectrum
+  //test boolean array - READ
+  ctk::ArrayPushInput<ChimeraTK::Boolean> bool_arr{this, "/heater/bool_array","",2, "..."};//Read speactrum
 
   void mainLoop() {
     const float gain = 100.0;
     while(true) {
-
       readAll(); // waits until rb updated, then reads sp
       cur = gain * (sp - rb);
       writeAll(); // writes any outputs
@@ -41,7 +39,6 @@ struct Automation : public ctk::ApplicationModule {
   void mainLoop() {
     const float maxStep = 0.1F;
     while(true) {
-
       readAll(); // waits until trigger received, then read opSp
       actSp += std::max(std::min(opSp - actSp, maxStep), -maxStep);
       writeAll();

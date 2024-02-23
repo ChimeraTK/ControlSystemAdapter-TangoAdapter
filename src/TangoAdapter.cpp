@@ -124,132 +124,110 @@ namespace ChimeraTK {
   void TangoAdapter::write_inited_values(void) {
     DEBUG_STREAM << " TangoAdapter::write_inited_values " << _write_spectrum_attr_list.size() << std::endl;
 
-    /* WRITE MEMORIED SPECTRUM VALUES
-       //There is error in Tango lib, the manual write does not work (method set_write_value of WAttribute)
-       //Method get_write_value  gives the garbage value
-
     //read spectrum values from memoried properties then write as initialised values
-    for (const auto& [attProp, index] : _write_spectrum_attr_list)
-    {
-        //auto attProp = tmp.first;
-        DEBUG_STREAM <<"name: "<<attProp->_name<<" type:"<<attProp->_dataType<<std::endl;
-        Tango::WAttribute &write_attribute = _device->get_device_attr()->get_w_attr_by_name(attProp->_name.c_str());
-        std::string mem_value = get_property<std::string>(_device, "__Memoried_" + attProp->_name);
-        if (mem_value.empty())
-            continue;
-        DEBUG_STREAM <<"__Memoried_"<<attProp->_name<<" mem_value: "<<mem_value<<std::endl;
-        Tango::Attr *base_attr = _dynamic_attribute_list[index];
+    for (const auto& [attProp, index] : _write_spectrum_attr_list) {
 
-        switch (attProp->_dataType)
-        {
-        case Tango::DEV_UCHAR:
-            {
-            std::vector<uint8_t> values = string_to_array<uint8_t>(mem_value);
-            write_attribute.set_write_value(values.data(), values.size());
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<uint8_t>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
+      DEBUG_STREAM <<"name: "<<attProp->_name<<" type:"<<attProp->_dataType<<std::endl;
+      // get write attribut name
+      Tango::WAttribute &write_attribute = _device->get_device_attr()->get_w_attr_by_name(attProp->_name.c_str());
+      //get value of memoried property (__Memorized_<attributname>)
+      std::string mem_value = get_property<std::string>(_device, "__Memoried_" + attProp->_name);
 
-        case Tango::DEV_USHORT:
-            {
-            std::vector<Tango::DevUShort> values = string_to_array<Tango::DevUShort>(mem_value);
-            write_attribute.set_write_value(values.data(), values.size());
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<uint16_t>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
-        case Tango::DEV_ULONG:
-            {
-            std::vector<Tango::DevULong> values = string_to_array<Tango::DevULong>(mem_value);
-            write_attribute.set_write_value(values.data(), values.size());
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<uint32_t>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
-        case Tango::DEV_ULONG64:
-            {
-            std::vector<uint64_t> values = string_to_array<uint64_t>(mem_value);
-            write_attribute.set_write_value(values.data(), values.size());
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<uint64_t>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
-        case Tango::DEV_SHORT:
-            {
-            std::vector<Tango::DevShort> values = string_to_array<Tango::DevShort>(mem_value);
-            write_attribute.set_write_value(values.data(), values.size(),1);
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<int16_t>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
-        case Tango::DEV_LONG:
-            {
-            std::vector<Tango::DevLong> values = string_to_array<Tango::DevLong>(mem_value);
-            write_attribute.set_write_value(values.data(), values.size(),1);
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<int32_t>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
-        case Tango::DEV_LONG64:
-            {
-            std::vector<Tango::DevLong64> values = string_to_array<Tango::DevLong64>(mem_value);
-            write_attribute.set_write_value(values.data(), values.size(),1);
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<int64_t>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
-        case Tango::DEV_FLOAT:
-            {
+      DEBUG_STREAM <<"__Memoried_"<<attProp->_name<<" mem_value: "<<mem_value<<std::endl;
 
-            std::vector<Tango::DevFloat> values = string_to_array<Tango::DevFloat>(mem_value);
-            write_attribute.set_write_value(values.data(), values.size(),1);
-            DEBUG_STREAM<<" ==== "<<values.size()<<" "<<write_attribute.get_write_value_length()<<std::endl;
-            const Tango::DevFloat *tmp;
-            write_attribute.get_write_value(tmp);
-            for (int i=0;i<write_attribute.get_write_value_length();i++)
-                std::cout<<tmp[i]<<" "<<std::endl;
+      if (mem_value.empty()) continue;
 
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<float>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
-        case Tango::DEV_DOUBLE:
-            {
-            std::vector<Tango::DevDouble> values = string_to_array<Tango::DevDouble>(mem_value);
-            write_attribute.set_write_value(values.data(), values.size(),1);
-            DEBUG_STREAM<<" ==== "<<values.size()<<" "<<write_attribute.get_write_value_length()<<std::endl;
-            const Tango::DevDouble *tmp;
-            write_attribute.get_write_value(tmp);
-            for (int i=0;i<write_attribute.get_write_value_length();i++)
-                std::cout<<tmp[i]<<" "<<std::endl;
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<double>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
-        case Tango::DEV_BOOLEAN:
-            {
-            std::vector<Tango::DevBoolean> values = string_to_array<Tango::DevBoolean >(mem_value);
-            //write_attribute.set_write_value(values.data(), values.size(),1);
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<bool>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
-        case Tango::DEV_STRING:
-            {
-            std::vector<Tango::DevString> values = string_to_array<Tango::DevString>(mem_value);
-            //write_attribute.set_write_value(values.data(), values.size(),1);
-            auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<std::string>*>(base_attr);
-            spectrum_attr_t->write(_device, write_attribute);
-            break;
-            }
+      Tango::Attr *base_attr = _dynamic_attribute_list[index];
+
+      switch (attProp->_dataType) {
+        case Tango::DEV_UCHAR: {
+          std::vector<uint8_t> values = string_to_array<uint8_t>(mem_value);
+          write_attribute.set_write_value(values.data(), values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<uint8_t>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
+
+        case Tango::DEV_USHORT: {
+          std::vector<Tango::DevUShort> values = string_to_array<Tango::DevUShort>(mem_value);
+          write_attribute.set_write_value(values.data(), values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<uint16_t>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
+        case Tango::DEV_ULONG: {
+          std::vector<Tango::DevULong> values = string_to_array<Tango::DevULong>(mem_value);
+          write_attribute.set_write_value(values.data(), values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<uint32_t>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
+        case Tango::DEV_ULONG64: {
+          std::vector<uint64_t> values = string_to_array<uint64_t>(mem_value);
+          write_attribute.set_write_value(values.data(), values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<uint64_t>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
+        case Tango::DEV_SHORT: {
+          std::vector<Tango::DevShort> values = string_to_array<Tango::DevShort>(mem_value);
+          write_attribute.set_write_value(values.data(), values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<int16_t>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
+        case Tango::DEV_LONG: {
+          std::vector<Tango::DevLong> values = string_to_array<Tango::DevLong>(mem_value);
+          write_attribute.set_write_value(values.data(), values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<int32_t>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
+        case Tango::DEV_LONG64: {
+          std::vector<Tango::DevLong64> values = string_to_array<Tango::DevLong64>(mem_value);
+          write_attribute.set_write_value(values.data(), values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<int64_t>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
+        case Tango::DEV_FLOAT: {
+          std::vector<Tango::DevFloat> values = string_to_array<Tango::DevFloat>(mem_value);
+          write_attribute.set_write_value(values.data(), values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<float>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
+        case Tango::DEV_DOUBLE: {
+          std::vector<Tango::DevDouble> values = string_to_array<Tango::DevDouble>(mem_value);
+          write_attribute.set_write_value(values.data(), values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<double>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
+        case Tango::DEV_BOOLEAN: {
+          std::vector<Tango::DevBoolean> values = string_to_array<Tango::DevBoolean >(mem_value);
+          //for bool it must do this way
+          Tango::DevBoolean *bool_array = new Tango::DevBoolean[values.size()];
+          for (unsigned int i = 0;i < values.size();i++) bool_array[i] = values[i];
+
+          write_attribute.set_write_value(bool_array, values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<bool>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
+        case Tango::DEV_STRING: {
+          std::vector<Tango::DevString> values = string_to_array<Tango::DevString>(mem_value);
+          write_attribute.set_write_value(values.data(), values.size());
+          auto *spectrum_attr_t = static_cast<SpectrumAttribTempl<std::string>*>(base_attr);
+          spectrum_attr_t->write(_device, write_attribute);
+          break;
+        }
         default:
-            ERROR_STREAM<<"TangoAdapter::write_inited_values - unknown datatype: "<< attProp->_dataType <<std::endl;
+          ERROR_STREAM<<"TangoAdapter::write_inited_values - unknown datatype: "<< attProp->_dataType <<std::endl;
+
+      }
 
     }
-
-    }
-    */
     // check for variables not yet initialised - we must guarantee that all to-application variables are written exactly
     // once at server start.
     for(auto& pv : _controlSystemPVManager->getAllProcessVariables()) {

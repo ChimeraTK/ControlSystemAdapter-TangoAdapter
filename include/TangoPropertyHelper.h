@@ -129,15 +129,11 @@ void create_property_if_empty(Tango::DeviceImpl* dev_p,
 template <class T>
 std::vector<T> string_to_array(std::string memoried_value)
 {
-  std::vector <T> spectrum_values;// =new vector<T>();
+  std::vector <T> spectrum_values;
   std::stringstream property_value(memoried_value);
   std::string intermediate;
   T element;
-  //bool c=typeid(T)== typeid(char *);
 
-
-
-  std::cout<<"===== string_to_array: "<<memoried_value<<std::endl;
   while(std::getline(property_value, intermediate, SEPERATOR))
   {
     std::stringstream tmp(intermediate);
@@ -157,7 +153,7 @@ std::string array_to_string(T* values, int length)
         os << values[i];
         os << SEPERATOR;
     }
-    std::cout<<"=======array_to_string: "<<os.str()<<std::endl;
+
     return os.str();
 }
 
