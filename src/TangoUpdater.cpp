@@ -239,17 +239,14 @@ namespace ChimeraTK {
       // Complete the read transfer of the process variable
       notification.accept();
 
-      // Call postRead for all TEs on _toDoocsAdditionalTransferElementsMap for the updated ID
+      // Call postRead for all TEs for the updated ID
       for(auto& elem : descriptor.additionalTransferElements) {
         elem->postRead(ChimeraTK::TransferType::read, true);
       }
 
-      // Call all updater functions
+      DEBUG_STREAM<< "TangoUpdater::updateLoop update attribut: " <<descriptor.attributID[0];
 
-      updateFonction(descriptor.attributID[0],descriptor.attributFormat[0],descriptor.dataType[0]);
-
-
-      // Call preRead for all TEs on _toDoocsAdditionalTransferElementsMap for the updated ID
+      // Call preRead for all TEs for the updated ID
       for(auto& elem : descriptor.additionalTransferElements) {
         elem->preRead(ChimeraTK::TransferType::read);
       }
