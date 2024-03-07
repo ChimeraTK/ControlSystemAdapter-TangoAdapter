@@ -38,7 +38,7 @@ add_library(${PROJECT_NAME}lib ${sources} ${headers})
 target_link_libraries(${PROJECT_NAME}lib ChimeraTK::ChimeraTK-ApplicationCore  )
 
 # Server executable: link the server library with the application factory and the tango control system adapter
-add_executable(ds_${PROJECT_NAME} ${server})
+add_executable(ds_${PROJECT_NAME} ${sources} ${headers})
 target_link_libraries(ds_${PROJECT_NAME} PRIVATE ${PROJECT_NAME}lib ${TANGO_LIBRARIES} ${ChimeraTK-ControlSystemAdapter-TangoAdapter_LIBRARIES} )
 
 # copy the (test) config files to the build directory for tests
