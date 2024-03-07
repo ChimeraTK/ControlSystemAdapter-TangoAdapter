@@ -26,7 +26,7 @@ namespace ctk = ChimeraTK;
 //! [Snippet: Class Definition Start]
 class ExampleApp : public ctk::Application {
  public:
-  using ctk::Application::Application;
+  ExampleApp() : Application("demo_example") {}
   ~ExampleApp() override;
 
  private:

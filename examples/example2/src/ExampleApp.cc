@@ -12,6 +12,8 @@
 
 #include "ExampleApp.h"
 
+#include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
+
 /*********************************************************************************************************************/
 
 //! [Snippet: Destructor]
@@ -19,5 +21,7 @@ ExampleApp::~ExampleApp() {
   shutdown();
 }
 //! [Snippet: Destructor]
+
+static ctk::ApplicationFactory<ExampleApp> appFactory;
 
 /*********************************************************************************************************************/
