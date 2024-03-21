@@ -1,13 +1,13 @@
-/*----- PROTECTED REGION ID(TestChimeraTK2Class.cpp) ENABLED START -----*/
+/*----- PROTECTED REGION ID(AdapterDeviceClass.cpp) ENABLED START -----*/
 //=============================================================================
 //
-// file :        TestChimeraTK2Class.cpp
+// file :        AdapterDeviceClass.cpp
 //
-// description : C++ source for the TestChimeraTK2Class.
+// description : C++ source for the AdapterDeviceClass.
 //               A singleton class derived from DeviceClass.
 //               It implements the command and attribute list
 //               and all properties and methods required
-//               by the TestChimeraTK2 once per process.
+//               by the AdapterDeviceImpl once per process.
 //
 // project :
 //
@@ -33,7 +33,7 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-#include "TestChimeraTK2Class.h"
+#include "AdapterDeviceClass.h"
 
 #include <regex>
 
@@ -45,11 +45,11 @@
 #  define cout2 TANGO_LOG_DEBUG
 #endif
 
-/*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class.cpp
+/*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass.cpp
 
 //-------------------------------------------------------------------
 /**
- *	Create TestChimeraTK2Class singleton and
+ *	Create AdapterDeviceClass singleton and
  *	return it in a C function for Python usage
  */
 //-------------------------------------------------------------------
@@ -59,18 +59,18 @@ extern "C" {
 __declspec(dllexport)
 #endif
 
-    Tango::DeviceClass* _create_TestChimeraTK2_class(const char* name) {
-  return TestChimeraTK2_ns::TestChimeraTK2Class::init(name);
+    Tango::DeviceClass* _create_AdapterDeviceImpl_class(const char* name) {
+  return TangoAdapter::AdapterDeviceClass::init(name);
 }
 }
 
-namespace TestChimeraTK2_ns {
+namespace TangoAdapter {
   //===================================================================
   //	Initialize pointer for singleton pattern
   //===================================================================
-  TestChimeraTK2Class* TestChimeraTK2Class::_instance = NULL;
+  AdapterDeviceClass* AdapterDeviceClass::_instance = NULL;
 
-  std::string TestChimeraTK2Class::getClassName() {
+  std::string AdapterDeviceClass::getClassName() {
     std::string ourName{Tango::Util::instance()->get_ds_exec_name()};
 
     std::regex start{"^ds_?"};
@@ -87,52 +87,52 @@ namespace TestChimeraTK2_ns {
 
   //--------------------------------------------------------
   /**
-   * method : 		TestChimeraTK2Class::TestChimeraTK2Class(std::string &s)
-   * description : 	constructor for the TestChimeraTK2Class
+   * method : 		AdapterDeviceClass::AdapterDeviceClass(std::string &s)
+   * description : 	constructor for the AdapterDeviceClass
    *
    * @param s	The class name
    */
   //--------------------------------------------------------
-  TestChimeraTK2Class::TestChimeraTK2Class(std::string& s) : Tango::DeviceClass(s) {
-    cout2 << "Entering TestChimeraTK2Class constructor" << std::endl;
+  AdapterDeviceClass::AdapterDeviceClass(std::string& s) : Tango::DeviceClass(s) {
+    cout2 << "Entering AdapterDeviceClass constructor" << std::endl;
     set_default_property();
     write_class_property();
 
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::constructor) ENABLED START -----*/
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::constructor) ENABLED START -----*/
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::constructor
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::constructor
 
-    cout2 << "Leaving TestChimeraTK2Class constructor" << std::endl;
+    cout2 << "Leaving AdapterDeviceClass constructor" << std::endl;
   }
 
   //--------------------------------------------------------
   /**
-   * method : 		TestChimeraTK2Class::~TestChimeraTK2Class()
-   * description : 	destructor for the TestChimeraTK2Class
+   * method : 		AdapterDeviceClass::~AdapterDeviceClass()
+   * description : 	destructor for the AdapterDeviceClass
    */
   //--------------------------------------------------------
-  TestChimeraTK2Class::~TestChimeraTK2Class() {
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::destructor) ENABLED START -----*/
+  AdapterDeviceClass::~AdapterDeviceClass() {
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::destructor) ENABLED START -----*/
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::destructor
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::destructor
 
     _instance = NULL;
   }
 
   //--------------------------------------------------------
   /**
-   * method : 		TestChimeraTK2Class::init
+   * method : 		AdapterDeviceClass::init
    * description : 	Create the object if not already done.
    *                  Otherwise, just return a pointer to the object
    *
    * @param	name	The class name
    */
   //--------------------------------------------------------
-  TestChimeraTK2Class* TestChimeraTK2Class::init(const char* name) {
+  AdapterDeviceClass* AdapterDeviceClass::init(const char* name) {
     if(_instance == NULL) {
       try {
         std::string s(name);
-        _instance = new TestChimeraTK2Class(s);
+        _instance = new AdapterDeviceClass(s);
       }
       catch(std::bad_alloc&) {
         throw;
@@ -143,12 +143,12 @@ namespace TestChimeraTK2_ns {
 
   //--------------------------------------------------------
   /**
-   * method : 		TestChimeraTK2Class::instance
+   * method : 		AdapterDeviceClass::instance
    * description : 	Check if object already created,
    *                  and return a pointer to the object
    */
   //--------------------------------------------------------
-  TestChimeraTK2Class* TestChimeraTK2Class::instance() {
+  AdapterDeviceClass* AdapterDeviceClass::instance() {
     if(_instance == NULL) {
       std::cerr << "Class is not initialised !!" << std::endl;
       exit(-1);
@@ -165,11 +165,11 @@ namespace TestChimeraTK2_ns {
   //===================================================================
   //--------------------------------------------------------
   /**
-   *	Method      : TestChimeraTK2Class::get_class_property()
+   *	Method      : AdapterDeviceClass::get_class_property()
    *	Description : Get the class property for specified name.
    */
   //--------------------------------------------------------
-  Tango::DbDatum TestChimeraTK2Class::get_class_property(std::string& prop_name) {
+  Tango::DbDatum AdapterDeviceClass::get_class_property(std::string& prop_name) {
     for(unsigned int i = 0; i < cl_prop.size(); i++)
       if(cl_prop[i].name == prop_name) return cl_prop[i];
     //	if not found, returns  an empty DbDatum
@@ -178,11 +178,11 @@ namespace TestChimeraTK2_ns {
 
   //--------------------------------------------------------
   /**
-   *	Method      : TestChimeraTK2Class::get_default_device_property()
+   *	Method      : AdapterDeviceClass::get_default_device_property()
    *	Description : Return the default value for device property.
    */
   //--------------------------------------------------------
-  Tango::DbDatum TestChimeraTK2Class::get_default_device_property(std::string& prop_name) {
+  Tango::DbDatum AdapterDeviceClass::get_default_device_property(std::string& prop_name) {
     for(unsigned int i = 0; i < dev_def_prop.size(); i++)
       if(dev_def_prop[i].name == prop_name) return dev_def_prop[i];
     //	if not found, return  an empty DbDatum
@@ -191,11 +191,11 @@ namespace TestChimeraTK2_ns {
 
   //--------------------------------------------------------
   /**
-   *	Method      : TestChimeraTK2Class::get_default_class_property()
+   *	Method      : AdapterDeviceClass::get_default_class_property()
    *	Description : Return the default value for class property.
    */
   //--------------------------------------------------------
-  Tango::DbDatum TestChimeraTK2Class::get_default_class_property(std::string& prop_name) {
+  Tango::DbDatum AdapterDeviceClass::get_default_class_property(std::string& prop_name) {
     for(unsigned int i = 0; i < cl_def_prop.size(); i++)
       if(cl_def_prop[i].name == prop_name) return cl_def_prop[i];
     //	if not found, return  an empty DbDatum
@@ -204,14 +204,14 @@ namespace TestChimeraTK2_ns {
 
   //--------------------------------------------------------
   /**
-   *	Method      : TestChimeraTK2Class::set_default_property()
+   *	Method      : AdapterDeviceClass::set_default_property()
    *	Description : Set default property (class and device) for wizard.
    *                For each property, add to wizard property name and description.
    *                If default value has been set, add it to wizard property and
    *                store it in a DbDatum.
    */
   //--------------------------------------------------------
-  void TestChimeraTK2Class::set_default_property() {
+  void AdapterDeviceClass::set_default_property() {
     std::string prop_name;
     std::string prop_desc;
     std::string prop_def;
@@ -248,11 +248,11 @@ namespace TestChimeraTK2_ns {
 
   //--------------------------------------------------------
   /**
-   *	Method      : TestChimeraTK2Class::write_class_property()
+   *	Method      : AdapterDeviceClass::write_class_property()
    *	Description : Set class description fields as property in database
    */
   //--------------------------------------------------------
-  void TestChimeraTK2Class::write_class_property() {
+  void AdapterDeviceClass::write_class_property() {
     //	First time, check if database used
     if(Tango::Util::_UseDb == false) return;
 
@@ -263,7 +263,7 @@ namespace TestChimeraTK2_ns {
 
     //	Put title
     Tango::DbDatum title("ProjectTitle");
-    title << TestChimeraTK2Class::getClassName();
+    title << AdapterDeviceClass::getClassName();
     data.push_back(title);
 
     //	Put Description
@@ -290,22 +290,22 @@ namespace TestChimeraTK2_ns {
 
   //--------------------------------------------------------
   /**
-   *	Method      : TestChimeraTK2Class::device_factory()
+   *	Method      : AdapterDeviceClass::device_factory()
    *	Description : Create the device object(s)
    *                and store them in the device list
    */
   //--------------------------------------------------------
-  void TestChimeraTK2Class::device_factory(const Tango::DevVarStringArray* devlist_ptr) {
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::device_factory_before) ENABLED START -----*/
+  void AdapterDeviceClass::device_factory(const Tango::DevVarStringArray* devlist_ptr) {
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::device_factory_before) ENABLED START -----*/
 
     //	Add your own code
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::device_factory_before
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::device_factory_before
 
     //	Create devices and add it into the device list
     for(unsigned long i = 0; i < devlist_ptr->length(); i++) {
       cout4 << "Device name : " << (*devlist_ptr)[i].in() << std::endl;
-      device_list.push_back(new TestChimeraTK2(this, (*devlist_ptr)[i]));
+      device_list.push_back(new AdapterDeviceImpl(this, (*devlist_ptr)[i]));
     }
 
     //	Manage dynamic attributes if any
@@ -314,7 +314,7 @@ namespace TestChimeraTK2_ns {
     //	Export devices to the outside world
     for(unsigned long i = 1; i <= devlist_ptr->length(); i++) {
       //	Add dynamic attributes if any
-      TestChimeraTK2* dev = static_cast<TestChimeraTK2*>(device_list[device_list.size() - i]);
+      AdapterDeviceImpl* dev = static_cast<AdapterDeviceImpl*>(device_list[device_list.size() - i]);
       dev->add_dynamic_attributes();
 
       //	Check before if database used.
@@ -324,72 +324,72 @@ namespace TestChimeraTK2_ns {
         export_device(dev, dev->get_name().c_str());
     }
 
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::device_factory_after) ENABLED START -----*/
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::device_factory_after) ENABLED START -----*/
 
     //	Add your own code
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::device_factory_after
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::device_factory_after
   }
   //--------------------------------------------------------
   /**
-   *	Method      : TestChimeraTK2Class::attribute_factory()
+   *	Method      : AdapterDeviceClass::attribute_factory()
    *	Description : Create the attribute object(s)
    *                and store them in the attribute list
    */
   //--------------------------------------------------------
-  void TestChimeraTK2Class::attribute_factory(std::vector<Tango::Attr*>& att_list) {
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::attribute_factory_before) ENABLED START -----*/
+  void AdapterDeviceClass::attribute_factory(std::vector<Tango::Attr*>& att_list) {
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::attribute_factory_before) ENABLED START -----*/
 
     //	Add your own code
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::attribute_factory_before
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::attribute_factory_before
 
     //	Create a list of static attributes
     create_static_attribute_list(get_class_attr()->get_attr_list());
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::attribute_factory_after) ENABLED START -----*/
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::attribute_factory_after) ENABLED START -----*/
 
     //	Add your own code
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::attribute_factory_after
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::attribute_factory_after
   }
   //--------------------------------------------------------
   /**
-   *	Method      : TestChimeraTK2Class::pipe_factory()
+   *	Method      : AdapterDeviceClass::pipe_factory()
    *	Description : Create the pipe object(s)
    *                and store them in the pipe list
    */
   //--------------------------------------------------------
-  void TestChimeraTK2Class::pipe_factory() {
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::pipe_factory_before) ENABLED START -----*/
+  void AdapterDeviceClass::pipe_factory() {
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::pipe_factory_before) ENABLED START -----*/
 
     //	Add your own code
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::pipe_factory_before
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::pipe_factory_after) ENABLED START -----*/
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::pipe_factory_before
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::pipe_factory_after) ENABLED START -----*/
 
     //	Add your own code
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::pipe_factory_after
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::pipe_factory_after
   }
   //--------------------------------------------------------
   /**
-   *	Method      : TestChimeraTK2Class::command_factory()
+   *	Method      : AdapterDeviceClass::command_factory()
    *	Description : Create the command object(s)
    *                and store them in the command list
    */
   //--------------------------------------------------------
-  void TestChimeraTK2Class::command_factory() {
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::command_factory_before) ENABLED START -----*/
+  void AdapterDeviceClass::command_factory() {
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::command_factory_before) ENABLED START -----*/
 
     //	Add your own code
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::command_factory_before
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::command_factory_before
 
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::command_factory_after) ENABLED START -----*/
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::command_factory_after) ENABLED START -----*/
 
     //	Add your own code
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::command_factory_after
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::command_factory_after
   }
 
   //===================================================================
@@ -398,13 +398,13 @@ namespace TestChimeraTK2_ns {
 
   //--------------------------------------------------------
   /**
-   * method : 		TestChimeraTK2Class::create_static_attribute_list
+   * method : 		AdapterDeviceClass::create_static_attribute_list
    * description : 	Create the a list of static attributes
    *
    * @param	att_list	the ceated attribute list
    */
   //--------------------------------------------------------
-  void TestChimeraTK2Class::create_static_attribute_list(std::vector<Tango::Attr*>& att_list) {
+  void AdapterDeviceClass::create_static_attribute_list(std::vector<Tango::Attr*>& att_list) {
     for(unsigned long i = 0; i < att_list.size(); i++) {
       std::string att_name(att_list[i]->get_name());
       transform(att_name.begin(), att_name.end(), att_name.begin(), ::tolower);
@@ -413,27 +413,27 @@ namespace TestChimeraTK2_ns {
 
     cout2 << defaultAttList.size() << " attributes in default list" << std::endl;
 
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::create_static_att_list) ENABLED START -----*/
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::create_static_att_list) ENABLED START -----*/
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::create_static_att_list
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::create_static_att_list
   }
 
   //--------------------------------------------------------
   /**
-   * method : 		TestChimeraTK2Class::erase_dynamic_attributes
+   * method : 		AdapterDeviceClass::erase_dynamic_attributes
    * description : 	delete the dynamic attributes if any.
    *
    * @param	devlist_ptr	the device list pointer
    * @param	list of all attributes
    */
   //--------------------------------------------------------
-  void TestChimeraTK2Class::erase_dynamic_attributes(
+  void AdapterDeviceClass::erase_dynamic_attributes(
       const Tango::DevVarStringArray* devlist_ptr, std::vector<Tango::Attr*>& att_list) {
     Tango::Util* tg = Tango::Util::instance();
 
     for(unsigned long i = 0; i < devlist_ptr->length(); i++) {
       Tango::DeviceImpl* dev_impl = tg->get_device_by_name(((std::string)(*devlist_ptr)[i]).c_str());
-      TestChimeraTK2* dev = static_cast<TestChimeraTK2*>(dev_impl);
+      AdapterDeviceImpl* dev = static_cast<AdapterDeviceImpl*>(dev_impl);
 
       std::vector<Tango::Attribute*>& dev_att_list = dev->get_device_attr()->get_attribute_list();
       std::vector<Tango::Attribute*>::iterator ite_att;
@@ -449,18 +449,18 @@ namespace TestChimeraTK2_ns {
         }
       }
     }
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::erase_dynamic_attributes) ENABLED START -----*/
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::erase_dynamic_attributes) ENABLED START -----*/
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::erase_dynamic_attributes
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::erase_dynamic_attributes
   }
 
   //--------------------------------------------------------
   /**
-   *	Method      : TestChimeraTK2Class::get_attr_object_by_name()
+   *	Method      : AdapterDeviceClass::get_attr_object_by_name()
    *	Description : returns Tango::Attr * object found by name
    */
   //--------------------------------------------------------
-  Tango::Attr* TestChimeraTK2Class::get_attr_object_by_name(std::vector<Tango::Attr*>& att_list, std::string attname) {
+  Tango::Attr* AdapterDeviceClass::get_attr_object_by_name(std::vector<Tango::Attr*>& att_list, std::string attname) {
     std::vector<Tango::Attr*>::iterator it;
     for(it = att_list.begin(); it < att_list.end(); ++it)
       if((*it)->get_name() == attname) return (*it);
@@ -468,7 +468,7 @@ namespace TestChimeraTK2_ns {
     return NULL;
   }
 
-  /*----- PROTECTED REGION ID(TestChimeraTK2Class::Additional Methods) ENABLED START -----*/
+  /*----- PROTECTED REGION ID(AdapterDeviceClass::Additional Methods) ENABLED START -----*/
 
-  /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::Additional Methods
-} // namespace TestChimeraTK2_ns
+  /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::Additional Methods
+} // namespace TangoAdapter

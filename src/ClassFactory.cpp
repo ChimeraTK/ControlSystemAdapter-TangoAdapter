@@ -1,4 +1,4 @@
-/*----- PROTECTED REGION ID(TestChimeraTK2::ClassFactory.cpp) ENABLED START -----*/
+/*----- PROTECTED REGION ID(AdapterDeviceImpl::ClassFactory.cpp) ENABLED START -----*/
 //=============================================================================
 //
 // file :        ClassFactory.cpp
@@ -32,13 +32,13 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-#include "TestChimeraTK2Class.h"
+#include "AdapterDeviceClass.h"
 #include <tango/tango.h>
 
 //	Add class header files if needed
 
 /**
- *	Create TestChimeraTK2 Class singleton and store it in DServer object.
+ *	Create AdapterDeviceImpl Class singleton and store it in DServer object.
  */
 
 void Tango::DServer::class_factory() {
@@ -46,7 +46,6 @@ void Tango::DServer::class_factory() {
   // from application name and
   //	Add method class init if needed
 
-  add_class(
-      TestChimeraTK2_ns::TestChimeraTK2Class::init(TestChimeraTK2_ns::TestChimeraTK2Class::getClassName().c_str()));
+  add_class(TangoAdapter::AdapterDeviceClass::init(TangoAdapter::AdapterDeviceClass::getClassName().c_str()));
 }
-/*----- PROTECTED REGION END -----*/ //	TestChimeraTK2::ClassFactory.cpp
+/*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::ClassFactory.cpp

@@ -1,13 +1,13 @@
-/*----- PROTECTED REGION ID(TestChimeraTK2Class.h) ENABLED START -----*/
+/*----- PROTECTED REGION ID(AdapterDeviceClass.h) ENABLED START -----*/
 //=============================================================================
 //
-// file :        TestChimeraTK2Class.h
+// file :        AdapterDeviceClass.h
 //
-// description : Include for the TestChimeraTK2 root class.
+// description : Include for the AdapterDeviceImpl root class.
 //               This class is the singleton class for
-//                the TestChimeraTK2 device class.
+//                the AdapterDeviceImpl device class.
 //               It contains all properties and methods which the
-//               TestChimeraTK2 requires only once e.g. the commands.
+//               AdapterDeviceImpl requires only once e.g. the commands.
 //
 // project :
 //
@@ -33,33 +33,33 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-#ifndef TestChimeraTK2Class_H
-#define TestChimeraTK2Class_H
+#ifndef AdapterDeviceClass_H
+#define AdapterDeviceClass_H
 
-#include "TestChimeraTK2.h"
+#include "AdapterDeviceImpl.h"
 #include <tango/tango.h>
 
-/*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class.h
+/*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass.h
 
-namespace TestChimeraTK2_ns {
-  /*----- PROTECTED REGION ID(TestChimeraTK2Class::classes for dynamic creation) ENABLED START -----*/
+namespace TangoAdapter {
+  /*----- PROTECTED REGION ID(AdapterDeviceClass::classes for dynamic creation) ENABLED START -----*/
 
-  /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::classes for dynamic creation
+  /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::classes for dynamic creation
 
   /**
-   *	The TestChimeraTK2Class singleton definition
+   *	The AdapterDeviceClass singleton definition
    */
 
 #ifdef _TG_WINDOWS_
-  class __declspec(dllexport) TestChimeraTK2Class : public Tango::DeviceClass
+  class __declspec(dllexport) AdapterDeviceClass : public Tango::DeviceClass
 #else
-  class TestChimeraTK2Class : public Tango::DeviceClass
+  class AdapterDeviceClass : public Tango::DeviceClass
 #endif
   {
     ;
-    /*----- PROTECTED REGION ID(TestChimeraTK2Class::Additionnal DServer data members) ENABLED START -----*/
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::Additionnal DServer data members) ENABLED START -----*/
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2Class::Additionnal DServer data members
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::Additionnal DServer data members
 
    public:
     //	write class properties data members
@@ -69,16 +69,16 @@ namespace TestChimeraTK2_ns {
 
     //	Method prototypes
     static std::string getClassName();
-    static TestChimeraTK2Class* init(const char*);
-    static TestChimeraTK2Class* instance();
-    ~TestChimeraTK2Class();
+    static AdapterDeviceClass* init(const char*);
+    static AdapterDeviceClass* instance();
+    ~AdapterDeviceClass();
     Tango::DbDatum get_class_property(std::string&);
     Tango::DbDatum get_default_device_property(std::string&);
     Tango::DbDatum get_default_class_property(std::string&);
 
    protected:
-    TestChimeraTK2Class(std::string&);
-    static TestChimeraTK2Class* _instance;
+    AdapterDeviceClass(std::string&);
+    static AdapterDeviceClass* _instance;
     void command_factory();
     void attribute_factory(std::vector<Tango::Attr*>&);
     void pipe_factory();
@@ -96,6 +96,6 @@ namespace TestChimeraTK2_ns {
     Tango::Attr* get_attr_object_by_name(std::vector<Tango::Attr*>& att_list, std::string attname);
   };
 
-} // namespace TestChimeraTK2_ns
+} // namespace TangoAdapter
 
-#endif //	TestChimeraTK2_H
+#endif //	AdapterDeviceImpl_H

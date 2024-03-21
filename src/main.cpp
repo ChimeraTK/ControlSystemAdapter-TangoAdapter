@@ -1,9 +1,9 @@
-/*----- PROTECTED REGION ID(TestChimeraTK2::main.cpp) ENABLED START -----*/
+/*----- PROTECTED REGION ID(AdapterDeviceImpl::main.cpp) ENABLED START -----*/
 //=============================================================================
 //
 // file :        main.cpp
 //
-// description : C++ source for the TestChimeraTK2 device server main.
+// description : C++ source for the AdapterDeviceImpl device server main.
 //               The main rule is to initialise (and create) the Tango
 //               system and to create the DServerClass singleton.
 //               The main should be the same for every Tango device server.
@@ -43,44 +43,40 @@
 
 // Compatibility with TANGO < 9.4 - cout may also be a macro there.
 #ifndef TANGO_LOG
-#define TANGO_LOG cout
+#  define TANGO_LOG cout
 #endif
 
 DECLARE_CRASH_HANDLER
 
-int main(int argc,char *argv[])
-{
-	INSTALL_CRASH_HANDLER
-	try
-	{
-		// Initialise the device server
-		//----------------------------------------
-		Tango::Util *tg = Tango::Util::init(argc,argv);
+int main(int argc, char* argv[]) {
+  INSTALL_CRASH_HANDLER
+  try {
+    // Initialise the device server
+    //----------------------------------------
+    Tango::Util* tg = Tango::Util::init(argc, argv);
 
-		// Create the device server singleton
-		//	which will create everything
-		//----------------------------------------
-		tg->server_init(false);
+    // Create the device server singleton
+    //	which will create everything
+    //----------------------------------------
+    tg->server_init(false);
 
-		// Run the endless loop
-		//----------------------------------------
-		TANGO_LOG << "Ready to accept request" << std::endl;
-		tg->server_run();
-	}
-	catch (std::bad_alloc &)
-	{
-		TANGO_LOG << "Can't allocate memory to store device object !!!" << std::endl;
-		TANGO_LOG << "Exiting" << std::endl;
-	}
-	catch (CORBA::Exception &e)
-	{
-		Tango::Except::print_exception(e);
+    // Run the endless loop
+    //----------------------------------------
+    TANGO_LOG << "Ready to accept request" << std::endl;
+    tg->server_run();
+  }
+  catch(std::bad_alloc&) {
+    TANGO_LOG << "Can't allocate memory to store device object !!!" << std::endl;
+    TANGO_LOG << "Exiting" << std::endl;
+  }
+  catch(CORBA::Exception& e) {
+    Tango::Except::print_exception(e);
 
-		TANGO_LOG << "Received a CORBA_Exception" << std::endl;
-		TANGO_LOG << "Exiting" << std::endl;
-	}
-	Tango::Util::instance()->server_cleanup();
-	return(0);
+    TANGO_LOG << "Received a CORBA_Exception" << std::endl;
+    TANGO_LOG << "Exiting" << std::endl;
+  }
+  Tango::Util::instance()->server_cleanup();
+  return (0);
 }
 
-/*----- PROTECTED REGION END -----*/	//	TestChimeraTK2::main.cpp
+/*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::main.cpp

@@ -1,9 +1,9 @@
-/*----- PROTECTED REGION ID(TestChimeraTK2.h) ENABLED START -----*/
+/*----- PROTECTED REGION ID(AdapterDeviceImpl.h) ENABLED START -----*/
 //=============================================================================
 //
-// file :        TestChimeraTK2.h
+// file :        AdapterDeviceImpl.h
 //
-// description : Include file for the TestChimeraTK2 class
+// description : Include file for the AdapterDeviceImpl class
 //
 // project :
 //
@@ -29,32 +29,32 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-#ifndef TestChimeraTK2_H
-#define TestChimeraTK2_H
+#ifndef AdapterDeviceImpl_H
+#define AdapterDeviceImpl_H
 
 #include "TangoAdapter.h"
 #include <tango/tango.h>
 
-/*----- PROTECTED REGION END -----*/ //	TestChimeraTK2.h
+/*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl.h
 
 /**
- *  TestChimeraTK2 class description:
+ *  AdapterDeviceImpl class description:
  *    Test of TangoAdapterfor ChimeraTK
  */
 
-namespace TestChimeraTK2_ns {
-  /*----- PROTECTED REGION ID(TestChimeraTK2::Additional Class Declarations) ENABLED START -----*/
+namespace TangoAdapter {
+  /*----- PROTECTED REGION ID(AdapterDeviceImpl::Additional Class Declarations) ENABLED START -----*/
 
   //	Additional Class Declarations
 
-  /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2::Additional Class Declarations
+  /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::Additional Class Declarations
 
-  class TestChimeraTK2 : public TANGO_BASE_CLASS {
-    /*----- PROTECTED REGION ID(TestChimeraTK2::Data Members) ENABLED START -----*/
+  class AdapterDeviceImpl : public TANGO_BASE_CLASS {
+    /*----- PROTECTED REGION ID(AdapterDeviceImpl::Data Members) ENABLED START -----*/
 
     //	Add your own data members
     ChimeraTK::TangoAdapter* tangoAdapter;
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2::Data Members
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::Data Members
 
     //	Device property data members
    public:
@@ -71,14 +71,14 @@ namespace TestChimeraTK2_ns {
      *	@param cl	Class.
      *	@param s 	Device Name
      */
-    TestChimeraTK2(Tango::DeviceClass* cl, std::string& s);
+    AdapterDeviceImpl(Tango::DeviceClass* cl, std::string& s);
     /**
      * Constructs a newly device object.
      *
      *	@param cl	Class.
      *	@param s 	Device Name
      */
-    TestChimeraTK2(Tango::DeviceClass* cl, const char* s);
+    AdapterDeviceImpl(Tango::DeviceClass* cl, const char* s);
     /**
      * Constructs a newly device object.
      *
@@ -86,11 +86,11 @@ namespace TestChimeraTK2_ns {
      *	@param s 	Device name
      *	@param d	Device description.
      */
-    TestChimeraTK2(Tango::DeviceClass* cl, const char* s, const char* d);
+    AdapterDeviceImpl(Tango::DeviceClass* cl, const char* s, const char* d);
     /**
      * The device object destructor.
      */
-    ~TestChimeraTK2() { delete_device(); };
+    ~AdapterDeviceImpl() { delete_device(); };
 
     //	Miscellaneous methods
    public:
@@ -115,7 +115,7 @@ namespace TestChimeraTK2_ns {
    public:
     //--------------------------------------------------------
     /*
-     *	Method      : TestChimeraTK2::read_attr_hardware()
+     *	Method      : AdapterDeviceImpl::read_attr_hardware()
      *	Description : Hardware acquisition for attributes.
      */
     //--------------------------------------------------------
@@ -123,7 +123,7 @@ namespace TestChimeraTK2_ns {
 
     //--------------------------------------------------------
     /**
-     *	Method      : TestChimeraTK2::add_dynamic_attributes()
+     *	Method      : AdapterDeviceImpl::add_dynamic_attributes()
      *	Description : Add dynamic attributes if any.
      */
     //--------------------------------------------------------
@@ -133,25 +133,25 @@ namespace TestChimeraTK2_ns {
    public:
     //--------------------------------------------------------
     /**
-     *	Method      : TestChimeraTK2::add_dynamic_commands()
+     *	Method      : AdapterDeviceImpl::add_dynamic_commands()
      *	Description : Add dynamic commands if any.
      */
     //--------------------------------------------------------
     void add_dynamic_commands();
 
-    /*----- PROTECTED REGION ID(TestChimeraTK2::Additional Method prototypes) ENABLED START -----*/
+    /*----- PROTECTED REGION ID(AdapterDeviceImpl::Additional Method prototypes) ENABLED START -----*/
 
     //	Additional Method prototypes
 
-    /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2::Additional Method prototypes
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::Additional Method prototypes
   };
 
-  /*----- PROTECTED REGION ID(TestChimeraTK2::Additional Classes Definitions) ENABLED START -----*/
+  /*----- PROTECTED REGION ID(AdapterDeviceImpl::Additional Classes Definitions) ENABLED START -----*/
 
   //	Additional Classes Definitions
 
-  /*----- PROTECTED REGION END -----*/ //	TestChimeraTK2::Additional Classes Definitions
+  /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::Additional Classes Definitions
 
-} // namespace TestChimeraTK2_ns
+} // namespace TangoAdapter
 
-#endif //	TestChimeraTK2_H
+#endif //	AdapterDeviceImpl_H

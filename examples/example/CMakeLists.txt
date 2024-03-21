@@ -1,7 +1,7 @@
 # Note: This CMakeLists.txt is a minimal complete example how to use the
 # *installed* application core library. It is not included from the main
 # CMakeLists.txt which is used to build ApplicationCore itself.
-project(TestChimeraTK2)
+project(TangoExample)
 
 cmake_minimum_required(VERSION 3.16)
 
