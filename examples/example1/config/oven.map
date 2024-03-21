@@ -1,9 +1,0 @@
-# name                            nr of elements       address          size           bar    width   fracbits    signed    R/W
-heater.temperatureReadback        1                    0                4              0      32      16          0         RO
-heater.heatingCurrent             1                    4                4              0      32      16          0         RW
-heater.supplyVoltages             4                    11              16              0      32      16          0         RW
-heater.bool_scalar                1                    8                1              0      1       0           0         INTERRUPT0
-#heater.bool_scalar_RB             1                    8                1              0      1       0           0         RO
-heater.bool_array                 2                    9                2              0      1       0           0         RO
-
-
