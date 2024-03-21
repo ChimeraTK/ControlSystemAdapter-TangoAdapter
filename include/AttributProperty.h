@@ -1,90 +1,92 @@
 #pragma once
 
+#include <tango/tango.h>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
+
 #include <iostream>
 #include <map>
-#include <tango/tango.h>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #define TOKEN ";"
 
 namespace ChimeraTK {
-enum AttrDataFormat{SCALAR,SPECTRUM,IMAGE};
+  enum AttrDataFormat { SCALAR, SPECTRUM, IMAGE };
 
+  struct AttributProperty {
+    // Speed;Board/Reg;SCALAR;DEVShort
+    AttributProperty(std::string name, std::string path, AttrDataFormat dataFormat, Tango::CmdArgType _dataType,
+        std::string desc, std::string unit) {
+      name = std::move(name);
+      path = std::move(path);
+      attrDataFormat = dataFormat;
+      dataType = _dataType;
 
-  class AttributProperty {
-   public:
-    //Speed;Board/Reg;SCALAR;DEVShort
-    AttributProperty(std::string name,std::string path,AttrDataFormat dataFormat, long dataType,std::string desc,std::string unit){
-
-      _name = name;
-      _path = path;
-      _attrDataFormat = dataFormat;
-      _dataType = dataType;
-
-      _desc = desc;
-      _unit = unit;
+      desc = std::move(desc);
+      unit = std::move(unit);
     }
-    AttributProperty(std::string desc){
+    explicit AttributProperty(std::string desc) {
       std::vector<std::string> splitDesc;
       boost::algorithm::split(splitDesc, desc, boost::is_any_of(TOKEN));
-      if (splitDesc.size()!=6)
-      {
-        std::cout<<"error AttributProperty"<<std::endl;
-
+      if(splitDesc.size() != 6) {
+        std::cout << "error AttributProperty" << std::endl;
       }
-      _name = splitDesc[0];
-      _path = splitDesc[1];
-      _attrDataFormat = regTypeMap[splitDesc[2]];
+      name = splitDesc[0];
+      path = splitDesc[1];
+      attrDataFormat = regTypeMap[splitDesc[2]];
 
-    if  (!splitDesc[3].compare("DevUChar"))
-      _dataType = Tango::DEV_UCHAR;
-    if  (!splitDesc[3].compare("DevUShort"))
-      _dataType = Tango::DEV_USHORT;
-    else if (!splitDesc[3].compare("DevULong"))
-      _dataType = Tango::DEV_ULONG;
-    else if (!splitDesc[3].compare("DevULong64"))
-      _dataType = Tango::DEV_ULONG64;
-    else if (!splitDesc[3].compare("DevShort"))
-      _dataType = Tango::DEV_SHORT;
-    else if (!splitDesc[3].compare("DevLong"))
-      _dataType = Tango::DEV_LONG;
-    else if (!splitDesc[3].compare("DevLong64"))
-      _dataType = Tango::DEV_LONG64;
-    else if (!splitDesc[3].compare("DevFloat"))
-      _dataType = Tango::DEV_FLOAT;
-    else if (!splitDesc[3].compare("DevDouble"))
-      _dataType = Tango::DEV_DOUBLE;
-    else if (!splitDesc[3].compare("DevBoolean"))
-      _dataType = Tango::DEV_BOOLEAN;
-    else if (!splitDesc[3].compare("DevString"))
-    {
-      _dataType = Tango::DEV_STRING;
+      if(splitDesc[3] == "DevUChar") {
+        dataType = Tango::DEV_UCHAR;
+      }
+      if(splitDesc[3] == "DevUShort") {
+        dataType = Tango::DEV_USHORT;
+      }
+      else if(splitDesc[3] == "DevULong") {
+        dataType = Tango::DEV_ULONG;
+      }
+      else if(splitDesc[3] == "DevULong64") {
+        dataType = Tango::DEV_ULONG64;
+      }
+      else if(splitDesc[3] == "DevShort") {
+        dataType = Tango::DEV_SHORT;
+      }
+      else if(splitDesc[3] == "DevLong") {
+        dataType = Tango::DEV_LONG;
+      }
+      else if(splitDesc[3] == "DevLong64") {
+        dataType = Tango::DEV_LONG64;
+      }
+      else if(splitDesc[3] == "DevFloat") {
+        dataType = Tango::DEV_FLOAT;
+      }
+      else if(splitDesc[3] == "DevDouble") {
+        dataType = Tango::DEV_DOUBLE;
+      }
+      else if(splitDesc[3] == "DevBoolean") {
+        dataType = Tango::DEV_BOOLEAN;
+      }
+      else if(splitDesc[3] == "DevString") {
+        dataType = Tango::DEV_STRING;
+      }
+
+      desc = splitDesc[4];
+      unit = splitDesc[5];
     }
 
-      _desc = splitDesc[4];
-      _unit = splitDesc[5];
-
-    }
-
-    ~AttributProperty(){}
+    ~AttributProperty() = default;
 
     void operator=(AttributProperty const&) = delete;
 
-    long getTangoType(){return _dataType;}
+    std::map<std::string, ChimeraTK::AttrDataFormat> regTypeMap = {{"SCALAR", ChimeraTK::AttrDataFormat::SCALAR},
+        {"SPECTRUM", ChimeraTK::AttrDataFormat::SPECTRUM}, {"IMAGE", ChimeraTK::AttrDataFormat::IMAGE}};
 
-    ChimeraTK::AttrDataFormat getDataFormat(){return _attrDataFormat;}
+    std::string unit;
+    std::string desc;
+    std::string name;
+    std::string path;
 
-
-    std::map<std::string,ChimeraTK::AttrDataFormat>regTypeMap={ {"SCALAR", ChimeraTK::AttrDataFormat::SCALAR}, {"SPECTRUM",ChimeraTK::AttrDataFormat::SPECTRUM },{"IMAGE",ChimeraTK::AttrDataFormat::IMAGE} };
-    public:
-    std::string _unit;
-    std::string _desc;
-    std::string _name;
-    std::string _path;
-    ChimeraTK::AttrDataFormat _attrDataFormat;
-    long _dataType;
-    Tango::AttrWriteType _writeType;
- };
-
+    ChimeraTK::AttrDataFormat attrDataFormat;
+    Tango::CmdArgType dataType;
+    Tango::AttrWriteType writeType{Tango::AttrWriteType::WT_UNKNOWN};
+  };
 
 } // namespace ChimeraTK

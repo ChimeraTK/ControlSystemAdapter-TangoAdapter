@@ -29,11 +29,13 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-#ifndef AdapterDeviceImpl_H
-#define AdapterDeviceImpl_H
+#pragma once
 
 #include "TangoAdapter.h"
 #include <tango/tango.h>
+
+// Most of the non-conforming naming is a requierment from Tango, so just disable this check
+// NOLINTBEGIN(readability-identifier-naming)
 
 /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl.h
 
@@ -53,7 +55,7 @@ namespace TangoAdapter {
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::Data Members) ENABLED START -----*/
 
     //	Add your own data members
-    ChimeraTK::TangoAdapter* tangoAdapter;
+    std::shared_ptr<ChimeraTK::TangoAdapter> tangoAdapter{};
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::Data Members
 
     //	Device property data members
@@ -64,7 +66,6 @@ namespace TangoAdapter {
     std::string dMapFilePath;
 
     //	Constructors and destructors
-   public:
     /**
      * Constructs a newly device object.
      *
@@ -90,18 +91,17 @@ namespace TangoAdapter {
     /**
      * The device object destructor.
      */
-    ~AdapterDeviceImpl() { delete_device(); };
+    ~AdapterDeviceImpl() override { delete_device(); };
 
     //	Miscellaneous methods
-   public:
     /*
      *	will be called at device destruction or at init command.
      */
-    void delete_device();
+    void delete_device() override;
     /*
      *	Initialize the device
      */
-    virtual void init_device();
+    void init_device() override;
     /*
      *	Read the device properties from database
      */
@@ -109,17 +109,18 @@ namespace TangoAdapter {
     /*
      *	Always executed method before execution command method.
      */
-    virtual void always_executed_hook();
+    void always_executed_hook() override;
 
     //	Attribute methods
-   public:
     //--------------------------------------------------------
     /*
      *	Method      : AdapterDeviceImpl::read_attr_hardware()
      *	Description : Hardware acquisition for attributes.
      */
     //--------------------------------------------------------
-    virtual void read_attr_hardware(std::vector<long>& attr_list);
+    // Disabling because this is Tango code
+    // NOLINTNEXTLINE(google-runtime-int)
+    void read_attr_hardware(std::vector<long>& attr_list) override;
 
     //--------------------------------------------------------
     /**
@@ -130,7 +131,6 @@ namespace TangoAdapter {
     void add_dynamic_attributes();
 
     //	Command related methods
-   public:
     //--------------------------------------------------------
     /**
      *	Method      : AdapterDeviceImpl::add_dynamic_commands()
@@ -153,5 +153,4 @@ namespace TangoAdapter {
   /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::Additional Classes Definitions
 
 } // namespace TangoAdapter
-
-#endif //	AdapterDeviceImpl_H
+  // NOLINTEND(readability-identifier-naming)

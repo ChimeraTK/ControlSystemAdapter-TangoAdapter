@@ -9,6 +9,30 @@
 
 namespace ChimeraTK {
 
+  namespace util {
+    static std::pair<std::string, std::string> splitStringAtFirstSlash(std::string& input) {
+      // find first slash
+      auto slashPosition = input.find_first_of('/');
+      if(slashPosition == 0) { // ignore leading slash
+        input = input.substr(1);
+        slashPosition = input.find_first_of('/');
+      }
+      // no slash found: return empty location name
+      if(slashPosition == std::string::npos) {
+        return std::make_pair(std::string(), input);
+      }
+      // split at first slash into location name and property name
+      auto locationName = input.substr(0, slashPosition);
+      auto propertyName = input.substr(slashPosition + 1);
+      // replace any remaining slashes in property name with dots
+      while((slashPosition = propertyName.find_first_of('/')) != std::string::npos) {
+        propertyName[slashPosition] = '.';
+      }
+      return std::make_pair(locationName, propertyName);
+    }
+
+  } // namespace util
+
   /********************************************************************************************************************/
 
   AttributMapper& AttributMapper::getInstance() {
@@ -16,21 +40,21 @@ namespace ChimeraTK {
     return instance;
   }
   /********************************************************************************************************************/
-  void AttributMapper::directImport(std::set<std::string> inputVariables) {
+  void AttributMapper::directImport(std::set<std::string>& inputVariables) {
     clear();
 
     _inputVariables = inputVariables;
     // import all
-    import("/", "");
+    import("/", std::string(""));
   }
   /********************************************************************************************************************/
-  void AttributMapper::prepareOutput(std::vector<std::string> attributList) {
+  void AttributMapper::prepareOutput(const std::vector<std::string>& attributList) {
     clear();
-    for(auto attrDesc : attributList) {
+    for(const auto& attrDesc : attributList) {
       // prepare the property description
       auto attributProperty = std::make_shared<AttributProperty>(attrDesc);
       _descriptions.push_back(attributProperty);
-      _usedInputVariables.insert(attributProperty->_path);
+      _usedInputVariables.insert(attributProperty->path);
     }
   }
   /********************************************************************************************************************/
@@ -39,11 +63,12 @@ namespace ChimeraTK {
     _usedInputVariables.clear();
   }
   /********************************************************************************************************************/
-  std::list<std::shared_ptr<AttributProperty>> const& AttributMapper::getAttDescList(void) const {
+  std::list<std::shared_ptr<AttributProperty>> const& AttributMapper::getAttDescList() const {
     return _descriptions;
   }
   /********************************************************************************************************************/
-  void AttributMapper::import(std::string importSource, std::string importLocationName, std::string directory) {
+  void AttributMapper::import(std::string importSource, [[maybe_unused]] const std::string& importLocationName,
+      [[maybe_unused]] const std::string& directory) {
     // a slash will be added after the source, so we make the source empty for an
     // import of everythingprocessVariableName
     if(importSource == "/") {
@@ -65,7 +90,7 @@ namespace ChimeraTK {
         ChimeraTK::RegisterPath propertyName;
         std::string locationName;
 
-        auto locationAndPropertyName = splitStringAtFirstSlash(nameSource);
+        auto locationAndPropertyName = util::splitStringAtFirstSlash(nameSource);
         locationName = locationAndPropertyName.first;
         propertyName = locationAndPropertyName.second;
         propertyName.setAltSeparator(".");
@@ -73,8 +98,10 @@ namespace ChimeraTK {
         // erase the first "/"
         std::string attrName = locationName + "_" + propertyName.getWithAltSeparator();
 
-        std::string::size_type i = attrName.find("/");
-        if(i != std::string::npos) attrName.erase(i, 1);
+        auto i = attrName.find('/');
+        if(i != std::string::npos) {
+          attrName.erase(i, 1);
+        }
 
         if(locationName.empty()) {
           throw std::logic_error(std::string("Invalid XML content in global import of ") +
@@ -112,29 +139,53 @@ namespace ChimeraTK {
         auto attributProperty = std::make_shared<AttributProperty>(
             attrName, nameSource, dataFormat, _dataType, processVariable->getDescription(), processVariable->getUnit());
         _descriptions.push_back(attributProperty);
-        _usedInputVariables.insert(attributProperty->_path);
+        _usedInputVariables.insert(attributProperty->path);
       }
     }
   }
 
   /********************************************************************************************************************/
   void AttributMapper::deriveType(std::type_info const& info) {
-    _dataType = 0;
+    if(info == typeid(uint8_t)) {
+      _dataType = Tango::DEV_UCHAR;
+    }
+    if(info == typeid(int8_t)) {
+      _dataType = Tango::DEV_SHORT;
+    }
 
-    if(info == typeid(uint8_t)) _dataType = Tango::DEV_UCHAR;
-    if(info == typeid(int8_t)) _dataType = Tango::DEV_SHORT;
-
-    if(info == typeid(uint16_t)) _dataType = Tango::DEV_USHORT;
-    if(info == typeid(int16_t)) _dataType = Tango::DEV_SHORT;
-    if(info == typeid(uint32_t)) _dataType = Tango::DEV_ULONG;
-    if(info == typeid(int32_t)) _dataType = Tango::DEV_LONG;
-    if(info == typeid(uint64_t)) _dataType = Tango::DEV_ULONG64;
-    if(info == typeid(int64_t)) _dataType = Tango::DEV_LONG64;
-    if(info == typeid(float)) _dataType = Tango::DEV_FLOAT;
-    if(info == typeid(double)) _dataType = Tango::DEV_DOUBLE;
-    if(info == typeid(std::string)) _dataType = Tango::DEV_STRING;
-    if(info == typeid(ChimeraTK::Boolean)) _dataType = Tango::DEV_BOOLEAN;
-    if(info == typeid(ChimeraTK::Void)) _dataType = DataType::Void;
+    if(info == typeid(uint16_t)) {
+      _dataType = Tango::DEV_USHORT;
+    }
+    if(info == typeid(int16_t)) {
+      _dataType = Tango::DEV_SHORT;
+    }
+    if(info == typeid(uint32_t)) {
+      _dataType = Tango::DEV_ULONG;
+    }
+    if(info == typeid(int32_t)) {
+      _dataType = Tango::DEV_LONG;
+    }
+    if(info == typeid(uint64_t)) {
+      _dataType = Tango::DEV_ULONG64;
+    }
+    if(info == typeid(int64_t)) {
+      _dataType = Tango::DEV_LONG64;
+    }
+    if(info == typeid(float)) {
+      _dataType = Tango::DEV_FLOAT;
+    }
+    if(info == typeid(double)) {
+      _dataType = Tango::DEV_DOUBLE;
+    }
+    if(info == typeid(std::string)) {
+      _dataType = Tango::DEV_STRING;
+    }
+    if(info == typeid(ChimeraTK::Boolean)) {
+      _dataType = Tango::DEV_BOOLEAN;
+    }
+    if(info == typeid(ChimeraTK::Void)) {
+      _dataType = Tango::DEV_VOID;
+    }
 
     // std::cout<<_dataType<<std::endl;
   }

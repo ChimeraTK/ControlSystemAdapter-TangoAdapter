@@ -24,8 +24,13 @@ namespace ChimeraTK {
    */
   class TangoUpdater : public boost::noncopyable, Tango::LogAdapter {
    public:
-    TangoUpdater(TANGO_BASE_CLASS* tangoDevice): Tango::LogAdapter(tangoDevice),_device(tangoDevice){}
-    ~TangoUpdater();
+    explicit TangoUpdater(TANGO_BASE_CLASS* tangoDevice) : Tango::LogAdapter(tangoDevice), _device(tangoDevice) {}
+
+    // ChimeraTK::logic_error is theoretically thrown in ::interrupt(), practically should not happen and if it does,
+    // we should have aborted anyway much sooner
+    // NOLINTNEXTLINE(bugprone-exception-escape)
+    ~TangoUpdater() override;
+
     void update(); // Update all variables once. This is a convenience function
                    // for testing.
 
@@ -34,15 +39,15 @@ namespace ChimeraTK {
 
     void run();
     void stop();
-    void updateFonction(const std::string attrName,const AttrDataFormat attributFormat, const long dataType) ;
+    void updateFonction(const std::string& attrName, AttrDataFormat attrDataFormat, Tango::CmdArgType dataType);
 
     // Add a variable to be updated. Together with the TransferElementAbstractor
     // pointing to the ChimeraTK::ProcessArray, the EqFct* to obtain the lock for
     // and a function to be called which executes the actual update should be
     // specified. The lock is held while the updaterFunction is called, so it must
     // neither obtained nor freed within the updaterFunction.
-    void addVariable(
-        ChimeraTK::TransferElementAbstractor variable, std::string attrId, AttrDataFormat attrDataFormat,long dataType);
+    void addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId,
+        AttrDataFormat attrDataFormat, Tango::CmdArgType dataType);
 
     const std::list<ChimeraTK::TransferElementAbstractor>& getElementsToRead() { return _elementsToRead; }
 
@@ -56,7 +61,7 @@ namespace ChimeraTK {
       //std::vector<std::function<void()>> updateFunctions;
       std::vector<std::string> attributID;
       std::vector<ChimeraTK::AttrDataFormat> attributFormat;
-      std::vector<long> dataType;
+      std::vector<Tango::CmdArgType> dataType;
       std::set<boost::shared_ptr<ChimeraTK::TransferElement>> additionalTransferElements;
     };
     std::map<ChimeraTK::TransferElementID, UpdateDescriptor> _descriptorMap;

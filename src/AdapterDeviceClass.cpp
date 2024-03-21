@@ -35,8 +35,11 @@
 
 #include "AdapterDeviceClass.h"
 
+#include <algorithm>
 #include <regex>
 
+// This is required naming by Tango, so disable the linter
+// NOLINTBEGIN(readability-identifier-naming)
 #ifndef cout4
 #  define cout4 TANGO_LOG_DEBUG
 #endif
@@ -44,6 +47,7 @@
 #ifndef cout2
 #  define cout2 TANGO_LOG_DEBUG
 #endif
+// NOLINTEND(readability-identifier-naming)
 
 /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass.cpp
 
@@ -58,7 +62,8 @@ extern "C" {
 
 __declspec(dllexport)
 #endif
-
+    // Naming is for Tango
+    // NOLINTNEXTLINE(readability-identifier-naming)
     Tango::DeviceClass* _create_AdapterDeviceImpl_class(const char* name) {
   return TangoAdapter::AdapterDeviceClass::init(name);
 }
@@ -68,7 +73,7 @@ namespace TangoAdapter {
   //===================================================================
   //	Initialize pointer for singleton pattern
   //===================================================================
-  AdapterDeviceClass* AdapterDeviceClass::_instance = NULL;
+  AdapterDeviceClass* AdapterDeviceClass::_instance = nullptr;
 
   std::string AdapterDeviceClass::getClassName() {
     std::string ourName{Tango::Util::instance()->get_ds_exec_name()};
@@ -116,7 +121,7 @@ namespace TangoAdapter {
 
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::destructor
 
-    _instance = NULL;
+    _instance = nullptr;
   }
 
   //--------------------------------------------------------
@@ -129,7 +134,7 @@ namespace TangoAdapter {
    */
   //--------------------------------------------------------
   AdapterDeviceClass* AdapterDeviceClass::init(const char* name) {
-    if(_instance == NULL) {
+    if(_instance == nullptr) {
       try {
         std::string s(name);
         _instance = new AdapterDeviceClass(s);
@@ -149,7 +154,7 @@ namespace TangoAdapter {
    */
   //--------------------------------------------------------
   AdapterDeviceClass* AdapterDeviceClass::instance() {
-    if(_instance == NULL) {
+    if(_instance == nullptr) {
       std::cerr << "Class is not initialised !!" << std::endl;
       exit(-1);
     }
@@ -163,6 +168,15 @@ namespace TangoAdapter {
   //===================================================================
   //	Properties management
   //===================================================================
+
+  Tango::DbDatum AdapterDeviceClass::getPropertyWithDefault(const Tango::DbData& list, const std::string& name) {
+    const auto& position = std::find_if(list.begin(), list.end(), [&](auto x) { return x.name == name; });
+    if(position != list.end()) {
+      return *position;
+    }
+
+    return {name};
+  }
   //--------------------------------------------------------
   /**
    *	Method      : AdapterDeviceClass::get_class_property()
@@ -170,10 +184,7 @@ namespace TangoAdapter {
    */
   //--------------------------------------------------------
   Tango::DbDatum AdapterDeviceClass::get_class_property(std::string& prop_name) {
-    for(unsigned int i = 0; i < cl_prop.size(); i++)
-      if(cl_prop[i].name == prop_name) return cl_prop[i];
-    //	if not found, returns  an empty DbDatum
-    return Tango::DbDatum(prop_name);
+    return getPropertyWithDefault(cl_prop, prop_name);
   }
 
   //--------------------------------------------------------
@@ -183,10 +194,7 @@ namespace TangoAdapter {
    */
   //--------------------------------------------------------
   Tango::DbDatum AdapterDeviceClass::get_default_device_property(std::string& prop_name) {
-    for(unsigned int i = 0; i < dev_def_prop.size(); i++)
-      if(dev_def_prop[i].name == prop_name) return dev_def_prop[i];
-    //	if not found, return  an empty DbDatum
-    return Tango::DbDatum(prop_name);
+    return getPropertyWithDefault(dev_def_prop, prop_name);
   }
 
   //--------------------------------------------------------
@@ -196,10 +204,7 @@ namespace TangoAdapter {
    */
   //--------------------------------------------------------
   Tango::DbDatum AdapterDeviceClass::get_default_class_property(std::string& prop_name) {
-    for(unsigned int i = 0; i < cl_def_prop.size(); i++)
-      if(cl_def_prop[i].name == prop_name) return cl_def_prop[i];
-    //	if not found, return  an empty DbDatum
-    return Tango::DbDatum(prop_name);
+    return getPropertyWithDefault(cl_def_prop, prop_name);
   }
 
   //--------------------------------------------------------
@@ -230,8 +235,9 @@ namespace TangoAdapter {
       dev_def_prop.push_back(data);
       add_wiz_dev_prop(prop_name, prop_desc, prop_def);
     }
-    else
+    else {
       add_wiz_dev_prop(prop_name, prop_desc);
+    }
     prop_name = "DMapFilePath";
     prop_desc = "DMapFilePath";
     prop_def = "";
@@ -242,8 +248,9 @@ namespace TangoAdapter {
       dev_def_prop.push_back(data);
       add_wiz_dev_prop(prop_name, prop_desc, prop_def);
     }
-    else
+    else {
       add_wiz_dev_prop(prop_name, prop_desc);
+    }
   }
 
   //--------------------------------------------------------
@@ -254,7 +261,9 @@ namespace TangoAdapter {
   //--------------------------------------------------------
   void AdapterDeviceClass::write_class_property() {
     //	First time, check if database used
-    if(Tango::Util::_UseDb == false) return;
+    if(!Tango::Util::_UseDb) {
+      return;
+    }
 
     Tango::DbData data;
     std::string classname = get_name();
@@ -269,14 +278,14 @@ namespace TangoAdapter {
     //	Put Description
     Tango::DbDatum description("Description");
     std::vector<std::string> str_desc;
-    str_desc.push_back("ChimeraTK-based DeviceServer");
+    str_desc.emplace_back("ChimeraTK-based DeviceServer");
     description << str_desc;
     data.push_back(description);
 
     //  Put inheritance
     Tango::DbDatum inher_datum("InheritedFrom");
     std::vector<std::string> inheritance;
-    inheritance.push_back("TANGO_BASE_CLASS");
+    inheritance.emplace_back("TANGO_BASE_CLASS");
     inher_datum << inheritance;
     data.push_back(inher_datum);
 
@@ -306,6 +315,7 @@ namespace TangoAdapter {
     for(unsigned long i = 0; i < devlist_ptr->length(); i++) {
       cout4 << "Device name : " << (*devlist_ptr)[i].in() << std::endl;
       device_list.push_back(new AdapterDeviceImpl(this, (*devlist_ptr)[i]));
+      device_list.back()->init_device();
     }
 
     //	Manage dynamic attributes if any
@@ -314,14 +324,18 @@ namespace TangoAdapter {
     //	Export devices to the outside world
     for(unsigned long i = 1; i <= devlist_ptr->length(); i++) {
       //	Add dynamic attributes if any
-      AdapterDeviceImpl* dev = static_cast<AdapterDeviceImpl*>(device_list[device_list.size() - i]);
+      auto* dev = dynamic_cast<AdapterDeviceImpl*>(device_list[device_list.size() - i]);
+
+      assert(dev != nullptr);
       dev->add_dynamic_attributes();
 
       //	Check before if database used.
-      if((Tango::Util::_UseDb == true) && (Tango::Util::_FileDb == false))
+      if(Tango::Util::_UseDb && !Tango::Util::_FileDb) {
         export_device(dev);
-      else
+      }
+      else {
         export_device(dev, dev->get_name().c_str());
+      }
     }
 
     /*----- PROTECTED REGION ID(AdapterDeviceClass::device_factory_after) ENABLED START -----*/
@@ -337,7 +351,7 @@ namespace TangoAdapter {
    *                and store them in the attribute list
    */
   //--------------------------------------------------------
-  void AdapterDeviceClass::attribute_factory(std::vector<Tango::Attr*>& att_list) {
+  void AdapterDeviceClass::attribute_factory([[maybe_unused]] std::vector<Tango::Attr*>& att_list) {
     /*----- PROTECTED REGION ID(AdapterDeviceClass::attribute_factory_before) ENABLED START -----*/
 
     //	Add your own code
@@ -405,9 +419,9 @@ namespace TangoAdapter {
    */
   //--------------------------------------------------------
   void AdapterDeviceClass::create_static_attribute_list(std::vector<Tango::Attr*>& att_list) {
-    for(unsigned long i = 0; i < att_list.size(); i++) {
-      std::string att_name(att_list[i]->get_name());
-      transform(att_name.begin(), att_name.end(), att_name.begin(), ::tolower);
+    for(const auto* attr : att_list) {
+      auto att_name = attr->get_name();
+      std::transform(att_name.begin(), att_name.end(), att_name.begin(), ::tolower);
       defaultAttList.push_back(att_name);
     }
 
@@ -432,15 +446,18 @@ namespace TangoAdapter {
     Tango::Util* tg = Tango::Util::instance();
 
     for(unsigned long i = 0; i < devlist_ptr->length(); i++) {
-      Tango::DeviceImpl* dev_impl = tg->get_device_by_name(((std::string)(*devlist_ptr)[i]).c_str());
-      AdapterDeviceImpl* dev = static_cast<AdapterDeviceImpl*>(dev_impl);
+      auto* dev_impl = tg->get_device_by_name(((std::string)(*devlist_ptr)[i]).c_str());
+      auto* dev = dynamic_cast<AdapterDeviceImpl*>(dev_impl);
+      assert(dev != nullptr);
 
       std::vector<Tango::Attribute*>& dev_att_list = dev->get_device_attr()->get_attribute_list();
       std::vector<Tango::Attribute*>::iterator ite_att;
       for(ite_att = dev_att_list.begin(); ite_att != dev_att_list.end(); ++ite_att) {
         std::string att_name((*ite_att)->get_name_lower());
-        if((att_name == "state") || (att_name == "status")) continue;
-        std::vector<std::string>::iterator ite_str = find(defaultAttList.begin(), defaultAttList.end(), att_name);
+        if((att_name == "state") || (att_name == "status")) {
+          continue;
+        }
+        auto ite_str = find(defaultAttList.begin(), defaultAttList.end(), att_name);
         if(ite_str == defaultAttList.end()) {
           cout2 << att_name << " is a UNWANTED dynamic attribute for device " << (*devlist_ptr)[i] << std::endl;
           Tango::Attribute& att = dev->get_device_attr()->get_attr_by_name(att_name.c_str());
@@ -460,12 +477,17 @@ namespace TangoAdapter {
    *	Description : returns Tango::Attr * object found by name
    */
   //--------------------------------------------------------
-  Tango::Attr* AdapterDeviceClass::get_attr_object_by_name(std::vector<Tango::Attr*>& att_list, std::string attname) {
+  // FIXME: Move into util namespace and the source file
+  Tango::Attr* AdapterDeviceClass::get_attr_object_by_name(
+      std::vector<Tango::Attr*>& att_list, const std::string& attname) {
     std::vector<Tango::Attr*>::iterator it;
-    for(it = att_list.begin(); it < att_list.end(); ++it)
-      if((*it)->get_name() == attname) return (*it);
+    for(it = att_list.begin(); it < att_list.end(); ++it) {
+      if((*it)->get_name() == attname) {
+        return (*it);
+      }
+    }
     //	Attr does not exist
-    return NULL;
+    return nullptr;
   }
 
   /*----- PROTECTED REGION ID(AdapterDeviceClass::Additional Methods) ENABLED START -----*/

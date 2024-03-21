@@ -78,14 +78,12 @@ namespace TangoAdapter {
   //--------------------------------------------------------
   AdapterDeviceImpl::AdapterDeviceImpl(Tango::DeviceClass* cl, std::string& s) : TANGO_BASE_CLASS(cl, s.c_str()) {
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::constructor_1) ENABLED START -----*/
-    init_device();
 
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::constructor_1
   }
   //--------------------------------------------------------
   AdapterDeviceImpl::AdapterDeviceImpl(Tango::DeviceClass* cl, const char* s) : TANGO_BASE_CLASS(cl, s) {
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::constructor_2) ENABLED START -----*/
-    init_device();
 
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::constructor_2
   }
@@ -93,7 +91,6 @@ namespace TangoAdapter {
   AdapterDeviceImpl::AdapterDeviceImpl(Tango::DeviceClass* cl, const char* s, const char* d)
   : TANGO_BASE_CLASS(cl, s, d) {
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::constructor_3) ENABLED START -----*/
-    init_device();
 
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::constructor_3
   }
@@ -109,7 +106,6 @@ namespace TangoAdapter {
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::delete_device) ENABLED START -----*/
 
     //	Delete device allocated objects
-    delete tangoAdapter;
 
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::delete_device
   }
@@ -136,7 +132,7 @@ namespace TangoAdapter {
     //	Initialize device
     // set DMapFilePath from property
     if(dMapFilePath.empty()) {
-      if(!Tango::Util::instance()->_UseDb) {
+      if(!Tango::Util::_UseDb) {
         DEBUG_STREAM << "Running without database connection, falling back to devices.dmap" << std::endl;
         dMapFilePath = "devices.dmap";
       }
@@ -159,8 +155,9 @@ namespace TangoAdapter {
       return;
     }
 
-    tangoAdapter = new ChimeraTK::TangoAdapter(this, attributList);
-    if(tangoAdapter == nullptr) {
+    tangoAdapter = std::make_shared<ChimeraTK::TangoAdapter>(this, attributList);
+    if(!tangoAdapter) {
+      // FIXME: I think this means out of memory... IMHO we should just crash
       set_state(Tango::FAULT);
       set_status("Can not create TangoAdapter");
       return;
@@ -186,42 +183,55 @@ namespace TangoAdapter {
 
     //	Read device properties from database.
     Tango::DbData dev_prop;
-    dev_prop.push_back(Tango::DbDatum("AttributList"));
-    dev_prop.push_back(Tango::DbDatum("DMapFilePath"));
+    dev_prop.emplace_back("AttributList");
+    dev_prop.emplace_back("DMapFilePath");
 
     //	is there at least one property to be read ?
-    if(dev_prop.size() > 0) {
+    if(!dev_prop.empty()) {
       //	Call database and extract values
-      if(Tango::Util::instance()->_UseDb == true) get_db_device()->get_property(dev_prop);
+      if(Tango::Util::_UseDb) {
+        get_db_device()->get_property(dev_prop);
+      }
 
       //	get instance on AdapterDeviceClass to get class property
       Tango::DbDatum def_prop, cl_prop;
-      AdapterDeviceClass* ds_class = (static_cast<AdapterDeviceClass*>(get_device_class()));
+      auto* ds_class = dynamic_cast<AdapterDeviceClass*>(get_device_class());
+      assert(ds_class != nullptr);
       int i = -1;
 
       //	Try to initialize AttributList from class property
       cl_prop = ds_class->get_class_property(dev_prop[++i].name);
-      if(cl_prop.is_empty() == false)
+      if(!cl_prop.is_empty()) {
         cl_prop >> attributList;
+      }
       else {
         //	Try to initialize AttributList from default device value
         def_prop = ds_class->get_default_device_property(dev_prop[i].name);
-        if(def_prop.is_empty() == false) def_prop >> attributList;
+        if(!def_prop.is_empty()) {
+          def_prop >> attributList;
+        }
       }
       //	And try to extract AttributList value from database
-      if(dev_prop[i].is_empty() == false) dev_prop[i] >> attributList;
+      if(!dev_prop[i].is_empty()) {
+        dev_prop[i] >> attributList;
+      }
 
       //	Try to initialize DMapFilePath from class property
       cl_prop = ds_class->get_class_property(dev_prop[++i].name);
-      if(cl_prop.is_empty() == false)
+      if(!cl_prop.is_empty()) {
         cl_prop >> dMapFilePath;
+      }
       else {
         //	Try to initialize DMapFilePath from default device value
         def_prop = ds_class->get_default_device_property(dev_prop[i].name);
-        if(def_prop.is_empty() == false) def_prop >> dMapFilePath;
+        if(!def_prop.is_empty()) {
+          def_prop >> dMapFilePath;
+        }
       }
       //	And try to extract DMapFilePath value from database
-      if(dev_prop[i].is_empty() == false) dev_prop[i] >> dMapFilePath;
+      if(!dev_prop[i].is_empty()) {
+        dev_prop[i] >> dMapFilePath;
+      }
     }
 
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::get_device_property_after) ENABLED START -----*/

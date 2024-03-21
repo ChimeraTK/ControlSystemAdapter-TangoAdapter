@@ -33,11 +33,13 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-#ifndef AdapterDeviceClass_H
-#define AdapterDeviceClass_H
+#pragma once
 
 #include "AdapterDeviceImpl.h"
 #include <tango/tango.h>
+
+// Most of the non-conforming naming is a requierment from Tango, so just disable this check
+// NOLINTBEGIN(readability-identifier-naming)
 
 /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass.h
 
@@ -71,17 +73,17 @@ namespace TangoAdapter {
     static std::string getClassName();
     static AdapterDeviceClass* init(const char*);
     static AdapterDeviceClass* instance();
-    ~AdapterDeviceClass();
+    ~AdapterDeviceClass() override;
     Tango::DbDatum get_class_property(std::string&);
     Tango::DbDatum get_default_device_property(std::string&);
     Tango::DbDatum get_default_class_property(std::string&);
 
    protected:
-    AdapterDeviceClass(std::string&);
+    explicit AdapterDeviceClass(std::string&);
     static AdapterDeviceClass* _instance;
-    void command_factory();
-    void attribute_factory(std::vector<Tango::Attr*>&);
-    void pipe_factory();
+    void command_factory() override;
+    void attribute_factory(std::vector<Tango::Attr*>&) override;
+    void pipe_factory() override;
     void write_class_property();
     void set_default_property();
     void get_class_property();
@@ -89,13 +91,14 @@ namespace TangoAdapter {
     std::string get_cvsroot();
 
    private:
-    void device_factory(const Tango::DevVarStringArray*);
+    void device_factory(const Tango::DevVarStringArray*) override;
     void create_static_attribute_list(std::vector<Tango::Attr*>&);
     void erase_dynamic_attributes(const Tango::DevVarStringArray*, std::vector<Tango::Attr*>&);
     std::vector<std::string> defaultAttList;
-    Tango::Attr* get_attr_object_by_name(std::vector<Tango::Attr*>& att_list, std::string attname);
+    Tango::Attr* get_attr_object_by_name(std::vector<Tango::Attr*>& att_list, const std::string& attname);
+
+    Tango::DbDatum getPropertyWithDefault(const Tango::DbData& list, const std::string& name);
   };
 
 } // namespace TangoAdapter
-
-#endif //	AdapterDeviceImpl_H
+  // NOLINTEND(readability-identifier-naming)
