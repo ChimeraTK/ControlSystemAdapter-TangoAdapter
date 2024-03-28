@@ -38,15 +38,14 @@ namespace ChimeraTK {
       if constexpr(std::is_same<T, std::string>::value) {
         // Necessary because Tango API wants a plain char* - it will copy the data internally
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
-        auto* stringAttrHelper = const_cast<char*>(processScalar->accessData(0).c_str());
-        att.set_value(&stringAttrHelper);
+        readValueString[0] = const_cast<Tango::DevString>(processScalar->accessData(0).c_str());
+        att.set_value(readValueString.data());
       }
       else if(dataType == Tango::DEV_BOOLEAN) {
-        boost::shared_ptr<ChimeraTK::NDRegisterAccessor<Boolean>> pv =
-            boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processScalar);
+        auto pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processScalar);
 
-        Tango::DevBoolean boolAttrHelper = processScalar->accessData(0);
-        att.set_value(&boolAttrHelper);
+        readValueBool[0] = processScalar->accessData(0);
+        att.set_value(readValueBool.data());
       }
       else {
         att.set_value(&processScalar->accessData(0));
@@ -143,6 +142,8 @@ namespace ChimeraTK {
 
     boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> processScalar;
     Tango::CmdArgType dataType;
+    std::array<Tango::DevString, 1> readValueString;
+    std::array<Tango::DevBoolean, 1> readValueBool;
   };
 
 } // namespace ChimeraTK

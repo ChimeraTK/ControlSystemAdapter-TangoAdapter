@@ -55,8 +55,7 @@ namespace ChimeraTK {
         att.set_value(attrStringRead.data(), length);
       }
       else if(dataType == Tango::DEV_BOOLEAN) {
-        boost::shared_ptr<ChimeraTK::NDRegisterAccessor<Boolean>> pv =
-            boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processSpectrum);
+        auto pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processSpectrum);
         for(unsigned int i = 0; i < length; i++) {
           attrBoolRead[i] = processSpectrum->accessData(i);
         }

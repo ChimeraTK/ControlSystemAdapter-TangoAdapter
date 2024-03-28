@@ -59,9 +59,9 @@ namespace TangoAdapter {
 #endif
   {
     ;
-    /*----- PROTECTED REGION ID(AdapterDeviceClass::Additionnal DServer data members) ENABLED START -----*/
+    /*----- PROTECTED REGION ID(AdapterDeviceClass::Additional DServer data members) ENABLED START -----*/
 
-    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::Additionnal DServer data members
+    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::Additional DServer data members
 
    public:
     //	write class properties data members
