@@ -14,16 +14,11 @@ namespace ChimeraTK {
 
   struct AttributProperty {
     // Speed;Board/Reg;SCALAR;DEVShort
-    AttributProperty(std::string name, std::string path, AttrDataFormat dataFormat, Tango::CmdArgType _dataType,
-        std::string desc, std::string unit) {
-      name = std::move(name);
-      path = std::move(path);
-      attrDataFormat = dataFormat;
-      dataType = _dataType;
+    AttributProperty(std::string name, std::string path, AttrDataFormat dataFormat, Tango::CmdArgType dataType,
+        std::string desc, std::string unit)
+    : name(std::move(name)), path(std::move(path)), attrDataFormat(dataFormat), dataType(dataType),
+      desc(std::move(desc)), unit(std::move(unit)) {}
 
-      desc = std::move(desc);
-      unit = std::move(unit);
-    }
     explicit AttributProperty(std::string desc) {
       std::vector<std::string> splitDesc;
       boost::algorithm::split(splitDesc, desc, boost::is_any_of(TOKEN));
