@@ -5,13 +5,13 @@
 #include <ChimeraTK/NDRegisterAccessor.h>
 
 namespace ChimeraTK {
-  template<typename T>
+  template<typename TangoType, typename AdapterType>
   class ScalarAttribTempl : public Tango::Attr, Tango::LogAdapter {
    public:
-    ScalarAttribTempl(TANGO_BASE_CLASS* tangoDevice, boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> pv,
+    ScalarAttribTempl(TANGO_BASE_CLASS* tangoDevice, boost::shared_ptr<ChimeraTK::NDRegisterAccessor<AdapterType>> pv,
         std::shared_ptr<AttributProperty> attProperty)
     : Tango::Attr(attProperty->name.c_str(), attProperty->dataType, attProperty->writeType),
-      processScalar(std::move(pv)), dataType(attProperty->dataType), Tango::LogAdapter(tangoDevice) {
+      processScalar(std::move(pv)), Tango::LogAdapter(tangoDevice) {
       // memory the written value and write at initialization
       if(attProperty->writeType == Tango::READ_WRITE || attProperty->writeType == Tango::WRITE) {
         set_memorized();
@@ -35,103 +35,66 @@ namespace ChimeraTK {
     void read([[maybe_unused]] Tango::DeviceImpl* dev, Tango::Attribute& att) override {
       DEBUG_STREAM << "ScalarAttribTempl::read " << get_name() << std::endl;
 
-      if constexpr(std::is_same<T, std::string>::value) {
-        // Necessary because Tango API wants a plain char* - it will copy the data internally
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
-        readValueString[0] = const_cast<Tango::DevString>(processScalar->accessData(0).c_str());
-        att.set_value(readValueString.data());
+      if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
+        auto* value = new Tango::DevString;
+        *value = Tango::string_dup(processScalar->accessData(0).c_str());
+        att.set_value(value, 1, 0, true);
       }
-      else if(dataType == Tango::DEV_BOOLEAN) {
+      else if constexpr(std::is_same_v<TangoType, Tango::DevBoolean>) {
         auto pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processScalar);
 
-        readValueBool[0] = processScalar->accessData(0);
-        att.set_value(readValueBool.data());
+        auto* value = new Tango::DevBoolean;
+        if constexpr(std::is_same_v<AdapterType, Void>) {
+          *value = true;
+        }
+        else {
+          *value = processScalar->accessData(0);
+        }
+        att.set_value(value, 1, 0, true);
       }
       else {
-        att.set_value(&processScalar->accessData(0));
+        TangoType* value = new TangoType;
+        *value = processScalar->accessData(0);
+        att.set_value(value, 1, 0, true);
       }
 
       if(processScalar->dataValidity() != ChimeraTK::DataValidity::ok) {
+        att.set_quality(Tango::AttrQuality::ATTR_INVALID);
         ERROR_STREAM << "ScalarAttribTempl::read " << get_name() << " is not valid" << std::endl;
+      }
+      else {
+        att.set_quality(Tango::AttrQuality::ATTR_VALID);
       }
     }
 
     void write([[maybe_unused]] Tango::DeviceImpl* dev, Tango::WAttribute& att) override {
       DEBUG_STREAM << "ScalarAttribTempl::write " << get_name() << std::endl;
 
-      switch(dataType) {
-        case Tango::DEV_UCHAR: {
-          uint8_t c_value;
-          att.get_write_value(c_value);
-          processScalar->accessData(0) = c_value;
-          break;
-        }
-        case Tango::DEV_USHORT: {
-          uint16_t us_value;
-          att.get_write_value(us_value);
-          processScalar->accessData(0) = us_value;
-          break;
-        }
-        case Tango::DEV_ULONG: {
-          uint32_t ul_value;
-          att.get_write_value(ul_value);
-          processScalar->accessData(0) = ul_value;
-          break;
-        }
-        case Tango::DEV_ULONG64: {
-          uint64_t ul64_value;
-          att.get_write_value(ul64_value);
-          processScalar->accessData(0) = ul64_value;
-          break;
-        }
-        case Tango::DEV_SHORT: {
-          int16_t s_value;
-          att.get_write_value(s_value);
-          processScalar->accessData(0) = s_value;
-          break;
-        }
-        case Tango::DEV_LONG: {
-          int32_t l_value;
-          att.get_write_value(l_value);
-          processScalar->accessData(0) = l_value;
-          break;
-        }
-        case Tango::DEV_LONG64: {
-          int64_t l64_value;
-          att.get_write_value(l64_value);
-          processScalar->accessData(0) = l64_value;
-          break;
-        }
-        case Tango::DEV_FLOAT: {
-          float f_value;
-          att.get_write_value(f_value);
-          processScalar->accessData(0) = f_value;
-          break;
-        }
-        case Tango::DEV_DOUBLE: {
-          double d_value;
-          att.get_write_value(d_value);
-          processScalar->accessData(0) = d_value;
-          break;
-        }
-        case Tango::DEV_BOOLEAN: {
-          auto pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processScalar);
-          bool b_value;
-          att.get_write_value(b_value);
-          pv->accessData(0) = b_value;
-          break;
-        }
-        case Tango::DEV_STRING:
-          if constexpr(std::is_same<T, std::string>::value) {
-            Tango::DevString st_value;
-            att.get_write_value(st_value);
-            processScalar->accessData(0) = std::string(st_value);
-          }
+      if constexpr(std::is_same_v<AdapterType, std::string>) {
+        Tango::DevString st_value;
+        att.get_write_value(st_value);
+        processScalar->accessData(0) = std::string(st_value);
+      }
+      else if constexpr(std::is_same_v<AdapterType, ChimeraTK::Boolean>) {
+        auto pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processScalar);
+        Tango::DevBoolean b_value;
+        att.get_write_value(b_value);
+        pv->accessData(0) = b_value;
+      }
+      else if constexpr(std::is_same_v<AdapterType, ChimeraTK::Void>) {
+        // do nothing, just write the accessor
+      }
+      else {
+        TangoType value;
+        att.get_write_value(value);
+        processScalar->accessData(0) = value;
+      }
 
-          break;
-        default:
-
-          break;
+      if(att.get_quality() == Tango::AttrQuality::ATTR_INVALID) {
+        processScalar->setDataValidity(DataValidity::faulty);
+      }
+      else {
+        processScalar->setDataValidity(DataValidity::ok);
       }
       processScalar->write();
     }
@@ -140,10 +103,7 @@ namespace ChimeraTK {
       return true;
     };
 
-    boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> processScalar;
-    Tango::CmdArgType dataType;
-    std::array<Tango::DevString, 1> readValueString;
-    std::array<Tango::DevBoolean, 1> readValueBool;
+    boost::shared_ptr<ChimeraTK::NDRegisterAccessor<AdapterType>> processScalar;
   };
 
 } // namespace ChimeraTK

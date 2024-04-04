@@ -2,6 +2,7 @@
 #include "TangoAdapter.h"
 
 #include "AttributMapper.h"
+#include "SpectrumAttribTempl.h"
 #include "getAllVariableNames.h"
 
 #include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
@@ -11,6 +12,32 @@
 
 #include <algorithm>
 #include <stdexcept>
+
+namespace detail {
+  template<typename TangoType, typename AdapterType>
+  void writeInitialSpectrumValue(Tango::DeviceImpl* device, const std::string& memoriedValue,
+      Tango::WAttribute& writeAttribute, Tango::Attr* attr) {
+    auto values = ChimeraTK::stringToArray<TangoType>(memoriedValue);
+
+    // StringToArray will create a std::vector<bool> which is an optimised version of std::vector
+    // But Tango needs a plain array of bool, so we have to convert it here.
+    if constexpr(std::is_same_v<Tango::DevBoolean, TangoType>) {
+      auto data = std::make_unique<Tango::DevBoolean[]>(values.size());
+      std::copy(values.begin(), values.end(), data.get());
+
+      // We can pass in the unique pointer here, set_write_value will copy the data
+      writeAttribute.set_write_value(data.get(), values.size());
+    }
+    else {
+      writeAttribute.set_write_value(values);
+    }
+
+    // FIXME: Is this cast _really_ necessary?
+    auto* castedAttribute = dynamic_cast<ChimeraTK::SpectrumAttribTempl<TangoType, AdapterType>*>(attr);
+    assert(castedAttribute != nullptr);
+    castedAttribute->write(device, writeAttribute);
+  }
+}; // namespace detail
 
 namespace ChimeraTK {
   //+----------------------------------------------------------------------------
@@ -146,97 +173,56 @@ namespace ChimeraTK {
 
       switch(attProp->dataType) {
         case Tango::DEV_UCHAR: {
-          std::vector<uint8_t> values = stringToArray<uint8_t>(mem_value);
-          write_attribute.set_write_value(values.data(), values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<uint8_t>*>(base_attr);
-          assert(spectrum_attr_t != nullptr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevUChar, uint8_t>(_device, mem_value, write_attribute, base_attr);
           break;
         }
 
         case Tango::DEV_USHORT: {
-          std::vector<Tango::DevUShort> values = stringToArray<Tango::DevUShort>(mem_value);
-          write_attribute.set_write_value(values.data(), values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<uint16_t>*>(base_attr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevUShort, uint16_t>(
+              _device, mem_value, write_attribute, base_attr);
           break;
         }
         case Tango::DEV_ULONG: {
-          std::vector<Tango::DevULong> values = stringToArray<Tango::DevULong>(mem_value);
-          write_attribute.set_write_value(values.data(), values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<uint32_t>*>(base_attr);
-          assert(spectrum_attr_t != nullptr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevULong, uint32_t>(
+              _device, mem_value, write_attribute, base_attr);
           break;
         }
         case Tango::DEV_ULONG64: {
-          std::vector<uint64_t> values = stringToArray<uint64_t>(mem_value);
-          write_attribute.set_write_value(values.data(), values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<uint64_t>*>(base_attr);
-          assert(spectrum_attr_t != nullptr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevULong64, uint64_t>(
+              _device, mem_value, write_attribute, base_attr);
           break;
         }
+
         case Tango::DEV_SHORT: {
-          std::vector<Tango::DevShort> values = stringToArray<Tango::DevShort>(mem_value);
-          write_attribute.set_write_value(values.data(), values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<int16_t>*>(base_attr);
-          assert(spectrum_attr_t != nullptr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevShort, int16_t>(_device, mem_value, write_attribute, base_attr);
           break;
         }
         case Tango::DEV_LONG: {
-          std::vector<Tango::DevLong> values = stringToArray<Tango::DevLong>(mem_value);
-          write_attribute.set_write_value(values.data(), values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<int32_t>*>(base_attr);
-          assert(spectrum_attr_t != nullptr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevLong, int32_t>(_device, mem_value, write_attribute, base_attr);
           break;
         }
         case Tango::DEV_LONG64: {
-          std::vector<Tango::DevLong64> values = stringToArray<Tango::DevLong64>(mem_value);
-          write_attribute.set_write_value(values.data(), values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<int64_t>*>(base_attr);
-          assert(spectrum_attr_t != nullptr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevLong64, int64_t>(
+              _device, mem_value, write_attribute, base_attr);
           break;
         }
         case Tango::DEV_FLOAT: {
-          std::vector<Tango::DevFloat> values = stringToArray<Tango::DevFloat>(mem_value);
-          write_attribute.set_write_value(values.data(), values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<float>*>(base_attr);
-          assert(spectrum_attr_t != nullptr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevFloat, float>(_device, mem_value, write_attribute, base_attr);
           break;
         }
+
         case Tango::DEV_DOUBLE: {
-          std::vector<Tango::DevDouble> values = stringToArray<Tango::DevDouble>(mem_value);
-          write_attribute.set_write_value(values.data(), values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<double>*>(base_attr);
-          assert(spectrum_attr_t != nullptr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevDouble, double>(_device, mem_value, write_attribute, base_attr);
           break;
         }
         case Tango::DEV_BOOLEAN: {
-          std::vector<Tango::DevBoolean> values = stringToArray<Tango::DevBoolean>(mem_value);
-          // for bool it must do this way
-          auto* bool_array = new Tango::DevBoolean[values.size()];
-          for(unsigned int i = 0; i < values.size(); i++) {
-            bool_array[i] = values[i];
-          }
-
-          write_attribute.set_write_value(bool_array, values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<bool>*>(base_attr);
-          assert(spectrum_attr_t != nullptr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevBoolean, Boolean>(
+              _device, mem_value, write_attribute, base_attr);
           break;
         }
         case Tango::DEV_STRING: {
-          std::vector<Tango::DevString> values = stringToArray<Tango::DevString>(mem_value);
-          write_attribute.set_write_value(values.data(), values.size());
-          auto* spectrum_attr_t = dynamic_cast<SpectrumAttribTempl<std::string>*>(base_attr);
-          assert(spectrum_attr_t != nullptr);
-          spectrum_attr_t->write(_device, write_attribute);
+          ::detail::writeInitialSpectrumValue<Tango::DevString, std::string>(
+              _device, mem_value, write_attribute, base_attr);
           break;
         }
         default:
@@ -302,10 +288,12 @@ namespace ChimeraTK {
       attProp->writeType = Tango::READ;
     }
 
+    DEBUG_STREAM << "TangoAdapter::create_Scalar_Attr write Type" << attProp->writeType << std::endl;
+
     switch(attProp->dataType) {
       case Tango::DEV_UCHAR: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint8_t>>(processVariable);
-        auto* scalar_attr_t = new ScalarAttribTempl<uint8_t>(_device, pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevUChar, uint8_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<uint8_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -314,7 +302,7 @@ namespace ChimeraTK {
       case Tango::DEV_USHORT: {
         boost::shared_ptr<ChimeraTK::NDRegisterAccessor<uint16_t>> pv =
             boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint16_t>>(processVariable);
-        auto* scalar_attr_t = new ScalarAttribTempl<uint16_t>(_device, pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevUShort, uint16_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<uint16_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -322,7 +310,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_SHORT: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int16_t>>(processVariable);
-        auto* scalar_attr_t = new ScalarAttribTempl<int16_t>(_device, pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevShort, int16_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<int16_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -330,7 +318,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_DOUBLE: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<double>>(processVariable);
-        auto* scalar_attr_t = new ScalarAttribTempl<double>(_device, pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevDouble, double>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<double>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -338,7 +326,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_FLOAT: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<float>>(processVariable);
-        auto* scalar_attr_t = new ScalarAttribTempl<float>(_device, pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevFloat, float>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<float>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -346,7 +334,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_ULONG64: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint64_t>>(processVariable);
-        auto* scalar_attr_t = new ScalarAttribTempl<uint64_t>(_device, pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevULong64, uint64_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<uint64_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -354,7 +342,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_LONG64: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int64_t>>(processVariable);
-        auto* scalar_attr_t = new ScalarAttribTempl<int64_t>(_device, pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevLong64, int64_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<int64_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -362,7 +350,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_ULONG: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint32_t>>(processVariable);
-        auto* scalar_attr_t = new ScalarAttribTempl<uint32_t>(_device, pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevULong, uint32_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<uint32_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -370,7 +358,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_LONG: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int32_t>>(processVariable);
-        auto* scalar_attr_t = new ScalarAttribTempl<int32_t>(_device, pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevLong, int32_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<int32_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -378,7 +366,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_STRING: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<std::string>>(processVariable);
-        auto* scalar_attr_t = new ScalarAttribTempl<std::string>(_device, pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevString, std::string>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(ChimeraTK::ScalarRegisterAccessor<std::string>(pv), attProp->name,
             attProp->attrDataFormat, attProp->dataType);
@@ -387,8 +375,8 @@ namespace ChimeraTK {
       case Tango::DEV_BOOLEAN: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processVariable);
         // Attribut Tango does not accept ChimeraTK::Boolean type, cast to uint8_t
-        auto cast_pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<uint8_t>>(pv);
-        auto* scalar_attr_t = new ScalarAttribTempl<uint8_t>(_device, cast_pv, attProp);
+        auto cast_pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<ChimeraTK::Boolean>>(pv);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevBoolean, ChimeraTK::Boolean>(_device, cast_pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<Boolean>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -398,11 +386,10 @@ namespace ChimeraTK {
         // DEV_VOID is not a type. It is usually used to signify that a Command does not have a parameter
         // or a return value. Hence we need to map it to something else, let's choose boolean for that
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<Void>>(processVariable);
-        auto cast_pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<uint8_t>>(pv);
 
-        // Re-write data-type to bool so that Tango accepts this attribute
+        // Re-write data-type to bool so that Tango a
         attProp->dataType = Tango::DEV_BOOLEAN;
-        auto* scalar_attr_t = new ScalarAttribTempl<uint8_t>(_device, cast_pv, attProp);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevBoolean, ChimeraTK::Void>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::VoidRegisterAccessor(pv), attProp->name, attProp->attrDataFormat, Tango::DEV_BOOLEAN);
@@ -440,7 +427,7 @@ namespace ChimeraTK {
     switch(attProp->dataType) {
       case Tango::DEV_UCHAR: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint8_t>>(processVariable);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<uint8_t>(_device, pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevUChar, uint8_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(
             ChimeraTK::OneDRegisterAccessor<uint8_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -448,7 +435,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_USHORT: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint16_t>>(processVariable);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<uint16_t>(_device, pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevUShort, uint16_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(
             ChimeraTK::OneDRegisterAccessor<uint16_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -456,7 +443,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_SHORT: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int16_t>>(processVariable);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<int16_t>(_device, pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevShort, int16_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(
             ChimeraTK::OneDRegisterAccessor<int16_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -464,7 +451,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_ULONG: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint32_t>>(processVariable);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<uint32_t>(_device, pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevULong, uint32_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(
             ChimeraTK::OneDRegisterAccessor<uint32_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -472,7 +459,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_LONG: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int32_t>>(processVariable);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<int32_t>(_device, pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevLong, int32_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(
             ChimeraTK::OneDRegisterAccessor<int32_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -480,7 +467,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_DOUBLE: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<double>>(processVariable);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<double>(_device, pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevDouble, double>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(
             ChimeraTK::OneDRegisterAccessor<double>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -488,7 +475,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_FLOAT: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<float>>(processVariable);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<float>(_device, pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevFloat, float>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(
             ChimeraTK::OneDRegisterAccessor<float>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -496,7 +483,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_ULONG64: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint64_t>>(processVariable);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<uint64_t>(_device, pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevULong64, uint64_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(
             ChimeraTK::OneDRegisterAccessor<uint64_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -504,7 +491,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_LONG64: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int64_t>>(processVariable);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<int64_t>(_device, pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevLong64, int64_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(
             ChimeraTK::OneDRegisterAccessor<int64_t>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
@@ -512,7 +499,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_STRING: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<std::string>>(processVariable);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<std::string>(_device, pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevString, std::string>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(ChimeraTK::OneDRegisterAccessor<std::string>(pv), attProp->name, attProp->attrDataFormat,
             attProp->dataType);
@@ -521,8 +508,7 @@ namespace ChimeraTK {
       case Tango::DEV_BOOLEAN: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processVariable);
         // Attribut Tango does not accept ChimeraTK::Boolean type, cast to uint8_t
-        auto casted_pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<uint8_t>>(pv);
-        auto* spectrum_attr_t = new SpectrumAttribTempl<uint8_t>(_device, casted_pv, attProp);
+        auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevBoolean, ChimeraTK::Boolean>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(
             ChimeraTK::OneDRegisterAccessor<Boolean>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
