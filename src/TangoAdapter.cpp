@@ -7,6 +7,7 @@
 #include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
 #include <ChimeraTK/ReadAnyGroup.h>
 #include <ChimeraTK/RegisterPath.h>
+#include <ChimeraTK/VoidRegisterAccessor.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -391,6 +392,20 @@ namespace ChimeraTK {
         _dynamic_attribute_list.push_back(scalar_attr_t);
         _updater->addVariable(
             ChimeraTK::ScalarRegisterAccessor<Boolean>(pv), attProp->name, attProp->attrDataFormat, attProp->dataType);
+        break;
+      }
+      case Tango::DEV_VOID: {
+        // DEV_VOID is not a type. It is usually used to signify that a Command does not have a parameter
+        // or a return value. Hence we need to map it to something else, let's choose boolean for that
+        auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<Void>>(processVariable);
+        auto cast_pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<uint8_t>>(pv);
+
+        // Re-write data-type to bool so that Tango accepts this attribute
+        attProp->dataType = Tango::DEV_BOOLEAN;
+        auto* scalar_attr_t = new ScalarAttribTempl<uint8_t>(_device, cast_pv, attProp);
+        _dynamic_attribute_list.push_back(scalar_attr_t);
+        _updater->addVariable(
+            ChimeraTK::VoidRegisterAccessor(pv), attProp->name, attProp->attrDataFormat, Tango::DEV_BOOLEAN);
         break;
       }
       default:

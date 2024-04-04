@@ -62,6 +62,9 @@ namespace ChimeraTK {
       else if(splitDesc[3] == "DevString") {
         dataType = Tango::DEV_STRING;
       }
+      else if(splitDesc[3] == "DevVoid") {
+        dataType = Tango::DEV_VOID;
+      }
 
       desc = splitDesc[4];
       unit = splitDesc[5];
