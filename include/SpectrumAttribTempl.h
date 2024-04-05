@@ -12,8 +12,8 @@ namespace ChimeraTK {
         std::shared_ptr<AttributProperty> attProperty)
     : Tango::SpectrumAttr(
           attProperty->name.c_str(), attProperty->dataType, attProperty->writeType, pv->getNumberOfSamples()),
-      processSpectrum(pv), dataType(attProperty->dataType), length(pv->getNumberOfSamples()),
-      Tango::LogAdapter(tangoDevice) {
+      Tango::LogAdapter(tangoDevice), processSpectrum(pv), dataType(attProperty->dataType),
+      length(pv->getNumberOfSamples()) {
       DEBUG_STREAM << " SpectrumAttribTempl::SpectrumAttribTempl  Name: " << attProperty->name.c_str() << " Type"
                    << attProperty->dataType << " _writeType: " << attProperty->writeType << " size:" << length
                    << std::endl;

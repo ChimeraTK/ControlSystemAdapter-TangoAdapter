@@ -14,14 +14,14 @@ namespace ChimeraTK {
 
   struct AttributProperty {
     // Speed;Board/Reg;SCALAR;DEVShort
-    AttributProperty(std::string name, std::string path, AttrDataFormat dataFormat, Tango::CmdArgType dataType,
-        std::string desc, std::string unit)
-    : name(std::move(name)), path(std::move(path)), attrDataFormat(dataFormat), dataType(dataType),
-      desc(std::move(desc)), unit(std::move(unit)) {}
+    AttributProperty(std::string attributeName, std::string variablePath, AttrDataFormat dataFormat,
+        Tango::CmdArgType attrDataType, std::string attrDesc, std::string attrUnit)
+    : unit(std::move(attrUnit)), desc(std::move(attrDesc)), name(std::move(attributeName)),
+      path(std::move(variablePath)), attrDataFormat(dataFormat), dataType(attrDataType) {}
 
-    explicit AttributProperty(std::string desc) {
+    explicit AttributProperty(std::string attrDesc) {
       std::vector<std::string> splitDesc;
-      boost::algorithm::split(splitDesc, desc, boost::is_any_of(TOKEN));
+      boost::algorithm::split(splitDesc, attrDesc, boost::is_any_of(TOKEN));
       if(splitDesc.size() != 6) {
         std::cout << "error AttributProperty" << std::endl;
       }
@@ -77,13 +77,13 @@ namespace ChimeraTK {
     std::map<std::string, ChimeraTK::AttrDataFormat> regTypeMap = {{"SCALAR", ChimeraTK::AttrDataFormat::SCALAR},
         {"SPECTRUM", ChimeraTK::AttrDataFormat::SPECTRUM}, {"IMAGE", ChimeraTK::AttrDataFormat::IMAGE}};
 
-    std::string unit;
-    std::string desc;
-    std::string name;
-    std::string path;
+    std::string unit{};
+    std::string desc{};
+    std::string name{};
+    std::string path{};
 
-    ChimeraTK::AttrDataFormat attrDataFormat;
-    Tango::CmdArgType dataType;
+    ChimeraTK::AttrDataFormat attrDataFormat{};
+    Tango::CmdArgType dataType{};
     Tango::AttrWriteType writeType{Tango::AttrWriteType::WT_UNKNOWN};
   };
 

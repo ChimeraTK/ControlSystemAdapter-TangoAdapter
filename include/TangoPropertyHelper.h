@@ -109,7 +109,7 @@ namespace ChimeraTK {
     std::vector<T> spectrum_values;
     std::stringstream property_value(memoried_value);
     std::string intermediate;
-    T element;
+    T element{};
 
     while(std::getline(property_value, intermediate, SEPERATOR)) {
       std::stringstream tmp(intermediate);

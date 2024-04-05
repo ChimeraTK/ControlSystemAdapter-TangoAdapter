@@ -40,8 +40,8 @@ namespace ChimeraTK {
     }
   }
 
-  void TangoUpdater::updateFonction(
-      const std::string& attrName, const AttrDataFormat attrDataFormat, const Tango::CmdArgType dataType) {
+  void TangoUpdater::updateFonction(const std::string& attrName, [[maybe_unused]] const AttrDataFormat attrDataFormat,
+      [[maybe_unused]] const Tango::CmdArgType dataType) {
     std::vector<Tango::Attr*>& attr_vect = _device->get_device_class()->get_class_attr()->get_attr_list();
     Tango::Attribute& att = _device->get_device_attr()->get_attr_by_name(attrName.c_str());
 
