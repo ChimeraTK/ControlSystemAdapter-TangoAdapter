@@ -144,6 +144,8 @@ namespace ChimeraTK {
     detach_dynamic_attributes_from_device();
     // Attention to stop application here but impossible
     //_appInstance->_applicationInstance.shutdown()();
+    std::for_each(_dynamic_attribute_list.begin(), _dynamic_attribute_list.end(), [](auto* p) { delete p; });
+    _dynamic_attribute_list.clear();
   }
   //+----------------------------------------------------------------------------
   //
