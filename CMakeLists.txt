@@ -17,18 +17,19 @@ pkg_check_modules(TANGO REQUIRED IMPORTED_TARGET tango)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-message(hello: ${ChimeraTK-ControlSystemAdapter_INCLUDE_DIRS})
 aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
 
 link_directories(${TANGO_LIBRARY_DIRS})
 
 # C++ library
 add_library(${PROJECT_NAME} SHARED ${library_sources})
+
 # exported includes are all under ${CMAKE_INSTALL_PREFIX}/include
 target_include_directories(${PROJECT_NAME}
-                           INTERFACE "$<INSTALL_INTERFACE:include>")
+  INTERFACE "$<INSTALL_INTERFACE:include>")
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME}
-                      PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter)
+  PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter)
 target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::TANGO)
 
 # do not remove runtime paths of the library when installing (helps for unsually
@@ -57,8 +58,9 @@ install(
 # generate cmake config so other projects can find this library we support our
 # cmake EXPORTS as imported targets
 set(PROVIDES_EXPORTED_TARGETS 1)
+
 # we need the public dependencies so create_cmake_config_files can find them as
 # implicit dependencies
 list(APPEND ${PROJECT_NAME}_PUBLIC_DEPENDENCIES
-     "ChimeraTK-ControlSystemAdapter")
+  "ChimeraTK-ControlSystemAdapter")
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
