@@ -58,7 +58,6 @@ namespace TangoAdapter {
   class AdapterDeviceClass : public Tango::DeviceClass
 #endif
   {
-    ;
     /*----- PROTECTED REGION ID(AdapterDeviceClass::Additional DServer data members) ENABLED START -----*/
 
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::Additional DServer data members
@@ -97,7 +96,7 @@ namespace TangoAdapter {
     std::vector<std::string> defaultAttList;
     Tango::Attr* get_attr_object_by_name(std::vector<Tango::Attr*>& att_list, const std::string& attname);
 
-    Tango::DbDatum getPropertyWithDefault(const Tango::DbData& list, const std::string& name);
+    Tango::DbDatum getPropertyWithDefault(const Tango::DbData& list, const std::string& propertyName);
   };
 
 } // namespace TangoAdapter

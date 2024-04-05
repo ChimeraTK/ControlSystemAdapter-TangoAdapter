@@ -11,7 +11,7 @@ namespace ChimeraTK {
     ScalarAttribTempl(TANGO_BASE_CLASS* tangoDevice, boost::shared_ptr<ChimeraTK::NDRegisterAccessor<AdapterType>> pv,
         std::shared_ptr<AttributProperty> attProperty)
     : Tango::Attr(attProperty->name.c_str(), attProperty->dataType, attProperty->writeType),
-      processScalar(std::move(pv)), Tango::LogAdapter(tangoDevice) {
+      Tango::LogAdapter(tangoDevice), processScalar(std::move(pv)) {
       // memory the written value and write at initialization
       if(attProperty->writeType == Tango::READ_WRITE || attProperty->writeType == Tango::WRITE) {
         set_memorized();
@@ -19,6 +19,8 @@ namespace ChimeraTK {
       }
 
       Tango::UserDefaultAttrProp att_prop;
+
+      // The c_str() are fine, tango internally creates a std::string of them.
       att_prop.set_label(attProperty->name.c_str());
 
       att_prop.set_description(attProperty->desc.c_str());

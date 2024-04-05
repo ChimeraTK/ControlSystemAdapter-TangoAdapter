@@ -169,8 +169,9 @@ namespace TangoAdapter {
   //	Properties management
   //===================================================================
 
-  Tango::DbDatum AdapterDeviceClass::getPropertyWithDefault(const Tango::DbData& list, const std::string& name) {
-    const auto& position = std::find_if(list.begin(), list.end(), [&](auto x) { return x.name == name; });
+  Tango::DbDatum AdapterDeviceClass::getPropertyWithDefault(
+      const Tango::DbData& list, const std::string& propertyName) {
+    const auto& position = std::find_if(list.begin(), list.end(), [&](auto x) { return x.name == propertyName; });
     if(position != list.end()) {
       return *position;
     }
@@ -267,8 +268,6 @@ namespace TangoAdapter {
 
     Tango::DbData data;
     std::string classname = get_name();
-    std::string header;
-    std::string::size_type start, end;
 
     //	Put title
     Tango::DbDatum title("ProjectTitle");
