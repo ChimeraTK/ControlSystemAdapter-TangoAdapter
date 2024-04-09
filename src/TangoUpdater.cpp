@@ -9,8 +9,7 @@
 
 namespace ChimeraTK {
 
-  void TangoUpdater::addVariable(TransferElementAbstractor variable, const std::string& attrId,
-      AttrDataFormat attrDataFormat, Tango::CmdArgType dataType) {
+  void TangoUpdater::addVariable(TransferElementAbstractor variable, const std::string& attrId) {
     INFO_STREAM << " TangoUpdater::addVariable " << attrId << std::endl;
 
     if(variable.isReadable()) {
@@ -21,33 +20,13 @@ namespace ChimeraTK {
         _elementsToRead.push_back(variable);
       }
       else {
+        std::cout << "Pushing secondary element to additional transfer elements" << std::endl;
         _descriptorMap[id].additionalTransferElements.insert(variable.getHighLevelImplElement());
       }
       // push variable.getHighLevelImplElement()/updaterFunction/eq_fct in _descriptorMap
       // and push TransferElementAbstractor _elementsToRead
       _descriptorMap[id].attributID.push_back(attrId);
-      _descriptorMap[id].attributFormat.push_back(attrDataFormat);
-      _descriptorMap[id].dataType.push_back(dataType);
     }
-  }
-
-  void TangoUpdater::update() {
-    for(auto& transferElem : _elementsToRead) {
-      if(transferElem.readLatest()) {
-        auto& descriptor = _descriptorMap[transferElem.getId()];
-        updateFonction(descriptor.attributID[0], descriptor.attributFormat[0], descriptor.dataType[0]);
-      }
-    }
-  }
-
-  void TangoUpdater::updateFonction(const std::string& attrName, [[maybe_unused]] const AttrDataFormat attrDataFormat,
-      [[maybe_unused]] const Tango::CmdArgType dataType) {
-    std::vector<Tango::Attr*>& attr_vect = _device->get_device_class()->get_class_attr()->get_attr_list();
-    Tango::Attribute& att = _device->get_device_attr()->get_attr_by_name(attrName.c_str());
-
-    auto idx = att.get_attr_idx();
-    DEBUG_STREAM << "TangoUpdater::updateFonction  " << attrName << std::endl;
-    attr_vect[idx]->read(_device, att);
   }
 
   void TangoUpdater::updateLoop() {
@@ -80,6 +59,9 @@ namespace ChimeraTK {
         elem->postRead(ChimeraTK::TransferType::read, true);
       }
 
+      // FIXME: Ideally we would fill the Tango buffer for the attribute here, then attribute->read()
+      // would just send it out to CORBA
+      // FIXME: Also we would need to toggle the event here, once supported
       DEBUG_STREAM << "TangoUpdater::updateLoop update attribut: " << descriptor.attributID[0];
 
       // Call preRead for all TEs for the updated ID

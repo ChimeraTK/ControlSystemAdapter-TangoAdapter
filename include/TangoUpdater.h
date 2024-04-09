@@ -1,18 +1,19 @@
 
 #pragma once
 
-
-#include <unordered_map>
-
-#include <ChimeraTK/TransferElement.h>
-#include <ChimeraTK/TransferElementAbstractor.h>
-#include <ChimeraTK/OneDRegisterAccessor.h>
-#include <ChimeraTK/ScalarRegisterAccessor.h>
-#include <boost/noncopyable.hpp>
-#include <map>
 #include "AttributProperty.h"
 #include "ScalarAttribTempl.h"
 #include "SpectrumAttribTempl.h"
+#include <unordered_map>
+
+#include <ChimeraTK/OneDRegisterAccessor.h>
+#include <ChimeraTK/ScalarRegisterAccessor.h>
+#include <ChimeraTK/TransferElement.h>
+#include <ChimeraTK/TransferElementAbstractor.h>
+
+#include <boost/noncopyable.hpp>
+
+#include <map>
 namespace ChimeraTK {
 
   /** A class to synchronise DeviceToControlSystem variable to Tango.
@@ -31,23 +32,18 @@ namespace ChimeraTK {
     // NOLINTNEXTLINE(bugprone-exception-escape)
     ~TangoUpdater() override;
 
-    void update(); // Update all variables once. This is a convenience function
-                   // for testing.
-
     void updateLoop(); // Endless loop with interruption point around the update
                        // function.
 
     void run();
     void stop();
-    void updateFonction(const std::string& attrName, AttrDataFormat attrDataFormat, Tango::CmdArgType dataType);
 
     // Add a variable to be updated. Together with the TransferElementAbstractor
     // pointing to the ChimeraTK::ProcessArray, the EqFct* to obtain the lock for
     // and a function to be called which executes the actual update should be
     // specified. The lock is held while the updaterFunction is called, so it must
     // neither obtained nor freed within the updaterFunction.
-    void addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId,
-        AttrDataFormat attrDataFormat, Tango::CmdArgType dataType);
+    void addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId);
 
     const std::list<ChimeraTK::TransferElementAbstractor>& getElementsToRead() { return _elementsToRead; }
 
@@ -58,10 +54,7 @@ namespace ChimeraTK {
     // Struct used to aggregate the information needed in the updateLoop when an update is received from the
     // application.
     struct UpdateDescriptor {
-      //std::vector<std::function<void()>> updateFunctions;
       std::vector<std::string> attributID;
-      std::vector<ChimeraTK::AttrDataFormat> attributFormat;
-      std::vector<Tango::CmdArgType> dataType;
       std::set<boost::shared_ptr<ChimeraTK::TransferElement>> additionalTransferElements;
     };
     std::map<ChimeraTK::TransferElementID, UpdateDescriptor> _descriptorMap;
