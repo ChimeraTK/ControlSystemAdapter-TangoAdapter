@@ -1,0 +1,24 @@
+#
+# Resource backup , created Wed Apr 10 13:29:45 UTC 2024
+#
+
+#---------------------------------------------------------
+# SERVER serverTestFaultNoDmap_ds/TestserverTestFaultNoDmap, serverTestfaultnodmap_ds device declaration
+#---------------------------------------------------------
+
+serverTestFaultNoDmap_ds/TestserverTestFaultNoDmap/DEVICE/serverTestfaultnodmap: "tango/test/serverTestfaultnodmap"
+
+
+# --- test/reference/server properties
+
+#---------------------------------------------------------
+# CLASS serverTestFaultNoDmap_ds properties
+#---------------------------------------------------------
+
+CLASS/serverTestFaultNoDmap_ds->Description: "ChimeraTK-based DeviceServer"
+CLASS/serverTestFaultNoDmap_ds->InheritedFrom: TANGO_BASE_CLASS
+CLASS/serverTestFaultNoDmap_ds->ProjectTitle: serverTestFaultNoDmap_ds
+
+# CLASS serverTestFaultNoDmap_ds attribute properties
+
+

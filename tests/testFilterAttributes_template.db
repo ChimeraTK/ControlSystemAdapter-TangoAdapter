@@ -1,0 +1,30 @@
+#
+# Resource backup , created Wed Apr 10 13:29:45 UTC 2024
+#
+
+#---------------------------------------------------------
+# SERVER serverTestFilterAttributes_ds/TestserverTestFilterAttributes, serverTestFilterAttributes_ds device declaration
+#---------------------------------------------------------
+
+serverTestFilterAttributes_ds/TestserverTestFilterAttributes/DEVICE/serverTestFilterAttributes: "tango/test/servertestfilterattributes"
+
+
+# --- test/reference/server properties
+
+tango/test/servertestfilterattributes->DMAPFilePath: "devices.dmap"
+tango/test/servertestfilterattributes->AttributList: "PlainRename;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;;",\ 
+                                                     "ChangeAttributes;SHORT/FROM_DEVICE_SCALAR;SCALAR;DevShort;ChangedDescription;mA",\
+                                                     "INT_TO_DEVICE_SCALAR;INT/TO_DEVICE_SCALAR;SCALAR;DevLong;;", \
+                                                     "SHORT_TO_DEVICE_SCALAR;SHORT/TO_DEVICE_SCALAR;SCALAR;DevShort;;"
+
+#---------------------------------------------------------
+# CLASS serverTestFilterAttributes_ds properties
+#---------------------------------------------------------
+
+CLASS/serverTestFilterAttributes_ds->Description: "ChimeraTK-based DeviceServer"
+CLASS/serverTestFilterAttributes_ds->InheritedFrom: TANGO_BASE_CLASS
+CLASS/serverTestFilterAttributes_ds->ProjectTitle: serverTestFilterAttributes_ds
+
+# CLASS serverTestFilterAttributes_ds attribute properties
+
+

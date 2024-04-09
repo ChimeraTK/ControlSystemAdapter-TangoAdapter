@@ -1,0 +1,29 @@
+#
+# Resource backup , created Wed Apr 10 13:29:45 UTC 2024
+#
+
+#---------------------------------------------------------
+# SERVER serverTestMapTwice_ds/TestserverTestMapTwice, serverTestMapTwice_ds device declaration
+#---------------------------------------------------------
+
+serverTestMapTwice_ds/TestserverTestMapTwice/DEVICE/serverTestMapTwice: "tango/test/servertestmaptwice"
+
+
+# --- test/reference/server properties
+
+tango/test/servertestmaptwice->DMAPFilePath: "devices.dmap"
+tango/test/servertestmaptwice->AttributList: "PlainRename1;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;MappedFirst;",\ 
+                                             "PlainRename2;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;MappedSecond;",\
+                                             "INT_TO_DEVICE_SCALAR;INT/TO_DEVICE_SCALAR;SCALAR;DevLong;;"
+
+#---------------------------------------------------------
+# CLASS serverTestMapTwice_ds properties
+#---------------------------------------------------------
+
+CLASS/serverTestMapTwice_ds->Description: "ChimeraTK-based DeviceServer"
+CLASS/serverTestMapTwice_ds->InheritedFrom: TANGO_BASE_CLASS
+CLASS/serverTestMapTwice_ds->ProjectTitle: serverTestMapTwice_ds
+
+# CLASS serverTestMapTwice_ds attribute properties
+
+

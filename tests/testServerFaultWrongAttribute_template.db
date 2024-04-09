@@ -1,0 +1,27 @@
+#
+# Resource backup , created Wed Apr 10 13:29:45 UTC 2024
+#
+
+#---------------------------------------------------------
+# SERVER serverTestFaultBrokenAttribute_ds/TestserverTestFaultBrokenAttribute, serverTestfaultbrokenattribute_ds device declaration
+#---------------------------------------------------------
+
+serverTestFaultBrokenAttribute_ds/TestserverTestFaultBrokenAttribute/DEVICE/serverTestfaultbrokenattribute: "tango/test/serverTestfaultbrokenattribute"
+
+
+# --- test/reference/server properties
+
+tango/test/servertestfaultbrokenattribute->DMAPFilePath: "devices.dmap"
+tango/test/servertestfaultbrokenattribute->AttributList: "PlainReng;;" 
+
+#---------------------------------------------------------
+# CLASS serverTestFaultBrokenAttribute_ds properties
+#---------------------------------------------------------
+
+CLASS/serverTestFaultBrokenAttribute_ds->Description: "ChimeraTK-based DeviceServer"
+CLASS/serverTestFaultBrokenAttribute_ds->InheritedFrom: TANGO_BASE_CLASS
+CLASS/serverTestFaultBrokenAttribute_ds->ProjectTitle: serverTestFaultBrokenAttribute_ds
+
+# CLASS serverTestFaultBrokenAttribute_ds attribute properties
+
+
