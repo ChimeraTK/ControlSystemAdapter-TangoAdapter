@@ -119,7 +119,11 @@ namespace ChimeraTK {
 
     // only need to write spectrum attributs (manual writing bug in Tango)
     // scalar attributs are memoried and initialized by Tango
-    write_inited_values();
+    // But only if we are running with a database. If not, there is nothing to
+    // restore anyway.
+    if (Tango::Util::_UseDb) {
+      write_inited_values();
+    }
 
     // start the application
     appInstance->run();
