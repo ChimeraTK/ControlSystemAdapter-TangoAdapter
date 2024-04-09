@@ -20,6 +20,18 @@ find_package(PkgConfig)
 find_package(ChimeraTK-ControlSystemAdapter 02.07 REQUIRED)
 pkg_check_modules(TANGO REQUIRED IMPORTED_TARGET tango)
 
+# For some reason the system library has to be mentioned explicitly to the
+# linker. This is strange because the thead library has it as a dependency.
+option(BUILD_TESTS "Build test programs" ON)
+
+if(BUILD_TESTS)
+  find_package(
+    Boost
+    COMPONENTS unit_test_framework
+    REQUIRED)
+  enable_testing()
+endif()
+
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
@@ -31,15 +43,42 @@ add_library(${PROJECT_NAME} SHARED ${library_sources})
 
 # exported includes are all under ${CMAKE_INSTALL_PREFIX}/include
 target_include_directories(${PROJECT_NAME}
-  INTERFACE "$<INSTALL_INTERFACE:include>")
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
+                           INTERFACE "$<INSTALL_INTERFACE:include>")
+set_target_properties(
+  ${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION}
+                             SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME}
-  PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter)
+                      PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter)
 target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::TANGO)
 
 # do not remove runtime paths of the library when installing (helps for unsually
 # located implicit dependencies)
 set_property(TARGET ${PROJECT_NAME} PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+# Create the executables for automated unit testing. Currently we assume that
+# they are all tests contained in one file, so each file gives a new executable.
+# This section has to be adapted if this should change.
+if(BUILD_TESTS)
+  # loop over all sources files in execultables_src directory
+  aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src testExecutables)
+
+  foreach(testExecutableSrcFile ${testExecutables} ${referenceExecutables})
+    # NAME_WE means the base name without path and (longest) extension
+    get_filename_component(executableName ${testExecutableSrcFile} NAME_WE)
+
+    # each test includes a DOOCS server
+    add_executable(${executableName} ${testExecutableSrcFile})
+    target_include_directories(${executableName}
+                               PRIVATE ${CMAKE_SOURCE_DIR}/tests/include)
+
+    # need to force no-as-needed otherwise the class_factory function from the
+    # adapter will  be discarded and the tango server will not start
+    target_link_options(${executableName} PUBLIC "-Wl,--no-as-needed")
+    target_link_libraries(${executableName} PUBLIC ${PROJECT_NAME}
+                                                   PkgConfig::TANGO)
+    add_test(${executableName} ${executableName})
+  endforeach(testExecutableSrcFile)
+endif()
 
 # Install the library and the executables this defines architecture-dependent
 # ${CMAKE_INSTALL_LIBDIR}
@@ -67,5 +106,5 @@ set(PROVIDES_EXPORTED_TARGETS 1)
 # we need the public dependencies so create_cmake_config_files can find them as
 # implicit dependencies
 list(APPEND ${PROJECT_NAME}_PUBLIC_DEPENDENCIES
-  "ChimeraTK-ControlSystemAdapter")
+     "ChimeraTK-ControlSystemAdapter")
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
