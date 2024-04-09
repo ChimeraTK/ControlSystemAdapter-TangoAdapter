@@ -34,12 +34,11 @@ endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
+file(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/*.h")
 aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
 
-link_directories(${TANGO_LIBRARY_DIRS})
-
 # C++ library
-add_library(${PROJECT_NAME} SHARED ${library_sources})
+add_library(${PROJECT_NAME} SHARED ${library_sources} ${headers})
 
 # exported includes are all under ${CMAKE_INSTALL_PREFIX}/include
 target_include_directories(${PROJECT_NAME}
