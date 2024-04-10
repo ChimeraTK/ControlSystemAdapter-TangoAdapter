@@ -58,6 +58,12 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 # they are all tests contained in one file, so each file gives a new executable.
 # This section has to be adapted if this should change.
 if(BUILD_TESTS)
+  aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src_lib testLibrarySources)
+  file(GLOB testLibraryHeaders ${CMAKE_SOURCE_DIR}/tests/include_lib/*.h)
+
+  add_library(TestLib STATIC ${testLibrarySources} ${testLibraryHeaders})
+  target_link_libraries(TestLib PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter PkgConfig::TANGO )
+  target_include_directories(TestLib PUBLIC ${CMAKE_SOURCE_DIR}/tests/include_lib)
   # loop over all sources files in execultables_src directory
   aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src testExecutables)
 
@@ -74,6 +80,7 @@ if(BUILD_TESTS)
     # adapter will  be discarded and the tango server will not start
     target_link_options(${executableName} PUBLIC "-Wl,--no-as-needed")
     target_link_libraries(${executableName} PUBLIC ${PROJECT_NAME}
+                                                   TestLib
                                                    PkgConfig::TANGO)
     add_test(${executableName} ${executableName})
   endforeach(testExecutableSrcFile)
