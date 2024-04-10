@@ -55,7 +55,10 @@ namespace ChimeraTK {
         att.set_value(value, 1, 0, true);
       }
       else {
-        TangoType* value = new TangoType;
+        auto* value = new TangoType;
+        // for the signed char adapter type we need to assign it to short, since Tango does not
+        // have a signed char type. Silence the warning, we are not dealing with characters here
+        // NOLINTNEXTLINE(bugprone-signed-char-misue)
         *value = processScalar->accessData(0);
         att.set_value(value, 1, 0, true);
       }
