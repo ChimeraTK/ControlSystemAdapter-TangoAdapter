@@ -75,9 +75,9 @@ namespace ChimeraTK {
       auto arraySize = att.get_write_value_length();
       std::string memoried_value;
 
-      if(arraySize > length) {
+      if(arraySize != length) {
         std::stringstream msg;
-        msg << "Array size cannot be greater than" << length << "\n";
+        msg << "Written size " << arraySize << " does not match length " << length << "\n";
         ERROR_STREAM << "WRITE_ERROR " << msg.str() << std::endl;
 
         Tango::Except::throw_exception("WRITE_ERROR", msg.str(), "SpectrumAttribTempl::write()");
@@ -133,7 +133,9 @@ namespace ChimeraTK {
         else {
           att.get_write_value(data);
         }
-        memoried_value = arrayToString(data, length);
+
+        // FIXME: What to do with values written < length? Should we fill up the memoried values with 0?
+        memoried_value = arrayToString(data, std::min<size_t>(arraySize, length));
       }
 
       if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
