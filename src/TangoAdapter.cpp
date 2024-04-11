@@ -306,7 +306,7 @@ namespace ChimeraTK {
       }
       // FIXME: HACK. There is no CHAR type in Tango
       case Tango::DEV_ENUM: {
-        attProp->dataType = Tango::DEV_USHORT;
+        attProp->dataType = Tango::DEV_SHORT;
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int8_t>>(processVariable);
         auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevShort, int8_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
@@ -436,7 +436,7 @@ namespace ChimeraTK {
       }
       // FIXME: HACK. There is no CHAR type in tango
       case Tango::DEV_ENUM: {
-        attProp->dataType = Tango::DEV_USHORT;
+        attProp->dataType = Tango::DEV_SHORT;
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int8_t>>(processVariable);
         auto* scalar_attr_t = new SpectrumAttribTempl<Tango::DevShort, int8_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
