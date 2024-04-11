@@ -159,9 +159,10 @@ namespace ChimeraTK {
           att.set_rvalue();
         }
         else {
-          // memory the written value
-          memoried_value.pop_back(); // remove the last seperator
-          setProperty<std::string>(dev, memoriedPropertyName, memoried_value);
+          if (Tango::Util::_UseDb) {
+            // memory the written value if connected to database
+            setProperty<std::string>(dev, memoriedPropertyName, memoried_value);
+          }
         }
       }
       catch(...) {

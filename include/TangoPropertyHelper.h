@@ -119,14 +119,17 @@ namespace ChimeraTK {
     return spectrum_values;
   }
 
+  // FIXME: This breaks if string values contain ";"
   template<class T>
-  std::string arrayToString(T* values, int length) {
+  std::string arrayToString(T* values, size_t length) {
     std::ostringstream os;
 
-    for (int i=0; i<length; i++) {
-      std::cout<<values[i]<<" ";
-        os << values[i];
+    for(size_t i = 0; i < length; i++) {
+      std::cout << values[i] << " ";
+      os << values[i];
+      if(i < length - 1) {
         os << SEPERATOR;
+      }
     }
 
     return os.str();
