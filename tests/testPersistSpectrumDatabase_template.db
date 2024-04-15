@@ -1,0 +1,26 @@
+#
+# Resource backup , created Wed Apr 10 13:29:45 UTC 2024
+#
+
+#---------------------------------------------------------
+# SERVER serverTestPersistSpectrum_ds/TestserverTestPersistspectrum, serverTestPersistSpectrum_ds device declaration
+#---------------------------------------------------------
+
+serverTestPersistSpectrum_ds/TestserverTestPersistspectrum/DEVICE/serverTestPersistSpectrum: "tango/test/servertestpersistspectrum"
+
+
+# --- test/reference/server properties
+
+tango/test/servertestpersistspectrum->DMAPFilePath: "/home/jgeorg/workflow-scripts/build/ChimeraTK-ControlSystemAdapter-TangoAdapter-debug/devices.dmap"
+
+#---------------------------------------------------------
+# CLASS serverTestPersistSpectrum_ds properties
+#---------------------------------------------------------
+
+CLASS/serverTestPersistSpectrum_ds->Description: "ChimeraTK-based DeviceServer"
+CLASS/serverTestPersistSpectrum_ds->InheritedFrom: TANGO_BASE_CLASS
+CLASS/serverTestPersistSpectrum_ds->ProjectTitle: serverTestPersistSpectrum_ds
+
+# CLASS serverTestPersistSpectrum_ds attribute properties
+
+

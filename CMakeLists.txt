@@ -84,6 +84,12 @@ if(BUILD_TESTS)
                                                    PkgConfig::TANGO)
     add_test(${executableName} ${executableName})
   endforeach(testExecutableSrcFile)
+
+  # Set up the test pairs that produce and read stored attributes
+  set_tests_properties(testTangoServerPersistSpectrum PROPERTIES FIXTURES_SETUP SpectrumPersistDb)
+  set_tests_properties(testTangoServerPersistSpectrumRead PROPERTIES FIXTURES_SETUP SpectrumPersistDb)
+
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testPersistSpectrumDatabase_template.db DESTINATION ${CMAKE_BINARY_DIR}/tests)
 endif()
 
 # Install the library and the executables this defines architecture-dependent
