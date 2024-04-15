@@ -29,7 +29,7 @@ namespace detail {
       writeAttribute.set_write_value(data.get(), values.size());
     }
     else {
-      writeAttribute.set_write_value(values);
+      writeAttribute.set_write_value(values.data(), values.size());
     }
 
     // FIXME: Is this cast _really_ necessary?
