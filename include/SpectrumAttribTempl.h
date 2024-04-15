@@ -60,7 +60,7 @@ namespace ChimeraTK {
 
       if(processSpectrum->dataValidity() != ChimeraTK::DataValidity::ok) {
         att.set_quality(Tango::AttrQuality::ATTR_INVALID);
-        ERROR_STREAM << "ScalarAttribTempl::read " << get_name() << " is not valid" << std::endl;
+        ERROR_STREAM << "SprectrumAttribTempl::read " << get_name() << " is not valid" << std::endl;
       }
       else {
         att.set_quality(Tango::AttrQuality::ATTR_VALID);
