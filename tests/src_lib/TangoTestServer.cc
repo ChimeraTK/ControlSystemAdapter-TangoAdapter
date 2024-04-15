@@ -4,27 +4,25 @@
 #include "TangoTestServer.h"
 
 #include <chrono>
+#include <filesystem>
 #include <random>
 
-ThreadedTangoServer::ThreadedTangoServer(const std::string& testName, bool verbose) {
-  argv.emplace_back(testName + "_ds");
-  argv.emplace_back("Test" + testName);
-  if(verbose) {
-    argv.emplace_back("-v4");
-  }
-  argv.emplace_back("-nodb");
-  argv.emplace_back("-dlist");
-  deviceString = std::string("tango/test/") + testName;
-  argv.emplace_back(deviceString);
-  argv.emplace_back("-ORBendPoint");
-  argv.emplace_back("giop:tcp::" + port());
-}
+ThreadedTangoServer::ThreadedTangoServer(std::string setTestName, bool setVerbose)
+: testName(std::move(setTestName)), verbose(setVerbose) {}
 
 /*********************************************************************************************************************/
 
 ThreadedTangoServer::~ThreadedTangoServer() {
   if(tangoServerThread.joinable()) {
     stop();
+  }
+
+  if (!keepOfflineDatabase) {
+    try {
+      std::filesystem::remove(offlineDatabase);
+    } catch (std::runtime_error& e) {
+      // ignore
+    }
   }
 }
 
@@ -36,6 +34,24 @@ void ThreadedTangoServer::start() {
   std::condition_variable cv;
   tangoServerThread = std::thread([&]() {
     try {
+      argv.emplace_back(testName + "_ds");
+      argv.emplace_back("Test" + testName);
+      if(verbose) {
+        argv.emplace_back("-v4");
+      }
+      deviceString = std::string("tango/test/") + testName;
+
+      if(offlineDatabase.empty()) {
+        argv.emplace_back("-nodb");
+        argv.emplace_back("-dlist");
+      }
+      else {
+        argv.emplace_back("-file=" + offlineDatabase);
+      }
+      argv.emplace_back(deviceString);
+      argv.emplace_back("-ORBendPoint");
+      argv.emplace_back("giop:tcp::" + port());
+
       std::vector<const char*> args;
       args.resize(argv.size());
       std::transform(argv.begin(), argv.end(), args.begin(), [&](auto& s) { return s.c_str(); });
@@ -90,21 +106,76 @@ std::string ThreadedTangoServer::getClientUrl() const {
 
 /*********************************************************************************************************************/
 
+const std::string& ThreadedTangoServer::device() const {
+  return deviceString;
+}
+
+/*********************************************************************************************************************/
+
+ThreadedTangoServer& ThreadedTangoServer::setCreateOfflineDatabase(bool create) {
+  createOfflineDatabase = create;
+
+  return *this;
+}
+
+/*********************************************************************************************************************/
+
+ThreadedTangoServer& ThreadedTangoServer::setKeepOfflineDatabase(bool keep) {
+  keepOfflineDatabase = keep;
+
+  return *this;
+}
+
+/*********************************************************************************************************************/
+
+ThreadedTangoServer& ThreadedTangoServer::setOfflineDatabase(const std::string& basePath) {
+  offlineDatabase = basePath + ".db";
+  if(createOfflineDatabase) {
+    auto sourceTemplate = basePath + "_template.db";
+    std::filesystem::copy_file(sourceTemplate, offlineDatabase, std::filesystem::copy_options::overwrite_existing);
+  }
+
+  return *this;
+}
+
+
+ThreadedTangoServer& ThreadedTangoServer::overrideNames(const std::string newNames) {
+  testName = newNames;
+
+  return *this;
+}
+
+/*********************************************************************************************************************/
+
 std::atomic<bool> ThreadedTangoServer::shutdownRequested{false};
 
 /*********************************************************************************************************************/
 /*********************************************************************************************************************/
 /*********************************************************************************************************************/
 
-TangoTestFixture::TangoTestFixture()
+TangoTestFixtureImpl::TangoTestFixtureImpl()
 : theFactory(boost::unit_test::framework::master_test_suite().p_name.value),
   theServer(boost::unit_test::framework::master_test_suite().p_name.value) {
   f = this;
+}
+
+/*********************************************************************************************************************/
+
+void TangoTestFixtureImpl::startup() {
   theServer.start();
+
   using clock = std::chrono::steady_clock;
   auto start = clock::now();
 
-  proxy = std::make_unique<Tango::DeviceProxy>(theServer.getClientUrl());
+  try {
+    std::cout << "Trying to connect to Tango server " << theServer.getClientUrl() << std::endl;
+    proxy = std::make_unique<Tango::DeviceProxy>(theServer.getClientUrl());
+  }
+  catch(CORBA::Exception& e) {
+    Tango::Except::print_exception(e);
+    throw;
+  }
+
   while(!proxy->is_connected()) {
     std::this_thread::sleep_for(std::chrono::milliseconds(250));
     if(std::chrono::duration_cast<std::chrono::seconds>(clock::now() - start).count() > 5) {
@@ -125,18 +196,35 @@ TangoTestFixture::TangoTestFixture()
       break;
     }
   }
+
   // Cannot call any of the BOOST_ tests here, otherwise it will mark the setup as failed, regardless of the test outcome
   assert(proxy->state() == Tango::ON);
+
+  // Wait for the server to become ON before getting the application from the factory
+  // so that the server is definitely the one that creates the application, not the test
+  theApp = dynamic_cast<ReferenceTestApplication*>(
+      &ChimeraTK::ApplicationFactory<ReferenceTestApplication>::getApplicationInstance());
+  assert(theApp != nullptr);
+  if(manualLoopControl) {
+    theApp->initialiseManualLoopControl();
+  }
 }
 
 /*********************************************************************************************************************/
 
-TangoTestFixture::~TangoTestFixture() {
+TangoTestFixtureImpl::~TangoTestFixtureImpl() {
   // Shutdown proxy first, then the server, otherwise we will get a CORBA exception
+  if(manualLoopControl) {
+    theApp->releaseManualLoopControl();
+  }
   proxy.reset(nullptr);
   theServer.stop();
 }
 
+void TangoTestFixtureImpl::setManualLoopControl(bool manualControl) {
+  manualLoopControl = manualControl;
+}
+
 /*********************************************************************************************************************/
 
-TangoTestFixture* TangoTestFixture::f;
+TangoTestFixtureImpl* TangoTestFixtureImpl::f;
