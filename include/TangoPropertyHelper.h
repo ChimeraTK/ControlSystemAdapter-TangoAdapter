@@ -113,7 +113,13 @@ namespace ChimeraTK {
 
     while(std::getline(property_value, intermediate, SEPERATOR)) {
       std::stringstream tmp(intermediate);
-      tmp >> element;
+      if constexpr(std::is_same_v<T, uint8_t const> || std::is_same_v<T, uint8_t>) {
+        int val;
+        tmp >> val;
+        element = uint8_t(val);
+      } else {
+        tmp >> element;
+      }
       spectrum_values.push_back(element);
     }
     return spectrum_values;
@@ -125,8 +131,11 @@ namespace ChimeraTK {
     std::ostringstream os;
 
     for(size_t i = 0; i < length; i++) {
-      std::cout << values[i] << " ";
-      os << values[i];
+      if constexpr(std::is_same_v<T, uint8_t const> || std::is_same_v<T, uint8_t>) {
+        os << int(values[i]);
+      } else {
+        os << values[i];
+      }
       if(i < length - 1) {
         os << SEPERATOR;
       }
