@@ -33,9 +33,7 @@ namespace detail {
     }
 
     // FIXME: Is this cast _really_ necessary?
-    auto* castedAttribute = dynamic_cast<ChimeraTK::SpectrumAttribTempl<TangoType, AdapterType>*>(attr);
-    assert(castedAttribute != nullptr);
-    castedAttribute->write(device, writeAttribute);
+    attr->write(device, writeAttribute);
   }
 }; // namespace detail
 
