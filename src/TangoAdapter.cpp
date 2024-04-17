@@ -2,6 +2,7 @@
 #include "TangoAdapter.h"
 
 #include "AttributMapper.h"
+#include "AdapterDeviceClass.h"
 #include "SpectrumAttribTempl.h"
 #include "getAllVariableNames.h"
 
@@ -11,7 +12,6 @@
 #include <ChimeraTK/VoidRegisterAccessor.h>
 
 #include <algorithm>
-#include <stdexcept>
 
 namespace detail {
   template<typename TangoType, typename AdapterType>
@@ -60,8 +60,8 @@ namespace ChimeraTK {
   //
   //-----------------------------------------------------------------------------
   TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice, std::vector<std::shared_ptr<ChimeraTK::AttributProperty>>& attributList)
-  : Tango::LogAdapter(tangoDevice) {
-    DEBUG_STREAM << "TangoAdapter::TangoAdapter starting ... " << std::endl;
+  : Tango::LogAdapter(tangoDevice), _deviceClass(::TangoAdapter::AdapterDeviceClass::getClassName()) {
+    DEBUG_STREAM << _deviceClass <<":TangoAdapter::TangoAdapter starting ... " << std::endl;
     _device = tangoDevice;
 
     std::pair<boost::shared_ptr<ControlSystemPVManager>, boost::shared_ptr<DevicePVManager>> pvManagers =
@@ -106,7 +106,7 @@ namespace ChimeraTK {
     std::set<std::string> names = getAllVariableNames(_controlSystemPVManager);
     std::string tickname;
 
-    INFO_STREAM << "TangoAdapter::TangoAdapter list of variable" << std::endl;
+    INFO_STREAM << _deviceClass <<":TangoAdapter::TangoAdapter list of variable" << std::endl;
     for(const auto& name : names) {
       INFO_STREAM << name << std::endl;
       if(name.find("/tick") != std::string::npos) {
@@ -116,7 +116,7 @@ namespace ChimeraTK {
 
     // no configuration, import all
     if(attributList.empty()) {
-      INFO_STREAM << "Direct import" << std::endl;
+      INFO_STREAM << _deviceClass <<":Direct import" << std::endl;
       // FIXME: Why?
       names.erase(tickname);
       ChimeraTK::AttributMapper::getInstance().setCSPVManager(_controlSystemPVManager);
@@ -143,7 +143,7 @@ namespace ChimeraTK {
     _device->set_state(Tango::ON);
     _device->set_status("Application is running.");
 
-    DEBUG_STREAM << "TangoAdapter::TangoAdapter end" << std::endl;
+    DEBUG_STREAM << _deviceClass <<":TangoAdapter::TangoAdapter end" << std::endl;
   }
   //+----------------------------------------------------------------------------
   //
@@ -153,7 +153,7 @@ namespace ChimeraTK {
   //
   //-----------------------------------------------------------------------------
   TangoAdapter::~TangoAdapter() {
-    DEBUG_STREAM << " TangoAdapter::~TangoAdapter" << std::endl;
+    DEBUG_STREAM << _deviceClass <<": TangoAdapter::~TangoAdapter" << std::endl;
 
     _updater->stop();
 
@@ -171,17 +171,17 @@ namespace ChimeraTK {
   //
   //-----------------------------------------------------------------------------
   void TangoAdapter::write_inited_values() {
-    DEBUG_STREAM << " TangoAdapter::write_inited_values " << _write_spectrum_attr_list.size() << std::endl;
+    DEBUG_STREAM << _deviceClass <<": TangoAdapter::write_inited_values " << _write_spectrum_attr_list.size() << std::endl;
 
     // read spectrum values from memoried properties then write as initialised values
     for(const auto& [attProp, index] : _write_spectrum_attr_list) {
-      DEBUG_STREAM << "name: " << attProp->name << " type:" << attProp->dataType << std::endl;
+      DEBUG_STREAM << _deviceClass <<":name: " << attProp->name << " type:" << attProp->dataType << std::endl;
       // get write attribut name
       auto& write_attribute = _device->get_device_attr()->get_w_attr_by_name(attProp->name.c_str());
       // get value of memoried property (__Memorized_<attributname>)
       auto mem_value = getProperty<std::string>(_device, "__Memoried_" + attProp->name);
 
-      DEBUG_STREAM << "__Memoried_" << attProp->name << " mem_value: " << mem_value << std::endl;
+      DEBUG_STREAM << _deviceClass <<":__Memoried_" << attProp->name << " mem_value: " << mem_value << std::endl;
 
       if(mem_value.empty()) {
         continue;
@@ -244,7 +244,7 @@ namespace ChimeraTK {
           break;
         }
         default:
-          ERROR_STREAM << "TangoAdapter::write_inited_values - unknown datatype: " << attProp->dataType << std::endl;
+          ERROR_STREAM << _deviceClass <<":TangoAdapter::write_inited_values - unknown datatype: " << attProp->dataType << std::endl;
       }
     }
     // check for variables not yet initialised - we must guarantee that all to-application variables are written exactly
@@ -292,7 +292,7 @@ namespace ChimeraTK {
   //
   //-----------------------------------------------------------------------------
   void TangoAdapter::create_Scalar_Attr(std::shared_ptr<AttributProperty> const& attProp) {
-    DEBUG_STREAM << "TangoAdapter::create_Scalar_Attr" << std::endl;
+    DEBUG_STREAM << _deviceClass <<":TangoAdapter::create_Scalar_Attr" << std::endl;
 
     ProcessVariable::SharedPtr processVariable = _controlSystemPVManager->getProcessVariable(attProp->path);
 
@@ -306,7 +306,7 @@ namespace ChimeraTK {
       attProp->writeType = Tango::READ;
     }
 
-    DEBUG_STREAM << "TangoAdapter::create_Scalar_Attr write Type" << attProp->writeType << std::endl;
+    DEBUG_STREAM << _deviceClass <<":TangoAdapter::create_Scalar_Attr write Type" << attProp->writeType << std::endl;
 
     switch(attProp->dataType) {
       case Tango::DEV_UCHAR: {
@@ -411,7 +411,7 @@ namespace ChimeraTK {
       }
       default:
 
-        ERROR_STREAM << " Not supported data type in scalar: " << attProp->dataType << std::endl;
+        ERROR_STREAM << _deviceClass <<": Not supported data type in scalar: " << attProp->dataType << std::endl;
         break;
     }
   }
@@ -424,7 +424,7 @@ namespace ChimeraTK {
   //
   //-----------------------------------------------------------------------------
   void TangoAdapter::create_Spectrum_Attr(std::shared_ptr<AttributProperty> const& attProp) {
-    DEBUG_STREAM << "TangoAdapter::create_Spectrum_Attr" << std::endl;
+    DEBUG_STREAM << _deviceClass <<": TangoAdapter::create_Spectrum_Attr" << std::endl;
 
     ProcessVariable::SharedPtr processVariable = _controlSystemPVManager->getProcessVariable(attProp->path);
 
@@ -528,7 +528,7 @@ namespace ChimeraTK {
       }
       default:
 
-        ERROR_STREAM << " Not supported data type in spectrum: " << attProp->dataType << std::endl;
+        ERROR_STREAM << _deviceClass <<": Not supported data type in spectrum: " << attProp->dataType << std::endl;
         break;
     }
 
@@ -545,7 +545,7 @@ namespace ChimeraTK {
   //
   //-----------------------------------------------------------------------------
   void TangoAdapter::attach_dynamic_attributes_to_device() {
-    DEBUG_STREAM << "TangoAdapter::attach_dynamic_attributes_to_device" << std::endl;
+    DEBUG_STREAM << _deviceClass <<":TangoAdapter::attach_dynamic_attributes_to_device" << std::endl;
 
     for(auto* attr : _dynamic_attribute_list) {
       _device->add_attribute(attr);
@@ -562,7 +562,7 @@ namespace ChimeraTK {
   //
   //-----------------------------------------------------------------------------
   void TangoAdapter::detach_dynamic_attributes_from_device() {
-    DEBUG_STREAM << "TangoAdapter::detach_dynamic_attributes_from_device" << std::endl;
+    DEBUG_STREAM << _deviceClass <<":TangoAdapter::detach_dynamic_attributes_from_device" << std::endl;
 
     for(auto* attr : _dynamic_attribute_list) {
       _device->remove_attribute(attr, false, false /*do not cleanup tangodb when removing this dyn. attr*/);

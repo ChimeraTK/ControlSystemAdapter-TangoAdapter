@@ -51,6 +51,7 @@ namespace ChimeraTK {
     std::vector<Tango::Attr*> _dynamic_attribute_list;
     // list W spectrum attributes for initialization
     std::map<std::shared_ptr<AttributProperty>, int> _write_spectrum_attr_list;
+    std::string _deviceClass;
   };
 
 } // namespace ChimeraTK

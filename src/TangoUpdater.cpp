@@ -3,14 +3,14 @@
 
 #include "TangoUpdater.h"
 
-#include <unordered_set>
+#include "AdapterDeviceClass.h"
 
 #include <ChimeraTK/ReadAnyGroup.h>
 
 namespace ChimeraTK {
 
   void TangoUpdater::addVariable(TransferElementAbstractor variable, const std::string& attrId) {
-    INFO_STREAM << " TangoUpdater::addVariable " << attrId << std::endl;
+    INFO_STREAM << ::TangoAdapter::AdapterDeviceClass::getClassName() <<": TangoUpdater::addVariable " << attrId << std::endl;
 
     if(variable.isReadable()) {
       auto id = variable.getId();
@@ -20,7 +20,6 @@ namespace ChimeraTK {
         _elementsToRead.push_back(variable);
       }
       else {
-        std::cout << "Pushing secondary element to additional transfer elements" << std::endl;
         _descriptorMap[id].additionalTransferElements.insert(variable.getHighLevelImplElement());
       }
       // push variable.getHighLevelImplElement()/updaterFunction/eq_fct in _descriptorMap
@@ -62,7 +61,7 @@ namespace ChimeraTK {
       // FIXME: Ideally we would fill the Tango buffer for the attribute here, then attribute->read()
       // would just send it out to CORBA
       // FIXME: Also we would need to toggle the event here, once supported
-      DEBUG_STREAM << "TangoUpdater::updateLoop update attribut: " << descriptor.attributID[0];
+      DEBUG_STREAM << ::TangoAdapter::AdapterDeviceClass::getClassName()<<":TangoUpdater::updateLoop update attribut: " << descriptor.attributID[0];
 
       // Call preRead for all TEs for the updated ID
       for(const auto& elem : descriptor.additionalTransferElements) {
@@ -90,7 +89,7 @@ namespace ChimeraTK {
       // Ignore
     }
     catch(std::system_error& e) {
-      ERROR_STREAM << "Failed to shut down updater thread: " << e.what() << std::endl;
+      ERROR_STREAM << ::TangoAdapter::AdapterDeviceClass::getClassName()<<":Failed to shut down updater thread: " << e.what() << std::endl;
     }
   }
 

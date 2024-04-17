@@ -117,7 +117,7 @@ namespace TangoAdapter {
    */
   //--------------------------------------------------------
   void AdapterDeviceImpl::init_device() {
-    DEBUG_STREAM << "AdapterDeviceImpl::init_device() create device " << device_name << std::endl;
+    DEBUG_STREAM << AdapterDeviceClass::getClassName() <<": AdapterDeviceImpl::init_device() create device " << device_name << std::endl;
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::init_device_before) ENABLED START -----*/
 
     //	Initialization before get_device_property() call
@@ -133,18 +133,18 @@ namespace TangoAdapter {
     // set DMapFilePath from property
     if(dMapFilePath.empty()) {
       if(!Tango::Util::_UseDb) {
-        DEBUG_STREAM << "Running without database connection, falling back to devices.dmap" << std::endl;
+        DEBUG_STREAM << AdapterDeviceClass::getClassName() <<":Running without database connection, falling back to devices.dmap" << std::endl;
         dMapFilePath = "devices.dmap";
       }
       else {
-        ERROR_STREAM << "init_device: The property dMapFilePath is empty" << std::endl;
+        ERROR_STREAM << AdapterDeviceClass::getClassName() <<":init_device: The property dMapFilePath is empty" << std::endl;
         set_state(Tango::FAULT);
         set_status("The property dMapFilePath is not configured");
         return;
       }
     }
 
-    DEBUG_STREAM << "dMapFilePath: " << dMapFilePath << std::endl;
+    DEBUG_STREAM << AdapterDeviceClass::getClassName() <<":dMapFilePath: " << dMapFilePath << std::endl;
     try {
       ChimeraTK::setDMapFilePath(dMapFilePath);
     }
@@ -179,7 +179,7 @@ namespace TangoAdapter {
       return;
     }
 
-    DEBUG_STREAM << "ChimeraTKExample2::init_device() end of init_device " << std::endl;
+    DEBUG_STREAM << AdapterDeviceClass::getClassName() <<":ChimeraTKExample2::init_device() end of init_device " << std::endl;
 
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::init_device
   }
