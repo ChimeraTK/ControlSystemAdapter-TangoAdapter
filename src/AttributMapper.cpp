@@ -149,8 +149,9 @@ namespace ChimeraTK {
     if(info == typeid(uint8_t)) {
       _dataType = Tango::DEV_UCHAR;
     }
+
     if(info == typeid(int8_t)) {
-      _dataType = Tango::DEV_SHORT;
+      _dataType = Tango::DEV_ENUM;
     }
 
     if(info == typeid(uint16_t)) {

@@ -31,6 +31,13 @@ namespace ChimeraTK {
         axis_prop.set_unit(attProperty->unit.c_str());
       }
 
+      // Since Tango does not support int8 natively and we have to resort to SHORT,
+      // limit the values to the int8 limits
+      if constexpr(std::is_same_v<AdapterType, int8_t>) {
+        axis_prop.set_min_value(std::to_string(std::numeric_limits<int8_t>::min()).c_str());
+        axis_prop.set_max_value(std::to_string(std::numeric_limits<int8_t>::max()).c_str());
+      }
+
       set_default_properties(axis_prop);
     }
 

@@ -300,6 +300,15 @@ namespace ChimeraTK {
         _updater->addVariable(ChimeraTK::ScalarRegisterAccessor<uint8_t>(pv), attProp->name);
         break;
       }
+      // FIXME: HACK. There is no CHAR type in Tango
+      case Tango::DEV_ENUM: {
+        attProp->dataType = Tango::DEV_SHORT;
+        auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int8_t>>(processVariable);
+        auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevShort, int8_t>(_device, pv, attProp);
+        _dynamic_attribute_list.push_back(scalar_attr_t);
+        _updater->addVariable(ChimeraTK::ScalarRegisterAccessor<int8_t>(pv), attProp->name);
+        break;
+      }
       case Tango::DEV_USHORT: {
         boost::shared_ptr<ChimeraTK::NDRegisterAccessor<uint16_t>> pv =
             boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<uint16_t>>(processVariable);
@@ -419,6 +428,15 @@ namespace ChimeraTK {
         auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevUChar, uint8_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(ChimeraTK::OneDRegisterAccessor<uint8_t>(pv), attProp->name);
+        break;
+      }
+      // FIXME: HACK. There is no CHAR type in tango
+      case Tango::DEV_ENUM: {
+        attProp->dataType = Tango::DEV_SHORT;
+        auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int8_t>>(processVariable);
+        auto* scalar_attr_t = new SpectrumAttribTempl<Tango::DevShort, int8_t>(_device, pv, attProp);
+        _dynamic_attribute_list.push_back(scalar_attr_t);
+        _updater->addVariable(ChimeraTK::ScalarRegisterAccessor<int8_t>(pv), attProp->name);
         break;
       }
       case Tango::DEV_USHORT: {
