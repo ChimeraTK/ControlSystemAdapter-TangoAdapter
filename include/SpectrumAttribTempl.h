@@ -5,7 +5,7 @@
 #include <ChimeraTK/NDRegisterAccessor.h>
 
 namespace ChimeraTK {
-  template<typename TangoType, typename AdapterType>
+  template<typename TangoType, typename AdapterType , typename TangoWriteType = TangoType>
   class SpectrumAttribTempl : public Tango::SpectrumAttr, Tango::LogAdapter {
    public:
     SpectrumAttribTempl(TANGO_BASE_CLASS* tangoDevice, boost::shared_ptr<ChimeraTK::NDRegisterAccessor<AdapterType>> pv,
@@ -83,7 +83,7 @@ namespace ChimeraTK {
         Tango::Except::throw_exception("WRITE_ERROR", msg.str(), "SpectrumAttribTempl::write()");
       }
 
-      const TangoType* data = nullptr;
+      const TangoWriteType* data = nullptr;
       if(att.get_user_set_write_value()) {
         if constexpr(std::is_same_v<Tango::DevUChar, TangoType>) {
           data = att.get_last_written_uch()->get_buffer();
@@ -124,28 +124,23 @@ namespace ChimeraTK {
         }
       }
       else {
-        if constexpr(std::is_same_v<Tango::DevString, TangoType>) {
-          // Need to cast to const Tango::ConstDevString* here because otherwise Tangos
-          // internal type dispatch thinks it's an array of enums.
-          auto* dataCasted = reinterpret_cast<const Tango::ConstDevString*>(data);
-          att.get_write_value(dataCasted);
-        }
-        else {
-          att.get_write_value(data);
-        }
+        att.get_write_value(data);
 
-        // FIXME: What to do with values written < length? Should we fill up the memoried values with 0?
         memoried_value = arrayToString(data, std::min<size_t>(arraySize, length));
       }
 
-      if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
-        std::transform(data, data + arraySize, processVector.begin(), [](auto v) { return std::string(v); });
-      }
-      else {
-        std::copy(data, data + arraySize, processVector.begin());
+      if (data != nullptr) {
+        if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
+          std::transform(data, data + arraySize, processVector.begin(), [](auto v) { return std::string(v); });
+        }
+        else {
+          std::copy(data, data + arraySize, processVector.begin());
+        }
+      } else {
+        ERROR_STREAM << "Did not get any written data from " << att.get_name() <<std::endl;
       }
 
-      if(att.get_quality() == Tango::AttrQuality::ATTR_INVALID) {
+      if(att.get_quality() == Tango::AttrQuality::ATTR_INVALID || data == nullptr) {
         processSpectrum->setDataValidity(DataValidity::faulty);
       }
       else {

@@ -128,6 +128,9 @@ namespace ChimeraTK {
   // FIXME: This breaks if string values contain ";"
   template<class T>
   std::string arrayToString(T* values, size_t length) {
+    if (values == nullptr) {
+      return {};
+    }
     std::ostringstream os;
 
     for(size_t i = 0; i < length; i++) {
