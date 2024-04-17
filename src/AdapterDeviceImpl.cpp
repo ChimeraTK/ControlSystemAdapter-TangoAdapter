@@ -155,7 +155,23 @@ namespace TangoAdapter {
       return;
     }
 
-    tangoAdapter = std::make_shared<ChimeraTK::TangoAdapter>(this, attributList);
+    // Try to pre-parse the attribute list here if not empty and set server to
+    // fault if that fails
+    std::vector<std::shared_ptr<ChimeraTK::AttributProperty>> parsedAttributes;
+    try {
+      for(const auto& description: attributList) {
+        if (description.empty()) {
+          continue;
+        }
+        parsedAttributes.push_back(std::make_shared<ChimeraTK::AttributProperty>(description));
+      }
+    } catch (ChimeraTK::runtime_error& e) {
+      set_state(Tango::FAULT);
+      set_status("Cannot parse AttributList property.");
+      return;
+    }
+
+    tangoAdapter = std::make_shared<ChimeraTK::TangoAdapter>(this, parsedAttributes);
     if(!tangoAdapter) {
       // FIXME: I think this means out of memory... IMHO we should just crash
       set_state(Tango::FAULT);

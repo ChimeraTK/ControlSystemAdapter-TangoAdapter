@@ -47,7 +47,7 @@ namespace ChimeraTK {
   // description :
   //
   //-----------------------------------------------------------------------------
-  TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice, std::vector<std::string> attributList)
+  TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice, std::vector<std::shared_ptr<ChimeraTK::AttributProperty>>& attributList)
   : Tango::LogAdapter(tangoDevice) {
     DEBUG_STREAM << "TangoAdapter::TangoAdapter starting ... " << std::endl;
     _device = tangoDevice;
@@ -103,7 +103,7 @@ namespace ChimeraTK {
     }
 
     // no configuration, import all
-    if(attributList.empty() || (attributList.size() == 1 && attributList[0].empty())) {
+    if(attributList.empty()) {
       INFO_STREAM << "Direct import" << std::endl;
       // FIXME: Why?
       names.erase(tickname);

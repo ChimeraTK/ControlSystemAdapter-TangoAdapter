@@ -48,13 +48,12 @@ namespace ChimeraTK {
     import("/", std::string(""));
   }
   /********************************************************************************************************************/
-  void AttributMapper::prepareOutput(const std::vector<std::string>& attributList) {
+  void AttributMapper::prepareOutput(std::vector<std::shared_ptr<ChimeraTK::AttributProperty>>& attributList) {
     clear();
-    for(const auto& attrDesc : attributList) {
-      // prepare the property description
-      auto attributProperty = std::make_shared<AttributProperty>(attrDesc);
-      _descriptions.push_back(attributProperty);
-      _usedInputVariables.insert(attributProperty->path);
+
+    _descriptions.insert(_descriptions.end(), attributList.begin(), attributList.end());
+    for(const auto& attrDesc : _descriptions) {
+      _usedInputVariables.insert(attrDesc->path);
     }
   }
   /********************************************************************************************************************/
@@ -108,6 +107,7 @@ namespace ChimeraTK {
               (importSource.empty() ? "/" : importSource) + ":  Cannot create location name from '" + nameSource +
               "', one hirarchy level is missing.");
         }
+
         // derive the datatype
         auto processVariable = _controlSystemPVManager->getProcessVariable(processVariableName);
         std::type_info const& valueType = processVariable->getValueType();

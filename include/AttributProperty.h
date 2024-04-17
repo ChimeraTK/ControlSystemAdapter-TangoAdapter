@@ -5,7 +5,8 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include <iostream>
+#include <ChimeraTK/Exception.h>
+
 #include <map>
 #define TOKEN ";"
 
@@ -23,11 +24,15 @@ namespace ChimeraTK {
       std::vector<std::string> splitDesc;
       boost::algorithm::split(splitDesc, attrDesc, boost::is_any_of(TOKEN));
       if(splitDesc.size() != 6) {
-        std::cout << "error AttributProperty" << std::endl;
+        throw ChimeraTK::runtime_error("Error parsing AttributProperty: " + attrDesc);
       }
       name = splitDesc[0];
       path = splitDesc[1];
-      attrDataFormat = regTypeMap[splitDesc[2]];
+      try {
+        attrDataFormat = regTypeMap.at(splitDesc[2]);
+      } catch (std::out_of_range&) {
+        throw ChimeraTK::runtime_error("Invalid accessor format: " + splitDesc[2]);
+      }
 
       if(splitDesc[3] == "DevUChar") {
         dataType = Tango::DEV_UCHAR;
@@ -66,6 +71,10 @@ namespace ChimeraTK {
         dataType = Tango::DEV_VOID;
       }
 
+      if (dataType == Tango::DATA_TYPE_UNKNOWN) {
+        throw ChimeraTK::runtime_error("Could not parse type name: " + splitDesc[3]);
+      }
+
       desc = splitDesc[4];
       unit = splitDesc[5];
     }
@@ -83,7 +92,7 @@ namespace ChimeraTK {
     std::string path{};
 
     ChimeraTK::AttrDataFormat attrDataFormat{};
-    Tango::CmdArgType dataType{};
+    Tango::CmdArgType dataType{Tango::DATA_TYPE_UNKNOWN};
     Tango::AttrWriteType writeType{Tango::AttrWriteType::WT_UNKNOWN};
   };
 

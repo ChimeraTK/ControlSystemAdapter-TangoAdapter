@@ -14,7 +14,7 @@ namespace ChimeraTK {
     AttributMapper(AttributMapper&) = delete;
     void operator=(AttributMapper const&) = delete;
     void directImport(std::set<std::string>& inputVariables);
-    void prepareOutput(const std::vector<std::string>& attributList);
+    void prepareOutput(std::vector<std::shared_ptr<ChimeraTK::AttributProperty>>& attributList);
     [[nodiscard]] const std::set<std::string>& getUsedVariables() const { return _usedInputVariables; }
     // empty the created mapping
     void clear();
