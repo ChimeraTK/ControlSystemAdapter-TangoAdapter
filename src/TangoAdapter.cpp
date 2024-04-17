@@ -17,22 +17,36 @@ namespace detail {
   template<typename TangoType, typename AdapterType>
   void writeInitialSpectrumValue(Tango::DeviceImpl* device, const std::string& memoriedValue,
       Tango::WAttribute& writeAttribute, Tango::Attr* attr) {
-    auto values = ChimeraTK::stringToArray<TangoType>(memoriedValue);
 
     // StringToArray will create a std::vector<bool> which is an optimised version of std::vector
     // But Tango needs a plain array of bool, so we have to convert it here.
     if constexpr(std::is_same_v<Tango::DevBoolean, TangoType>) {
+      auto values = ChimeraTK::stringToArray<TangoType>(memoriedValue);
+      // No lint, we cannot use std::array here because we do not know the size at compile time
+      // NOLINTNEXTLINE(modernize-avoid-c-arrays)
       auto data = std::make_unique<Tango::DevBoolean[]>(values.size());
       std::copy(values.begin(), values.end(), data.get());
 
       // We can pass in the unique pointer here, set_write_value will copy the data
       writeAttribute.set_write_value(data.get(), values.size());
+    } else if constexpr(std::is_same_v<Tango::DevString, TangoType>) {
+      auto values = ChimeraTK::stringToArray<std::string>(memoriedValue);
+      // No lint, we cannot use std::array here because we do not know the size at compile time
+      // NOLINTNEXTLINE(modernize-avoid-c-arrays)
+      auto data = std::make_unique<Tango::DevString[]>(values.size());
+      std::transform(values.begin(), values.end(), data.get(), [&](auto& v) {
+        //NOLINTNEXTLINE
+        return const_cast<char *>(v.c_str());
+      });
+
+      // We can pass in the unique pointer and c_str() here, set_write_value will copy the data
+      writeAttribute.set_write_value(data.get(), values.size());
     }
     else {
+      auto values = ChimeraTK::stringToArray<TangoType>(memoriedValue);
       writeAttribute.set_write_value(values.data(), values.size());
     }
 
-    // FIXME: Is this cast _really_ necessary?
     attr->write(device, writeAttribute);
   }
 }; // namespace detail
