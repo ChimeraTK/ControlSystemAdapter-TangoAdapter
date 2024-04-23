@@ -1,5 +1,5 @@
 #pragma once
-#include "AttributProperty.h"
+#include "AttributeProperty.h"
 #include "TangoPropertyHelper.h"
 
 #include <ChimeraTK/NDRegisterAccessor.h>
@@ -9,7 +9,7 @@ namespace ChimeraTK {
   class SpectrumAttribTempl : public Tango::SpectrumAttr, Tango::LogAdapter {
    public:
     SpectrumAttribTempl(TANGO_BASE_CLASS* tangoDevice, boost::shared_ptr<ChimeraTK::NDRegisterAccessor<AdapterType>> pv,
-        std::shared_ptr<AttributProperty> attProperty)
+        std::shared_ptr<AttributeProperty> attProperty)
     : Tango::SpectrumAttr(
           attProperty->name.c_str(), attProperty->dataType, attProperty->writeType, pv->getNumberOfSamples()),
       Tango::LogAdapter(tangoDevice), processSpectrum(pv), dataType(attProperty->dataType),
@@ -162,7 +162,7 @@ namespace ChimeraTK {
       }
       catch(...) {
         ERROR_STREAM << " SpectrumAttribTempl::write cannot write to " << processSpectrum->getName() << std::endl;
-        std::string msg = "Attribut " + get_name() + ": Cannot write to " + processSpectrum->getName();
+        std::string msg = "Attribute " + get_name() + ": Cannot write to " + processSpectrum->getName();
 
         Tango::Except::throw_exception("ERROR", msg, "SpectrumAttribTempl::write()");
       }

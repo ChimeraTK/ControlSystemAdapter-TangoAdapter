@@ -13,18 +13,18 @@
 namespace ChimeraTK {
   enum AttrDataFormat { SCALAR, SPECTRUM, IMAGE };
 
-  struct AttributProperty {
+  struct AttributeProperty {
     // Speed;Board/Reg;SCALAR;DEVShort
-    AttributProperty(std::string attributeName, std::string variablePath, AttrDataFormat dataFormat,
+    AttributeProperty(std::string attributeName, std::string variablePath, AttrDataFormat dataFormat,
         Tango::CmdArgType attrDataType, std::string attrDesc, std::string attrUnit)
     : unit(std::move(attrUnit)), desc(std::move(attrDesc)), name(std::move(attributeName)),
       path(std::move(variablePath)), attrDataFormat(dataFormat), dataType(attrDataType) {}
 
-    explicit AttributProperty(std::string attrDesc) {
+    explicit AttributeProperty(std::string attrDesc) {
       std::vector<std::string> splitDesc;
       boost::algorithm::split(splitDesc, attrDesc, boost::is_any_of(TOKEN));
       if(splitDesc.size() != 6) {
-        throw ChimeraTK::runtime_error("Error parsing AttributProperty: " + attrDesc);
+        throw ChimeraTK::runtime_error("Error parsing AttributeProperty: " + attrDesc);
       }
       name = splitDesc[0];
       path = splitDesc[1];
@@ -79,9 +79,9 @@ namespace ChimeraTK {
       unit = splitDesc[5];
     }
 
-    ~AttributProperty() = default;
+    ~AttributeProperty() = default;
 
-    void operator=(AttributProperty const&) = delete;
+    void operator=(AttributeProperty const&) = delete;
 
     std::map<std::string, ChimeraTK::AttrDataFormat> regTypeMap = {{"SCALAR", ChimeraTK::AttrDataFormat::SCALAR},
         {"SPECTRUM", ChimeraTK::AttrDataFormat::SPECTRUM}, {"IMAGE", ChimeraTK::AttrDataFormat::IMAGE}};

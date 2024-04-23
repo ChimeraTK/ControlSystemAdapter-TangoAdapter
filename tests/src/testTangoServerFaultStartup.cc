@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(testServerFaultBrokenAttribute) {
   BOOST_CHECK(proxy.state() == Tango::FAULT);
 
   // Set a proper attribute filter, then call Init
-  ts.setProperty("AttributList", "SHORT_TO_DEVICE_SCALAR;SHORT/TO_DEVICE_SCALAR;SCALAR;DevShort;;");
+  ts.setProperty("AttributeList", "SHORT_TO_DEVICE_SCALAR;SHORT/TO_DEVICE_SCALAR;SCALAR;DevShort;;");
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   proxy.command_inout("Init");

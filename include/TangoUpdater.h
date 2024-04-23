@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "AttributProperty.h"
+#include "AttributeProperty.h"
 #include "ScalarAttribTempl.h"
 #include "SpectrumAttribTempl.h"
 #include <unordered_map>
@@ -54,7 +54,7 @@ namespace ChimeraTK {
     // Struct used to aggregate the information needed in the updateLoop when an update is received from the
     // application.
     struct UpdateDescriptor {
-      std::vector<std::string> attributID;
+      std::vector<std::string> attributeID;
       std::set<boost::shared_ptr<ChimeraTK::TransferElement>> additionalTransferElements;
     };
     std::map<ChimeraTK::TransferElementID, UpdateDescriptor> _descriptorMap;

@@ -157,17 +157,17 @@ namespace TangoAdapter {
 
     // Try to pre-parse the attribute list here if not empty and set server to
     // fault if that fails
-    std::vector<std::shared_ptr<ChimeraTK::AttributProperty>> parsedAttributes;
+    std::vector<std::shared_ptr<ChimeraTK::AttributeProperty>> parsedAttributes;
     try {
-      for(const auto& description: attributList) {
+      for(const auto& description: attributeList) {
         if (description.empty()) {
           continue;
         }
-        parsedAttributes.push_back(std::make_shared<ChimeraTK::AttributProperty>(description));
+        parsedAttributes.push_back(std::make_shared<ChimeraTK::AttributeProperty>(description));
       }
     } catch (ChimeraTK::runtime_error& e) {
       set_state(Tango::FAULT);
-      set_status("Cannot parse AttributList property.");
+      set_status("Cannot parse AttributeList property.");
       return;
     }
 
@@ -199,7 +199,7 @@ namespace TangoAdapter {
 
     //	Read device properties from database.
     Tango::DbData dev_prop;
-    dev_prop.emplace_back("AttributList");
+    dev_prop.emplace_back("AttributeList");
     dev_prop.emplace_back("DMapFilePath");
 
     //	is there at least one property to be read ?
@@ -215,21 +215,21 @@ namespace TangoAdapter {
       assert(ds_class != nullptr);
       int i = -1;
 
-      //	Try to initialize AttributList from class property
+      //	Try to initialize AttributeList from class property
       cl_prop = ds_class->get_class_property(dev_prop[++i].name);
       if(!cl_prop.is_empty()) {
-        cl_prop >> attributList;
+        cl_prop >> attributeList;
       }
       else {
         //	Try to initialize AttributList from default device value
         def_prop = ds_class->get_default_device_property(dev_prop[i].name);
         if(!def_prop.is_empty()) {
-          def_prop >> attributList;
+          def_prop >> attributeList;
         }
       }
       //	And try to extract AttributList value from database
       if(!dev_prop[i].is_empty()) {
-        dev_prop[i] >> attributList;
+        dev_prop[i] >> attributeList;
       }
 
       //	Try to initialize DMapFilePath from class property

@@ -1,4 +1,4 @@
-#include "AttributMapper.h"
+#include "AttributeMapper.h"
 
 #include <ChimeraTK/RegisterPath.h>
 #include <ChimeraTK/Utilities.h>
@@ -35,12 +35,12 @@ namespace ChimeraTK {
 
   /********************************************************************************************************************/
 
-  AttributMapper& AttributMapper::getInstance() {
-    static AttributMapper instance;
+  AttributeMapper& AttributeMapper::getInstance() {
+    static AttributeMapper instance;
     return instance;
   }
   /********************************************************************************************************************/
-  void AttributMapper::directImport(std::set<std::string>& inputVariables) {
+  void AttributeMapper::directImport(std::set<std::string>& inputVariables) {
     clear();
 
     _inputVariables = inputVariables;
@@ -48,25 +48,25 @@ namespace ChimeraTK {
     import("/", std::string(""));
   }
   /********************************************************************************************************************/
-  void AttributMapper::prepareOutput(std::vector<std::shared_ptr<ChimeraTK::AttributProperty>>& attributList) {
+  void AttributeMapper::prepareOutput(std::vector<std::shared_ptr<ChimeraTK::AttributeProperty>>& attributeList) {
     clear();
 
-    _descriptions.insert(_descriptions.end(), attributList.begin(), attributList.end());
+    _descriptions.insert(_descriptions.end(), attributeList.begin(), attributeList.end());
     for(const auto& attrDesc : _descriptions) {
       _usedInputVariables.insert(attrDesc->path);
     }
   }
   /********************************************************************************************************************/
-  void AttributMapper::clear() {
+  void AttributeMapper::clear() {
     _inputVariables.clear();
     _usedInputVariables.clear();
   }
   /********************************************************************************************************************/
-  std::list<std::shared_ptr<AttributProperty>> const& AttributMapper::getAttDescList() const {
+  std::list<std::shared_ptr<AttributeProperty>> const& AttributeMapper::getAttDescList() const {
     return _descriptions;
   }
   /********************************************************************************************************************/
-  void AttributMapper::import(std::string importSource, [[maybe_unused]] const std::string& importLocationName,
+  void AttributeMapper::import(std::string importSource, [[maybe_unused]] const std::string& importLocationName,
       [[maybe_unused]] const std::string& directory) {
     // a slash will be added after the source, so we make the source empty for an
     // import of everythingprocessVariableName
@@ -135,17 +135,17 @@ namespace ChimeraTK {
           dataFormat = SPECTRUM;
         }
 
-        // creating attribut property
-        auto attributProperty = std::make_shared<AttributProperty>(
+        // creating attribute property
+        auto attributeProperty = std::make_shared<AttributeProperty>(
             attrName, nameSource, dataFormat, _dataType, processVariable->getDescription(), processVariable->getUnit());
-        _descriptions.push_back(attributProperty);
-        _usedInputVariables.insert(attributProperty->path);
+        _descriptions.push_back(attributeProperty);
+        _usedInputVariables.insert(attributeProperty->path);
       }
     }
   }
 
   /********************************************************************************************************************/
-  void AttributMapper::deriveType(std::type_info const& info) {
+  void AttributeMapper::deriveType(std::type_info const& info) {
     if(info == typeid(uint8_t)) {
       _dataType = Tango::DEV_UCHAR;
     }

@@ -19,16 +19,16 @@ namespace ChimeraTK {
 
   class TangoAdapter : public Tango::LogAdapter {
    public:
-    TangoAdapter(TANGO_BASE_CLASS* tangoDevice, std::vector<std::shared_ptr<ChimeraTK::AttributProperty>>& attributList);
+    TangoAdapter(TANGO_BASE_CLASS* tangoDevice, std::vector<std::shared_ptr<ChimeraTK::AttributeProperty>>& attributeList);
     ~TangoAdapter() override;
 
     [[nodiscard]] const TANGO_BASE_CLASS* getDevice() const { return _device; }
 
     void create_dynamic_attributes();
 
-    void create_Scalar_Attr(std::shared_ptr<AttributProperty> const& attProp);
-    void create_Spectrum_Attr(std::shared_ptr<AttributProperty> const& attProp);
-    void create_Image_Attr(std::shared_ptr<AttributProperty> const& attProp);
+    void create_Scalar_Attr(std::shared_ptr<AttributeProperty> const& attProp);
+    void create_Spectrum_Attr(std::shared_ptr<AttributeProperty> const& attProp);
+    void create_Image_Attr(std::shared_ptr<AttributeProperty> const& attProp);
 
     void detach_dynamic_attributes_from_device();
     void attach_dynamic_attributes_to_device();
@@ -50,7 +50,7 @@ namespace ChimeraTK {
     // dynamic attribute list
     std::vector<Tango::Attr*> _dynamic_attribute_list;
     // list W spectrum attributes for initialization
-    std::map<std::shared_ptr<AttributProperty>, int> _write_spectrum_attr_list;
+    std::map<std::shared_ptr<AttributeProperty>, int> _write_spectrum_attr_list;
     std::string _deviceClass;
   };
 

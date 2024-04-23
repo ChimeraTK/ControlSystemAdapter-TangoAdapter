@@ -14,7 +14,7 @@ namespace ChimeraTK {
 
     if(variable.isReadable()) {
       auto id = variable.getId();
-      // device, Attribut  read(device,attribut)
+      // device, Attribute  read(device,attribute)
       if(_descriptorMap.find(id) ==
           _descriptorMap.end()) { // jade: push to _elementsToRead if not found in _descriptorMap
         _elementsToRead.push_back(variable);
@@ -24,7 +24,7 @@ namespace ChimeraTK {
       }
       // push variable.getHighLevelImplElement()/updaterFunction/eq_fct in _descriptorMap
       // and push TransferElementAbstractor _elementsToRead
-      _descriptorMap[id].attributID.push_back(attrId);
+      _descriptorMap[id].attributeID.push_back(attrId);
     }
   }
 
@@ -61,7 +61,7 @@ namespace ChimeraTK {
       // FIXME: Ideally we would fill the Tango buffer for the attribute here, then attribute->read()
       // would just send it out to CORBA
       // FIXME: Also we would need to toggle the event here, once supported
-      DEBUG_STREAM << ::TangoAdapter::AdapterDeviceClass::getClassName()<<":TangoUpdater::updateLoop update attribut: " << descriptor.attributID[0];
+      DEBUG_STREAM << ::TangoAdapter::AdapterDeviceClass::getClassName()<<":TangoUpdater::updateLoop update attribute: " << descriptor.attributeID[0];
 
       // Call preRead for all TEs for the updated ID
       for(const auto& elem : descriptor.additionalTransferElements) {

@@ -226,8 +226,8 @@ namespace TangoAdapter {
     //	Set Default Class Properties
 
     //	Set Default device Properties
-    prop_name = "AttributList";
-    prop_desc = "AttributList";
+    prop_name = "AttributeList";
+    prop_desc = "AttributeList";
     prop_def = "";
     vect_data.clear();
     if(prop_def.length() > 0) {

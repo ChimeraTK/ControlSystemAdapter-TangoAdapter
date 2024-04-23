@@ -60,8 +60,8 @@ namespace TangoAdapter {
 
     //	Device property data members
    public:
-    //	AttributList:	AttributList
-    std::vector<std::string> attributList;
+    //	AttributeList:	AttributeList
+    std::vector<std::string> attributeList;
     //	DMapFilePath:	DMapFilePath
     std::string dMapFilePath;
 

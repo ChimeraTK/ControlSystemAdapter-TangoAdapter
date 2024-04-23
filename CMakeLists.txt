@@ -96,6 +96,7 @@ if(BUILD_TESTS)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testMapTwice_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testServerFaultWrongAttribute_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testServerFaultNoDmap_template.db DESTINATION ${CMAKE_BINARY_DIR})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/devices.dmap DESTINATION ${CMAKE_BINARY_DIR})
 endif()
 
 # Install the library and the executables this defines architecture-dependent

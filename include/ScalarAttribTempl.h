@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AttributProperty.h"
+#include "AttributeProperty.h"
 
 #include <ChimeraTK/NDRegisterAccessor.h>
 
@@ -9,7 +9,7 @@ namespace ChimeraTK {
   class ScalarAttribTempl : public Tango::Attr, Tango::LogAdapter {
    public:
     ScalarAttribTempl(TANGO_BASE_CLASS* tangoDevice, boost::shared_ptr<ChimeraTK::NDRegisterAccessor<AdapterType>> pv,
-        std::shared_ptr<AttributProperty> attProperty)
+        std::shared_ptr<AttributeProperty> attProperty)
     : Tango::Attr(attProperty->name.c_str(), attProperty->dataType, attProperty->writeType),
       Tango::LogAdapter(tangoDevice), processScalar(std::move(pv)) {
       // memory the written value and write at initialization

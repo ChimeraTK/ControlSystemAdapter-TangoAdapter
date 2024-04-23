@@ -12,7 +12,7 @@ serverTestFaultBrokenAttribute_ds/TestserverTestFaultBrokenAttribute/DEVICE/serv
 # --- test/reference/server properties
 
 tango/test/servertestfaultbrokenattribute->DMAPFilePath: "devices.dmap"
-tango/test/servertestfaultbrokenattribute->AttributList: "PlainReng;;" 
+tango/test/servertestfaultbrokenattribute->AttributeList: "PlainReng;;" 
 
 #---------------------------------------------------------
 # CLASS serverTestFaultBrokenAttribute_ds properties

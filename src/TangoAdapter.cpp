@@ -1,7 +1,7 @@
 
 #include "TangoAdapter.h"
 
-#include "AttributMapper.h"
+#include "AttributeMapper.h"
 #include "AdapterDeviceClass.h"
 #include "SpectrumAttribTempl.h"
 #include "getAllVariableNames.h"
@@ -59,7 +59,7 @@ namespace ChimeraTK {
   // description :
   //
   //-----------------------------------------------------------------------------
-  TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice, std::vector<std::shared_ptr<ChimeraTK::AttributProperty>>& attributList)
+  TangoAdapter::TangoAdapter(TANGO_BASE_CLASS* tangoDevice, std::vector<std::shared_ptr<ChimeraTK::AttributeProperty>>& attributeList)
   : Tango::LogAdapter(tangoDevice), _deviceClass(::TangoAdapter::AdapterDeviceClass::getClassName()) {
     DEBUG_STREAM << _deviceClass <<":TangoAdapter::TangoAdapter starting ... " << std::endl;
     _device = tangoDevice;
@@ -115,22 +115,22 @@ namespace ChimeraTK {
     }
 
     // no configuration, import all
-    if(attributList.empty()) {
+    if(attributeList.empty()) {
       INFO_STREAM << _deviceClass <<":Direct import" << std::endl;
       // FIXME: Why?
       names.erase(tickname);
-      ChimeraTK::AttributMapper::getInstance().setCSPVManager(_controlSystemPVManager);
-      ChimeraTK::AttributMapper::getInstance().directImport(names);
+      ChimeraTK::AttributeMapper::getInstance().setCSPVManager(_controlSystemPVManager);
+      ChimeraTK::AttributeMapper::getInstance().directImport(names);
     }
     // configured attributes from property
     else {
-      ChimeraTK::AttributMapper::getInstance().prepareOutput(attributList);
+      ChimeraTK::AttributeMapper::getInstance().prepareOutput(attributeList);
     }
     // create the dynamic attributes for Tango devices
     create_dynamic_attributes();
 
-    // only need to write spectrum attributs (manual writing bug in Tango)
-    // scalar attributs are memoried and initialized by Tango
+    // only need to write spectrum attributes (manual writing bug in Tango)
+    // scalar attributes are memoried and initialized by Tango
     // But only if we are running with a database. If not, there is nothing to
     // restore anyway.
     if (Tango::Util::_UseDb) {
@@ -176,9 +176,9 @@ namespace ChimeraTK {
     // read spectrum values from memoried properties then write as initialised values
     for(const auto& [attProp, index] : _write_spectrum_attr_list) {
       DEBUG_STREAM << _deviceClass <<":name: " << attProp->name << " type:" << attProp->dataType << std::endl;
-      // get write attribut name
+      // get write attribute name
       auto& write_attribute = _device->get_device_attr()->get_w_attr_by_name(attProp->name.c_str());
-      // get value of memoried property (__Memorized_<attributname>)
+      // get value of memoried property (__Memorized_<attributename>)
       auto mem_value = getProperty<std::string>(_device, "__Memoried_" + attProp->name);
 
       DEBUG_STREAM << _deviceClass <<":__Memoried_" << attProp->name << " mem_value: " << mem_value << std::endl;
@@ -271,7 +271,7 @@ namespace ChimeraTK {
   void TangoAdapter::create_dynamic_attributes() {
     DEBUG_STREAM << " TangoAdapter::create_dynamic_attributes " << std::endl;
 
-    auto descList = AttributMapper::getInstance().getAttDescList();
+    auto descList = AttributeMapper::getInstance().getAttDescList();
     for(const auto& attDesc : descList) {
       if(attDesc->attrDataFormat == SCALAR) {
         create_Scalar_Attr(attDesc);
@@ -291,7 +291,7 @@ namespace ChimeraTK {
   // description :    This method creates the scalar attr.
   //
   //-----------------------------------------------------------------------------
-  void TangoAdapter::create_Scalar_Attr(std::shared_ptr<AttributProperty> const& attProp) {
+  void TangoAdapter::create_Scalar_Attr(std::shared_ptr<AttributeProperty> const& attProp) {
     DEBUG_STREAM << _deviceClass <<":TangoAdapter::create_Scalar_Attr" << std::endl;
 
     ProcessVariable::SharedPtr processVariable = _controlSystemPVManager->getProcessVariable(attProp->path);
@@ -391,7 +391,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_BOOLEAN: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processVariable);
-        // Attribut Tango does not accept ChimeraTK::Boolean type, cast to uint8_t
+        // Tango does not accept ChimeraTK::Boolean type, cast to uint8_t
         auto cast_pv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<ChimeraTK::Boolean>>(pv);
         auto* scalar_attr_t = new ScalarAttribTempl<Tango::DevBoolean, ChimeraTK::Boolean>(_device, cast_pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
@@ -423,7 +423,7 @@ namespace ChimeraTK {
   // description :    This method creates the scalar attr.
   //
   //-----------------------------------------------------------------------------
-  void TangoAdapter::create_Spectrum_Attr(std::shared_ptr<AttributProperty> const& attProp) {
+  void TangoAdapter::create_Spectrum_Attr(std::shared_ptr<AttributeProperty> const& attProp) {
     DEBUG_STREAM << _deviceClass <<": TangoAdapter::create_Spectrum_Attr" << std::endl;
 
     ProcessVariable::SharedPtr processVariable = _controlSystemPVManager->getProcessVariable(attProp->path);
@@ -520,7 +520,7 @@ namespace ChimeraTK {
       }
       case Tango::DEV_BOOLEAN: {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<Boolean>>(processVariable);
-        // Attribut Tango does not accept ChimeraTK::Boolean type, cast to uint8_t
+        // Tango does not accept ChimeraTK::Boolean type, cast to uint8_t
         auto* spectrum_attr_t = new SpectrumAttribTempl<Tango::DevBoolean, ChimeraTK::Boolean>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(spectrum_attr_t);
         _updater->addVariable(ChimeraTK::OneDRegisterAccessor<Boolean>(pv), attProp->name);

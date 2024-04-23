@@ -12,7 +12,7 @@ serverTestMapTwice_ds/TestserverTestMapTwice/DEVICE/serverTestMapTwice: "tango/t
 # --- test/reference/server properties
 
 tango/test/servertestmaptwice->DMAPFilePath: "devices.dmap"
-tango/test/servertestmaptwice->AttributList: "PlainRename1;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;MappedFirst;",\ 
+tango/test/servertestmaptwice->AttributeList: "PlainRename1;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;MappedFirst;",\ 
                                              "PlainRename2;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;MappedSecond;",\
                                              "INT_TO_DEVICE_SCALAR;INT/TO_DEVICE_SCALAR;SCALAR;DevLong;;"
 
