@@ -118,7 +118,8 @@ inline void ThreadedTangoServer::setProperty(const std::string &name, T value)
 {
   Tango::DbDatum dbDatum(name);
   dbDatum << value;
-  tg->get_device_by_name(device())->get_db_device()->put_property({dbDatum});
+  std::vector<Tango::DbDatum> list{dbDatum};
+  tg->get_device_by_name(device())->get_db_device()->put_property(list);
 }
 
 /*********************************************************************************************************************/
@@ -133,10 +134,10 @@ struct TangoTestFixtureImpl {
   void startup();
 
   template<typename T>
-  void write(const std::string& attribute, T value);
+  void write(std::string attribute, T value);
 
   template<typename T>
-  bool checkWithTimeout(const std::string& readName, T referenceValues);
+  bool checkWithTimeout(std::string readName, T referenceValues);
 
   static int name2TypeId(const std::string& name);
 
@@ -164,8 +165,7 @@ struct TangoTestFixtureImpl {
 /*********************************************************************************************************************/
 
 template<typename T>
-inline bool TangoTestFixtureImpl::checkWithTimeout(const std::string &readName, T referenceValues)
-{
+inline bool TangoTestFixtureImpl::checkWithTimeout(string readName, T referenceValues) {
   const auto TIMEOUT = std::chrono::seconds(5);
   using clock = std::chrono::steady_clock;
   auto now = clock::now();
@@ -260,7 +260,7 @@ inline std::string TangoTestFixtureImpl::adapterType2Name()
 /*********************************************************************************************************************/
 
 template<typename T>
-inline void TangoTestFixtureImpl::write(const std::string& attribute, T value) {
+inline void TangoTestFixtureImpl::write(std::string attribute, T value) {
   Tango::DeviceAttribute writeValue(attribute, value);
   try {
     proxy->write_attribute(writeValue);

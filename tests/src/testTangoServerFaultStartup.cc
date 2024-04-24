@@ -17,7 +17,8 @@ BOOST_AUTO_TEST_CASE(testServerFaultBrokenAttribute) {
   ts.start();
 
   // The database contains a broken attribute filter. The server should come up in fault
-  auto proxy = Tango::DeviceProxy(ts.getClientUrl());
+  auto url = ts.getClientUrl();
+  auto proxy = Tango::DeviceProxy(url);
   BOOST_CHECK(proxy.is_connected());
   BOOST_CHECK(proxy.state() == Tango::FAULT);
 

@@ -42,10 +42,6 @@
  */
 
 void Tango::DServer::class_factory() {
-  // Heuristics - if our application name starts with "ds_", "ds" or ends with "ds", strip
-  // from application name and
-  //	Add method class init if needed
-
   add_class(TangoAdapter::AdapterDeviceClass::init(TangoAdapter::AdapterDeviceClass::getClassName().c_str()));
 }
 /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::ClassFactory.cpp

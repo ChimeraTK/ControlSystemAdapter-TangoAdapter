@@ -20,7 +20,7 @@ ThreadedTangoServer::~ThreadedTangoServer() {
   if (!keepOfflineDatabase) {
     try {
       std::filesystem::remove(offlineDatabase);
-    } catch (std::runtime_error& e) {
+    } catch (std::runtime_error&) {
       // ignore
     }
   }
@@ -172,9 +172,10 @@ void TangoTestFixtureImpl::startup() {
   using clock = std::chrono::steady_clock;
   auto start = clock::now();
 
+  auto url = theServer.getClientUrl();
   try {
     std::cout << "Trying to connect to Tango server " << theServer.getClientUrl() << std::endl;
-    proxy = std::make_unique<Tango::DeviceProxy>(theServer.getClientUrl());
+    proxy = std::make_unique<Tango::DeviceProxy>(url);
   }
   catch(CORBA::Exception& e) {
     Tango::Except::print_exception(e);
@@ -187,7 +188,7 @@ void TangoTestFixtureImpl::startup() {
       std::cerr << "Timeout while waiting for Tango server to become available" << std::endl;
       break;
     }
-    proxy->connect(theServer.getClientUrl());
+    proxy->connect(url);
   }
 
          // Cannot call any of the BOOST_ tests here, otherwise it will mark the setup as failed, regardless of the test outcome

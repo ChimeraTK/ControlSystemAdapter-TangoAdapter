@@ -20,7 +20,7 @@ using Fixture_t = TangoTestFixture<TestFixtureConfig>;
 
 BOOST_GLOBAL_FIXTURE(Fixture_t);
 
-bool checkQualityWithTimeout(Tango::DeviceProxy& proxy, const std::string &readName, Tango::AttrQuality quality)
+bool checkQualityWithTimeout(Tango::DeviceProxy& proxy, std::string readName, Tango::AttrQuality quality)
 {
   const auto TIMEOUT = std::chrono::seconds(5);
   using clock = std::chrono::steady_clock;
@@ -39,15 +39,15 @@ BOOST_AUTO_TEST_CASE(testScalar) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
 
   app.dataValidity = ChimeraTK::DataValidity::ok;
-  tf.write("INT_TO_DEVICE_SCALAR", 12);
+  tf.write(std::string("INT_TO_DEVICE_SCALAR"), 12);
   app.runMainLoopOnce();
-  BOOST_CHECK(checkQualityWithTimeout(proxy, "INT_FROM_DEVICE_SCALAR", Tango::AttrQuality::ATTR_VALID));
+  BOOST_CHECK(checkQualityWithTimeout(proxy, std::string("INT_FROM_DEVICE_SCALAR"), Tango::AttrQuality::ATTR_VALID));
 
   app.dataValidity = ChimeraTK::DataValidity::faulty;
-  tf.write<int>("INT_TO_DEVICE_SCALAR", 24);
+  tf.write<int>(std::string("INT_TO_DEVICE_SCALAR"), 24);
   app.runMainLoopOnce();
 
-  BOOST_CHECK(checkQualityWithTimeout(proxy, "INT_FROM_DEVICE_SCALAR", Tango::AttrQuality::ATTR_INVALID));
+  BOOST_CHECK(checkQualityWithTimeout(proxy, std::string("INT_FROM_DEVICE_SCALAR"), Tango::AttrQuality::ATTR_INVALID));
 }
 
 BOOST_AUTO_TEST_CASE(testArray) {

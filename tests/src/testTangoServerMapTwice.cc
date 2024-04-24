@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(testDoublePropertyMapping)
   // We expect the 4 mapped properties and the built-in "State" and "Status"
   BOOST_TEST(attributes->size() == 5);
 
-  tf.write("INT_TO_DEVICE_SCALAR", Tango::DevLong(43));
+  tf.write(std::string("INT_TO_DEVICE_SCALAR"), Tango::DevLong(43));
 
   app.runMainLoopOnce();
 

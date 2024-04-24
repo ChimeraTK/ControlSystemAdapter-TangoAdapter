@@ -40,12 +40,16 @@
 
 // This is required naming by Tango, so disable the linter
 // NOLINTBEGIN(readability-identifier-naming)
+#ifdef TANGO_LOG_DEBUG
 #ifndef cout4
 #  define cout4 TANGO_LOG_DEBUG
 #endif
 
 #ifndef cout2
-#  define cout2 TANGO_LOG_DEBUG
+#  define cout2 TANGO_LOG_INFO
+#endif
+#else
+#define TANGO_LOG_DEBUG cout2
 #endif
 // NOLINTEND(readability-identifier-naming)
 
@@ -75,6 +79,7 @@ namespace TangoAdapter {
   //===================================================================
   AdapterDeviceClass* AdapterDeviceClass::_instance = nullptr;
 
+  // Apply some heuristics to derive the class name from the executable name
   std::string AdapterDeviceClass::getClassName() {
     std::string ourName{Tango::Util::instance()->get_ds_exec_name()};
 
@@ -271,7 +276,8 @@ namespace TangoAdapter {
 
     //	Put title
     Tango::DbDatum title("ProjectTitle");
-    title << AdapterDeviceClass::getClassName();
+    std::vector<std::string> str_title{AdapterDeviceClass::getClassName()};
+    title << str_title;
     data.push_back(title);
 
     //	Put Description
@@ -418,7 +424,7 @@ namespace TangoAdapter {
    */
   //--------------------------------------------------------
   void AdapterDeviceClass::create_static_attribute_list(std::vector<Tango::Attr*>& att_list) {
-    for(const auto* attr : att_list) {
+    for(auto* attr : att_list) {
       auto att_name = attr->get_name();
       std::transform(att_name.begin(), att_name.end(), att_name.begin(), ::tolower);
       defaultAttList.push_back(att_name);

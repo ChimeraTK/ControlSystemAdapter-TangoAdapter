@@ -39,10 +39,10 @@ BOOST_AUTO_TEST_CASE(testPropertyFiltering) {
   // This is the default that Tango generates internally
   BOOST_TEST(info.description == "No description");
 
-  tf.write("INT_TO_DEVICE_SCALAR", 42);
+  tf.write(std::string("INT_TO_DEVICE_SCALAR"), 42);
   app.runMainLoopOnce();
 
-  BOOST_CHECK(tf.checkWithTimeout("PlainRename", Tango::DevLong(42)));
+  BOOST_CHECK(tf.checkWithTimeout(std::string("PlainRename"), Tango::DevLong(42)));
 
   BOOST_CHECK(std::find_if(attributes->begin(), attributes->end(), [](auto& attr) {
     return attr == "ChangeAttributes";
@@ -52,8 +52,8 @@ BOOST_AUTO_TEST_CASE(testPropertyFiltering) {
   BOOST_TEST(info.unit == "mA");
   BOOST_TEST(info.description == "ChangedDescription");
 
-  tf.write("SHORT_TO_DEVICE_SCALAR", Tango::DevShort(23));
+  tf.write(std::string("SHORT_TO_DEVICE_SCALAR"), Tango::DevShort(23));
   app.runMainLoopOnce();
 
-  BOOST_CHECK(tf.checkWithTimeout("ChangeAttributes", Tango::DevShort(23)));
+  BOOST_CHECK(tf.checkWithTimeout(std::string("ChangeAttributes"), Tango::DevShort(23)));
 }
