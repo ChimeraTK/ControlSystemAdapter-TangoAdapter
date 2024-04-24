@@ -18,7 +18,7 @@ find_package(PkgConfig)
 
 # Add the dependencies
 find_package(ChimeraTK-ControlSystemAdapter 02.07 REQUIRED)
-pkg_check_modules(TANGO REQUIRED IMPORTED_TARGET tango)
+pkg_check_modules(TANGO REQUIRED IMPORTED_TARGET tango>=9.3)
 
 # For some reason the system library has to be mentioned explicitly to the
 # linker. This is strange because the thead library has it as a dependency.
