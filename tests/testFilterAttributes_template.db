@@ -11,7 +11,6 @@ serverTestFilterAttributes_ds/TestserverTestFilterAttributes/DEVICE/serverTestFi
 
 # --- test/reference/server properties
 
-tango/test/servertestfilterattributes->DMAPFilePath: "devices.dmap"
 tango/test/servertestfilterattributes->AttributeList: "PlainRename;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;;",\ 
                                                      "ChangeAttributes;SHORT/FROM_DEVICE_SCALAR;SCALAR;DevShort;ChangedDescription;mA",\
                                                      "INT_TO_DEVICE_SCALAR;INT/TO_DEVICE_SCALAR;SCALAR;DevLong;;", \

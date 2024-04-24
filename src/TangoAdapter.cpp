@@ -12,6 +12,7 @@
 #include <ChimeraTK/VoidRegisterAccessor.h>
 
 #include <algorithm>
+#include <filesystem>
 
 namespace detail {
   template<typename TangoType, typename AdapterType>
@@ -75,6 +76,7 @@ namespace ChimeraTK {
     // We do not get ownership of the application here. A plain pointer is used because the reference returned
     // by getApplicationInstance cannot be stored to a variable that has been created outside of the try block,
     // and we want to limit the scope of the try/catch to that single line.
+    DEBUG_STREAM << "TangoAdapter starting application from " << std::filesystem::current_path() << std::endl;
     ApplicationBase* appInstance = nullptr;
     try {
       appInstance = &ChimeraTK::ApplicationFactoryBase::getApplicationInstance();

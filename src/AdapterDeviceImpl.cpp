@@ -39,6 +39,7 @@
 #include "TangoAdapter.h"
 
 #include <ChimeraTK/Utilities.h>
+#include <filesystem>
 
 /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl.cpp
 
@@ -130,29 +131,17 @@ namespace TangoAdapter {
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::init_device) ENABLED START -----*/
 
     //	Initialize device
-    // set DMapFilePath from property
-    if(dMapFilePath.empty()) {
-      if(!Tango::Util::_UseDb) {
-        DEBUG_STREAM << AdapterDeviceClass::getClassName() <<":Running without database connection, falling back to devices.dmap" << std::endl;
-        dMapFilePath = "devices.dmap";
-      }
-      else {
-        ERROR_STREAM << AdapterDeviceClass::getClassName() <<":init_device: The property dMapFilePath is empty" << std::endl;
+    // Change into working folder as specified by property
+    if(!workingFolder.empty()) {
+      DEBUG_STREAM << AdapterDeviceClass::getClassName() <<": Validating working folder " << workingFolder << std::endl;
+      try {
+        std::filesystem::current_path(workingFolder);
+      } catch (std::filesystem::filesystem_error& e) {
+        ERROR_STREAM << AdapterDeviceClass::getClassName() << "init_device: Could not change working folder to " << workingFolder << ": " << e.what() << std::endl;
         set_state(Tango::FAULT);
-        set_status("The property dMapFilePath is not configured");
+        set_status(e.what());
         return;
       }
-    }
-
-    DEBUG_STREAM << AdapterDeviceClass::getClassName() <<":dMapFilePath: " << dMapFilePath << std::endl;
-    try {
-      ChimeraTK::setDMapFilePath(dMapFilePath);
-    }
-    catch(ChimeraTK::logic_error& e) {
-      ERROR_STREAM << "init_device: " << e.what() << std::endl;
-      set_state(Tango::FAULT);
-      set_status(e.what());
-      return;
     }
 
     // Try to pre-parse the attribute list here if not empty and set server to
@@ -200,7 +189,7 @@ namespace TangoAdapter {
     //	Read device properties from database.
     Tango::DbData dev_prop;
     dev_prop.emplace_back("AttributeList");
-    dev_prop.emplace_back("DMapFilePath");
+    dev_prop.emplace_back("WorkingFolder");
 
     //	is there at least one property to be read ?
     if(!dev_prop.empty()) {
@@ -232,21 +221,21 @@ namespace TangoAdapter {
         dev_prop[i] >> attributeList;
       }
 
-      //	Try to initialize DMapFilePath from class property
+      //	Try to initialize WorkingFolder from class property
       cl_prop = ds_class->get_class_property(dev_prop[++i].name);
       if(!cl_prop.is_empty()) {
-        cl_prop >> dMapFilePath;
+        cl_prop >> workingFolder;
       }
       else {
-        //	Try to initialize DMapFilePath from default device value
+        //	Try to initialize WorkingFolder from default device value
         def_prop = ds_class->get_default_device_property(dev_prop[i].name);
         if(!def_prop.is_empty()) {
-          def_prop >> dMapFilePath;
+          def_prop >> workingFolder;
         }
       }
-      //	And try to extract DMapFilePath value from database
+      //	And try to extract WorkingFolder value from database
       if(!dev_prop[i].is_empty()) {
-        dev_prop[i] >> dMapFilePath;
+        dev_prop[i] >> workingFolder;
       }
     }
 

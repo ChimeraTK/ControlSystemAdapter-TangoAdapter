@@ -244,19 +244,10 @@ namespace TangoAdapter {
     else {
       add_wiz_dev_prop(prop_name, prop_desc);
     }
-    prop_name = "DMapFilePath";
-    prop_desc = "DMapFilePath";
-    prop_def = "";
-    vect_data.clear();
-    if(prop_def.length() > 0) {
-      Tango::DbDatum data(prop_name);
-      data << vect_data;
-      dev_def_prop.push_back(data);
-      add_wiz_dev_prop(prop_name, prop_desc, prop_def);
-    }
-    else {
-      add_wiz_dev_prop(prop_name, prop_desc);
-    }
+
+    prop_name = "WorkingFolder";
+    prop_desc = "Base folder containting DMAP files, server configuration etc.";
+    add_wiz_dev_prop(prop_name, prop_desc);
   }
 
   //--------------------------------------------------------

@@ -7,9 +7,13 @@
 
 #include <boost/test/included/unit_test.hpp>
 
+#include <filesystem>
+
 #include <tango/tango.h>
 
 BOOST_AUTO_TEST_CASE(testServerFaultNoDmap) {
+  auto currentFolder = std::filesystem::current_path();
+
   ChimeraTK::ApplicationFactory<ReferenceTestApplication> theFactory;
   ThreadedTangoServer ts(boost::unit_test::framework::master_test_suite().p_name.value);
   ts.setOfflineDatabase("testServerFaultNoDmap");
@@ -23,7 +27,7 @@ BOOST_AUTO_TEST_CASE(testServerFaultNoDmap) {
   BOOST_CHECK(proxy.state() == Tango::FAULT);
 
   // Set a proper attribute filter, then call Init
-  ts.setProperty("DMAPFilePath", "devices.dmap");
+  ts.setProperty("WorkingFolder", currentFolder);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   proxy.command_inout("Init");

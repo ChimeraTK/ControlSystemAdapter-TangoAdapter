@@ -11,6 +11,8 @@ serverTestFaultNoDmap_ds/TestserverTestFaultNoDmap/DEVICE/serverTestfaultnodmap:
 
 # --- test/reference/server properties
 
+tango/test/servertestfaultnodmap->WorkingFolder: "/this/path/should/hopefully/never/exist/anywhere"
+
 #---------------------------------------------------------
 # CLASS serverTestFaultNoDmap_ds properties
 #---------------------------------------------------------

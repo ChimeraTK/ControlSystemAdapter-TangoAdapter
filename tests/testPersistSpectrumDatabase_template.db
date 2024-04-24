@@ -11,8 +11,6 @@ serverTestPersistSpectrum_ds/TestserverTestPersistspectrum/DEVICE/serverTestPers
 
 # --- test/reference/server properties
 
-tango/test/servertestpersistspectrum->DMAPFilePath: "devices.dmap"
-
 #---------------------------------------------------------
 # CLASS serverTestPersistSpectrum_ds properties
 #---------------------------------------------------------

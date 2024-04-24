@@ -62,8 +62,7 @@ namespace TangoAdapter {
    public:
     //	AttributeList:	AttributeList
     std::vector<std::string> attributeList;
-    //	DMapFilePath:	DMapFilePath
-    std::string dMapFilePath;
+    std::string workingFolder;
 
     //	Constructors and destructors
     /**
