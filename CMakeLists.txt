@@ -107,17 +107,6 @@ install(
   EXPORT ${PROJECT_NAME}Targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-# all include files go into include/PROJECT_NAME The exclusion of
-# ${PROJECT_NAME} prevents the recursive installation of the files just being
-# installed. The original headers are in include/*.h, the installed ones in
-# include/ChimeraTK/*.h.
-install(
-  DIRECTORY ${CMAKE_SOURCE_DIR}/include/
-  DESTINATION include/ChimeraTK
-  FILES_MATCHING
-  PATTERN "*.h"
-  PATTERN "${PROJECT_NAME}" EXCLUDE)
-
 # generate cmake config so other projects can find this library we support our
 # cmake EXPORTS as imported targets
 set(PROVIDES_EXPORTED_TARGETS 1)
