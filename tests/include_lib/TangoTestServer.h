@@ -165,7 +165,7 @@ struct TangoTestFixtureImpl {
 /*********************************************************************************************************************/
 
 template<typename T>
-inline bool TangoTestFixtureImpl::checkWithTimeout(string readName, T referenceValues) {
+inline bool TangoTestFixtureImpl::checkWithTimeout(std::string readName, T referenceValues) {
   const auto TIMEOUT = std::chrono::seconds(5);
   using clock = std::chrono::steady_clock;
   auto now = clock::now();
