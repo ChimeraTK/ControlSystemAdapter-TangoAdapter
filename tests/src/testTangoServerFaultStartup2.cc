@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(testServerFaultNoDmap) {
   BOOST_CHECK(proxy.state() == Tango::FAULT);
 
   // Set a proper attribute filter, then call Init
-  ts.setProperty("WorkingFolder", currentFolder);
+  ts.setProperty("WorkingFolder", std::string(currentFolder.c_str()));
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   proxy.command_inout("Init");
