@@ -1,0 +1,72 @@
+/** \mainpage ChimeraTK-ControlSystemAdapter-TangoAdapter
+
+The ChimeraTK-ControlSystemAdapter-TangoAdapter implements the %ChimeraTK Control System Adapter for Tango
+
+\section Integration Integrating your control system application into Tango
+
+Prerequisites:
+\li The application has been written with the ChimeraTK-ApplicationCore library
+
+To integrate the application into Tango, it has to be linked against the ChimeraTK-ControlSystemAdapter-TangoAdapter
+library. Simply use the `find_package()` Feature from CMake. The package provides imported targets, so all you have to
+do is to use `target_link_library(${PROJECT_NAME} PRIVATE ChimeraTK::ChimeraTK-ControlSystemAdapter-TangoAdapter)`.
+
+\subsection configuration Tango Device Server configuration
+
+As is common with Tango device servers, it is possible to configure certain aspects of the server through properties
+
+\subsubsection working_folder Tango Device Server working folder
+To run the the same device server executable with different configurations, use the `WorkingFolder` property. It should
+contain a path either relative to the location of the executable or a fully qualified path on the filesystem.
+
+If no property is provided, the working folder will be the folder that contains the device server executable.
+
+\subsubsection attribute_mapping ApplicationCore to Tango attribute mapping
+
+By default, the Tango adapter will export all variables available in the variable household of the application
+to Tango as attributes. ApplicationCore's hierarchical names are as follows:
+
+The top level Application module is separated from the rest of the hierarchy with an underscore. The rest of the
+hierarchy is appended translating "/" to ".". For example, `/ControlUnit/AverageCurrent/heatingCurrentAveraged`
+becomes `ControlUnit_AverageCurrent.heatingCurrentAveraged`.
+
+It is possible to filter and rename the list of exported attributes using the AttributeList property of the device
+server. The format consists of six values separated by ";"
+
+1. The name of the Tango property
+2. The full path of the ApplicationCore
+3. Whether the variable is a SCALAR or a SPECTRUM
+4. The Tango type
+5. A description (will override a description that is available from ApplicationCore)
+6. The EGU (will override the one provided by ApplicationCore)
+
+```
+SetTemp;SetpointRamp/operatorSetpoint;SCALAR;DevFloat;Temperature setpoint for the oven;c
+OvenDeviceStatus;Devices/oven/status_message;SCALAR;DevString;;
+Current;Monitoring/heatingCurrent;SCALAR;DevFloat;Heating current of the oven;mA
+Temp;/Monitoring/tempartureOvenTop;SCALAR;DevFloat;;c
+```
+
+Currently the type has to match exactly with the automatic type mapping done in the TangoAdapter.
+In future versions it will be possible to change the type of a variable between ApplicationCore and Tango.
+
+Please refer to the following mapping of ApplicationCore types to Tango types for now:
+
+ApplicationCore | Tango
+----------------|------
+uint8           | DevUChar
+int8            | DevChar
+uint16          | DevUShort
+int16           | DevShort
+uint32          | DevULong
+int32           | DevLong
+uint64          | DevULong64
+int64           | DevLong64
+float           | DevFloat
+double          | DevDouble
+bool            | DevBolean
+string          | DevString
+void            | DevVoid
+
+
+ */
