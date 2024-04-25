@@ -46,6 +46,9 @@ namespace ChimeraTK {
       else if(splitDesc[3] == "DevULong64") {
         dataType = Tango::DEV_ULONG64;
       }
+      else if(splitDesc[3] == "DevChar") {
+        dataType = Tango::DEV_SHORT;
+      }
       else if(splitDesc[3] == "DevShort") {
         dataType = Tango::DEV_SHORT;
       }
