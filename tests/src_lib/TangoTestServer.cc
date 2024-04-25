@@ -143,6 +143,7 @@ ThreadedTangoServer& ThreadedTangoServer::setOfflineDatabase(const std::string& 
   return *this;
 }
 
+/*********************************************************************************************************************/
 
 ThreadedTangoServer& ThreadedTangoServer::overrideNames(const std::string &newNames) {
   testName = newNames;
@@ -249,6 +250,8 @@ TangoTestFixtureImpl::~TangoTestFixtureImpl() {
   proxy.reset(nullptr);
   theServer.stop();
 }
+
+/*********************************************************************************************************************/
 
 void TangoTestFixtureImpl::setManualLoopControl(bool manualControl) {
   manualLoopControl = manualControl;
