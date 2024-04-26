@@ -25,7 +25,7 @@ BOOST_AUTO_TEST_CASE(testPropertyMapping) {
   // This can happen if the Application uses a ConfigReader that has a toplevel variable
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
 
-  auto *attributes = proxy.get_attribute_list();
+  std::unique_ptr<std::vector<std::string>> attributes(proxy.get_attribute_list());
   BOOST_TEST(attributes->size() == 77);
 
   BOOST_CHECK(std::find_if(attributes->begin(), attributes->end(), [](auto& attr) {

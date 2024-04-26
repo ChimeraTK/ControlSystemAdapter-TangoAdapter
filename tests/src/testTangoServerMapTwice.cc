@@ -25,7 +25,7 @@ BOOST_AUTO_TEST_CASE(testDoublePropertyMapping)
 {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
 
-  auto *attributes = proxy.get_attribute_list();
+  std::unique_ptr<std::vector<std::string>> attributes(proxy.get_attribute_list());
 
   // We expect the 4 mapped properties and the built-in "State" and "Status"
   BOOST_TEST(attributes->size() == 5);

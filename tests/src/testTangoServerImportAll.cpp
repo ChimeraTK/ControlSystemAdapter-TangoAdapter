@@ -18,7 +18,7 @@ BOOST_GLOBAL_FIXTURE(Fixture_t);
 BOOST_AUTO_TEST_CASE(testVariableExistence) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
 
-  auto *attributes = proxy.get_attribute_list();
+  std::unique_ptr<std::vector<std::string>> attributes(proxy.get_attribute_list());
   // All of our attributes and the built-in "State" and "Status"
   BOOST_TEST(attributes->size() == 76);
 
