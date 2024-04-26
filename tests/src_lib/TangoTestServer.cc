@@ -192,7 +192,7 @@ void TangoTestFixtureImpl::startup() {
     proxy->connect(url);
   }
 
-         // Cannot call any of the BOOST_ tests here, otherwise it will mark the setup as failed, regardless of the test outcome
+  // Cannot call any of the BOOST_ tests here, otherwise it will mark the setup as failed, regardless of the test outcome
   assert(proxy->is_connected());
 
   start = clock::now();
@@ -204,13 +204,13 @@ void TangoTestFixtureImpl::startup() {
     }
   }
 
-         // Cannot call any of the BOOST_ tests here, otherwise it will mark the setup as failed, regardless of the test outcome
+  // Cannot call any of the BOOST_ tests here, otherwise it will mark the setup as failed, regardless of the test outcome
   assert(proxy->state() == Tango::ON);
 
-         // Wait for the server to become ON before getting the application from the factory
-         // so that the server is definitely the one that creates the application, not the test
-  theApp = dynamic_cast<ReferenceTestApplication*>(
-      &ChimeraTK::ApplicationFactory<ReferenceTestApplication>::getApplicationInstance());
+   // Wait for the server to become ON before getting the application from the factory
+   // so that the server is definitely the one that creates the application, not the test
+  theApp = dynamic_cast<ExtendedReferenceTestApplication*>(
+      &ChimeraTK::ApplicationFactory<ExtendedReferenceTestApplication>::getApplicationInstance());
   assert(theApp != nullptr);
   if(manualLoopControl) {
     theApp->initialiseManualLoopControl();

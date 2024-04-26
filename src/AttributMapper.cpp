@@ -94,18 +94,17 @@ namespace ChimeraTK {
         propertyName = locationAndPropertyName.second;
         propertyName.setAltSeparator(".");
 
+        std::string attrName;
         // erase the first "/"
-        std::string attrName = locationName + "_" + propertyName.getWithAltSeparator();
+        if (!locationName.empty()) {
+          attrName = locationName + "_" + propertyName.getWithAltSeparator();
+        } else {
+          attrName = propertyName.getWithAltSeparator();
+        }
 
         auto i = attrName.find('/');
         if(i != std::string::npos) {
           attrName.erase(i, 1);
-        }
-
-        if(locationName.empty()) {
-          throw std::logic_error(std::string("Invalid XML content in global import of ") +
-              (importSource.empty() ? "/" : importSource) + ":  Cannot create location name from '" + nameSource +
-              "', one hirarchy level is missing.");
         }
 
         // derive the datatype

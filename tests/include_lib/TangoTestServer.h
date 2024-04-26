@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
+#include "ExtendedReferenceTestApplication.h"
+
 #include <tango/tango.h>
 
 #include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
@@ -148,13 +150,15 @@ struct TangoTestFixtureImpl {
   static TargetType generateDefaultValueForType();
 
   bool manualLoopControl{false};
-  ChimeraTK::ApplicationFactory<ReferenceTestApplication> theFactory;
+  std::list<ExtendedReferenceTestApplication::VariableHolder> additionalVarables{};
+
+  ChimeraTK::ApplicationFactory<ExtendedReferenceTestApplication> theFactory;
   ThreadedTangoServer theServer;
-  ReferenceTestApplication* theApp{nullptr};
+  ExtendedReferenceTestApplication* theApp{nullptr};
   std::unique_ptr<Tango::DeviceProxy> proxy{nullptr};
   static TangoTestFixtureImpl* f;
 
-  static std::tuple<TangoTestFixtureImpl&, ReferenceTestApplication&, Tango::DeviceProxy&> getContents() {
+  static std::tuple<TangoTestFixtureImpl&, ExtendedReferenceTestApplication&, Tango::DeviceProxy&> getContents() {
     auto& fixture = *f;
     auto& app = *f->theApp;
     auto& proxy = *f->proxy;
