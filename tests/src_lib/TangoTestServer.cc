@@ -32,6 +32,8 @@ void ThreadedTangoServer::start() {
   std::mutex in_mtx;
   std::unique_lock<std::mutex> in(in_mtx);
   std::condition_variable cv;
+  bool threadRunning{false};
+
   tangoServerThread = std::thread([&]() {
     try {
       argv.emplace_back(testName + "_ds");
@@ -59,7 +61,7 @@ void ThreadedTangoServer::start() {
       tg = Tango::Util::init(int(args.size()), const_cast<char**>(args.data()));
       tg->server_init(false);
       cv.notify_all();
-      tg->server_set_event_loop([]() {
+      auto callback = []() -> bool {
         auto shutdown = ThreadedTangoServer::shutdownRequested.load();
         if(shutdown) {
           return true;
@@ -67,7 +69,14 @@ void ThreadedTangoServer::start() {
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         return false;
-      });
+      };
+      tg->server_set_event_loop(callback);
+      {
+        std::lock_guard lg(in_mtx);
+        threadRunning = true;
+        cv.notify_one();
+      }
+
       tg->server_run();
     }
     catch(CORBA::Exception& e) {
@@ -75,7 +84,7 @@ void ThreadedTangoServer::start() {
       std::rethrow_exception(std::current_exception());
     }
   });
-  cv.wait(in);
+  cv.wait(in, [&] { return threadRunning;});
 }
 
 /*********************************************************************************************************************/
