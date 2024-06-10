@@ -27,7 +27,7 @@ data_map = {
 }
 
 def create_attribute_list(path: str, output: typing.TextIO) -> None:
-    root = ET.parse(sys.argv[1])
+    root = ET.parse(path)
     application = root.xpath("/ac:application", namespaces=ns)[0]
 
     for elem in root.xpath("//ac:variable", namespaces=ns):
