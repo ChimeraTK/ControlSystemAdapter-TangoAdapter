@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns="https://github.com/ChimeraTK/ControlSystemAdapter-TangoAdapter"
+  targetNamespace="https://github.com/ChimeraTK/ControlSystemAdapter-TangoAdapter"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified"
+  xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning">
+  <xs:annotation>
+    <xs:documentation xml:lang="en"> Variable tree definition for the ChimeraTK Tango Adapter. </xs:documentation>
+  </xs:annotation>
+  <xs:element name="device_server" type="Device" />
+
+
+  <xs:complexType name="Device">
+    <xs:sequence>
+      <xs:element name="domain" type="Domain" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="import" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+      <xs:group ref="ServerAttribute" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Domain">
+    <xs:sequence>
+      <xs:element name="family" type="Family" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="import" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="Family">
+    <xs:sequence>
+      <xs:element name="member" type="Member" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="import" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="Member">
+    <xs:sequence>
+      <xs:group ref="ServerAttribute" maxOccurs="unbounded" />
+      <xs:element name="import" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="optional" />
+  </xs:complexType>
+
+  <!-- The attribute group basically is the choice of the different property types we have-->
+  <xs:group name="ServerAttribute">
+    <xs:choice>
+      <xs:element name="server_attribute" type="AutoServerAttribute" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="AutoServerAttribute">
+    <xs:sequence>
+      <xs:group ref="ServerAttributeProperty" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="source" type="xs:string" use="required" />
+    <xs:attribute name="name" type="xs:string" />
+    <xs:attribute name="type" type="BaseDataType" />
+  </xs:complexType>
+
+  <xs:group name="ServerAttributeProperty">
+    <xs:choice>
+      <xs:element name="is_writeable" type="xs:boolean" default="true" minOccurs="0" maxOccurs="1" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:simpleType name="BaseDataType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="auto" />
+      <xs:enumeration value="DevUChar" />
+      <xs:enumeration value="DevChar" />
+      <xs:enumeration value="DevUShort" />
+      <xs:enumeration value="DevShort" />
+      <xs:enumeration value="DevULong" />
+      <xs:enumeration value="DevLong" />
+      <xs:enumeration value="DevULong64" />
+      <xs:enumeration value="DevLong64" />
+      <xs:enumeration value="DevFloat" />
+      <xs:enumeration value="DevDouble" />
+      <xs:enumeration value="DevBoolean" />
+      <xs:enumeration value="DevString" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
