@@ -30,6 +30,13 @@ class ExampleApp : public ctk::Application {
   ~ExampleApp() override;
 
  private:
+  //! [Snippet: Class Definition Start]
+  // Set the name of the DMAP file to define the devices. Must be done before instantiating any DeviceModule.
+  // Using the application name as a base helps for automated testing against different config files.
+  //! [Snippet: SetDMapFilePath]
+  ctk::SetDMapFilePath dmapPath{getName() + ".dmap"};
+  //! [Snippet: SetDMapFilePath]
+
   // Provide configuration constants as process variables and for use at construction phase
   // Using the application name as a base helps for automated testing against different config files.
   ctk::ConfigReader config{this, "/", getName() + "-config.xml"};
