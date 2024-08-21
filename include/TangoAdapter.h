@@ -1,58 +1,40 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
+#include "AttributeMapper.h"
 #include "TangoUpdater.h"
-#include <tango/tango.h>
+#include "ChimeraTK/ControlSystemAdapter/ControlSystemPVManager.h"
 
-#include <ChimeraTK/ControlSystemAdapter/ApplicationBase.h>
-#include <ChimeraTK/ControlSystemAdapter/ControlSystemPVManager.h>
-#include <ChimeraTK/ControlSystemAdapter/DevicePVManager.h>
-#include <ChimeraTK/ControlSystemAdapter/PVManager.h>
-
-#include <boost/shared_ptr.hpp>
-
-#include <string>
-
-// Most of the non-conforming naming is a requierment from Tango, so just disable this check
-// NOLINTBEGIN(readability-identifier-naming)
-
+#include <boost/smart_ptr/shared_ptr.hpp>
 namespace ChimeraTK {
-
-  class TangoAdapter : public Tango::LogAdapter {
+  class TangoAdapter {
    public:
-    TangoAdapter(TANGO_BASE_CLASS* tangoDevice, std::vector<std::shared_ptr<ChimeraTK::AttributeProperty>>& attributeList);
-    ~TangoAdapter() override;
+    static TangoAdapter& getInstance() {
+      static TangoAdapter instance;
 
-    [[nodiscard]] const TANGO_BASE_CLASS* getDevice() const { return _device; }
-
-    void create_dynamic_attributes();
-
-    void create_Scalar_Attr(std::shared_ptr<AttributeProperty> const& attProp);
-    void create_Spectrum_Attr(std::shared_ptr<AttributeProperty> const& attProp);
-    void create_Image_Attr(std::shared_ptr<AttributeProperty> const& attProp);
-
-    void detach_dynamic_attributes_from_device();
-    void attach_dynamic_attributes_to_device();
-
-    void write_inited_values();
-
-    [[nodiscard]] boost::shared_ptr<DevicePVManager> const& getDevicePVManager() const { return _devicePVManager; }
-
-    [[nodiscard]] boost::shared_ptr<ControlSystemPVManager> const& getControlSystemPVManager() const {
-      return _controlSystemPVManager;
+      return instance;
     }
 
-   private:
-    boost::shared_ptr<TangoUpdater> _updater;
-    TANGO_BASE_CLASS* _device;
+    void run(int argc, char* argv[]);
+    void prepareApplicationStartup();
+    void finalizeApplicationStartup();
+    void shutdown();
+    [[nodiscard]] std::string getError() { return _error; }
+    [[nodiscard]] boost::shared_ptr<ControlSystemPVManager> getCsPvManager() { return _controlSystemPVManager; }
+    [[nodiscard]] boost::shared_ptr<DevicePVManager> getDevicePvManager() { return _devicePVManager; }
 
+    [[nodiscard]] std::set<std::string> getCsVariableNames();
+    [[nodiscard]] AttributeMapper& getMapper() { return _attributeMapper; }
+    [[nodiscard]] TangoUpdater& getUpdater() { return _updater; }
+
+   private:
+    TangoAdapter();
     boost::shared_ptr<ControlSystemPVManager> _controlSystemPVManager;
     boost::shared_ptr<DevicePVManager> _devicePVManager;
-    // dynamic attribute list
-    std::vector<Tango::Attr*> _dynamic_attribute_list;
-    // list W spectrum attributes for initialization
-    std::map<std::shared_ptr<AttributeProperty>, int> _write_spectrum_attr_list;
-    std::string _deviceClass;
+    AttributeMapper _attributeMapper;
+    TangoUpdater _updater;
+    ChimeraTK::ApplicationBase* _appInstance{nullptr};
+    std::string _error;
   };
-
 } // namespace ChimeraTK
-  // NOLINTEND(readability-identifier-naming)
