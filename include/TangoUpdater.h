@@ -23,14 +23,12 @@ namespace ChimeraTK {
    * the stop() function which returns after the thread has been joined). This
    * happens latest in the destructor.
    */
-  class TangoUpdater : public boost::noncopyable, Tango::LogAdapter {
+  class TangoUpdater : public boost::noncopyable {
    public:
-    explicit TangoUpdater(TANGO_BASE_CLASS* tangoDevice) : Tango::LogAdapter(tangoDevice), _device(tangoDevice) {}
-
     // ChimeraTK::logic_error is theoretically thrown in ::interrupt(), practically should not happen and if it does,
     // we should have aborted anyway much sooner
     // NOLINTNEXTLINE(bugprone-exception-escape)
-    ~TangoUpdater() override;
+    ~TangoUpdater();
 
     void updateLoop(); // Endless loop with interruption point around the update
                        // function.
@@ -58,6 +56,5 @@ namespace ChimeraTK {
       std::set<boost::shared_ptr<ChimeraTK::TransferElement>> additionalTransferElements;
     };
     std::map<ChimeraTK::TransferElementID, UpdateDescriptor> _descriptorMap;
-    TANGO_BASE_CLASS* _device;
   };
 } // namespace ChimeraTK

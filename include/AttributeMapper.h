@@ -10,7 +10,7 @@ namespace ChimeraTK {
 
   class AttributeMapper {
    public:
-    static AttributeMapper& getInstance();
+    AttributeMapper() = default;
     AttributeMapper(AttributeMapper&) = delete;
     void operator=(AttributeMapper const&) = delete;
     void directImport(std::set<std::string>& inputVariables);
@@ -26,7 +26,6 @@ namespace ChimeraTK {
     }
 
    protected:
-    AttributeMapper() = default;
 
     std::set<std::string> _inputVariables;
     std::set<std::string> _usedInputVariables; // For tracing which variables are

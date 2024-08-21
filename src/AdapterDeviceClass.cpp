@@ -34,6 +34,7 @@
 //=============================================================================
 
 #include "AdapterDeviceClass.h"
+#include "TangoAdapter.h"
 
 #include <algorithm>
 #include <regex>
@@ -41,15 +42,15 @@
 // This is required naming by Tango, so disable the linter
 // NOLINTBEGIN(readability-identifier-naming)
 #ifdef TANGO_LOG_DEBUG
-#ifndef cout4
-#  define cout4 TANGO_LOG_DEBUG
-#endif
+#  ifndef cout4
+#    define cout4 TANGO_LOG_DEBUG
+#  endif
 
-#ifndef cout2
-#  define cout2 TANGO_LOG_INFO
-#endif
+#  ifndef cout2
+#    define cout2 TANGO_LOG_INFO
+#  endif
 #else
-#define TANGO_LOG_DEBUG cout2
+#  define TANGO_LOG_DEBUG cout2
 #endif
 // NOLINTEND(readability-identifier-naming)
 
@@ -66,9 +67,10 @@ extern "C" {
 
 __declspec(dllexport)
 #endif
-    // Naming is for Tango
-    // NOLINTNEXTLINE(readability-identifier-naming)
-    Tango::DeviceClass* _create_AdapterDeviceImpl_class(const char* name) {
+// Naming is for Tango
+// NOLINTNEXTLINE(readability-identifier-naming)
+Tango::DeviceClass*
+    _create_AdapterDeviceImpl_class(const char* name) {
   return TangoAdapter::AdapterDeviceClass::init(name);
 }
 }
@@ -320,17 +322,29 @@ namespace TangoAdapter {
     //	Export devices to the outside world
     for(unsigned long i = 1; i <= devlist_ptr->length(); i++) {
       //	Add dynamic attributes if any
-      auto* dev = dynamic_cast<AdapterDeviceImpl*>(device_list[device_list.size() - i]);
+      auto* devImpl = dynamic_cast<AdapterDeviceImpl*>(device_list[device_list.size() - i]);
 
-      assert(dev != nullptr);
-      dev->add_dynamic_attributes();
+      assert(devImpl != nullptr);
+      devImpl->add_dynamic_attributes();
 
       //	Check before if database used.
       if(Tango::Util::_UseDb && !Tango::Util::_FileDb) {
-        export_device(dev);
+        export_device(devImpl);
       }
       else {
-        export_device(dev, dev->get_name().c_str());
+        export_device(devImpl, devImpl->get_name().c_str());
+      }
+    }
+
+    // Start application and updater here after all devices are created
+    ChimeraTK::TangoAdapter::getInstance().finalizeApplicationStartup();
+
+    for(auto* dev : device_list) {
+      // Only set the device state ok ON if it is still in the default constructed
+      // value
+      if(dev->get_state() == Tango::UNKNOWN) {
+        dev->set_state(Tango::ON);
+        dev->set_status("Application is running.");
       }
     }
 

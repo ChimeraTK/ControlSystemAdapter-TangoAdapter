@@ -89,10 +89,10 @@ namespace ChimeraTK {
     std::map<std::string, ChimeraTK::AttrDataFormat> regTypeMap = {{"SCALAR", ChimeraTK::AttrDataFormat::SCALAR},
         {"SPECTRUM", ChimeraTK::AttrDataFormat::SPECTRUM}, {"IMAGE", ChimeraTK::AttrDataFormat::IMAGE}};
 
-    std::string unit{};
-    std::string desc{};
-    std::string name{};
-    std::string path{};
+    std::string unit;
+    std::string desc;
+    std::string name;
+    std::string path;
 
     ChimeraTK::AttrDataFormat attrDataFormat{};
     Tango::CmdArgType dataType{Tango::DATA_TYPE_UNKNOWN};

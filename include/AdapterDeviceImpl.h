@@ -31,7 +31,8 @@
 
 #pragma once
 
-#include "TangoAdapter.h"
+#include "AttributeProperty.h"
+
 #include <tango/tango.h>
 
 // Most of the non-conforming naming is a requierment from Tango, so just disable this check
@@ -54,8 +55,6 @@ namespace TangoAdapter {
   class AdapterDeviceImpl : public TANGO_BASE_CLASS {
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::Data Members) ENABLED START -----*/
 
-    //	Add your own data members
-    std::shared_ptr<ChimeraTK::TangoAdapter> tangoAdapter{};
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::Data Members
 
     //	Device property data members
@@ -140,7 +139,19 @@ namespace TangoAdapter {
 
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::Additional Method prototypes) ENABLED START -----*/
 
-    //	Additional Method prototypes
+    void write_inited_values();
+    void create_dynamic_attributes();
+    void create_Scalar_Attr(std::shared_ptr<ChimeraTK::AttributeProperty> const& attProp);
+    void create_Spectrum_Attr(std::shared_ptr<ChimeraTK::AttributeProperty> const& attProp);
+    void create_Image_Attr(std::shared_ptr<ChimeraTK::AttributeProperty> const& attProp);
+
+    void detach_dynamic_attributes_from_device();
+    void attach_dynamic_attributes_to_device();
+
+    // dynamic attribute list
+    std::vector<Tango::Attr*> _dynamic_attribute_list;
+    // list W spectrum attributes for initialization
+    std::map<std::shared_ptr<ChimeraTK::AttributeProperty>, int> _write_spectrum_attr_list;
 
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::Additional Method prototypes
   };

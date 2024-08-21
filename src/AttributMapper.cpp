@@ -34,12 +34,6 @@ namespace ChimeraTK {
   } // namespace util
 
   /********************************************************************************************************************/
-
-  AttributeMapper& AttributeMapper::getInstance() {
-    static AttributeMapper instance;
-    return instance;
-  }
-  /********************************************************************************************************************/
   void AttributeMapper::directImport(std::set<std::string>& inputVariables) {
     clear();
 

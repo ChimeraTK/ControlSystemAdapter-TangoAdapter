@@ -3,6 +3,8 @@
 
 #include "TangoTestServer.h"
 
+#include "TangoAdapter.h"
+
 #include <chrono>
 #include <filesystem>
 #include <random>
@@ -34,7 +36,11 @@ void ThreadedTangoServer::start() {
   std::condition_variable cv;
   bool threadRunning{false};
 
+
   tangoServerThread = std::thread([&]() {
+    auto& adapter = ChimeraTK::TangoAdapter::getInstance();
+
+    adapter.prepareApplicationStartup();
     try {
       argv.emplace_back(testName + "_ds");
       argv.emplace_back("Test" + testName);
@@ -70,6 +76,7 @@ void ThreadedTangoServer::start() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         return false;
       };
+
       tg->server_set_event_loop(callback);
       {
         std::lock_guard lg(in_mtx);
@@ -83,6 +90,7 @@ void ThreadedTangoServer::start() {
       Tango::Except::print_exception(e);
       std::rethrow_exception(std::current_exception());
     }
+    adapter.shutdown();
   });
   cv.wait(in, [&] { return threadRunning;});
 }
