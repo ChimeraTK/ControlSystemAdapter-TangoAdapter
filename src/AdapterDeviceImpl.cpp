@@ -224,15 +224,14 @@ namespace TangoAdapter {
       INFO_STREAM << name << std::endl;
     }
 
-           // no configuration, import all
+    // no configuration, import all
     if(attributeList.empty()) {
       INFO_STREAM << AdapterDeviceClass::getClassName() << ":Direct import" << std::endl;
-      adapter.getMapper().setCSPVManager(ChimeraTK::TangoAdapter::getInstance().getCsPvManager());
-      adapter.getMapper().directImport(names);
+      adapter.getMapper().directImport(names, AdapterDeviceClass::getClassName() + "/" + get_name());
     }
     // configured attributes from property
     else {
-      adapter.getMapper().prepareOutput(parsedAttributes);
+      adapter.getMapper().prepareOutput(parsedAttributes, AdapterDeviceClass::getClassName() + "/" + get_name());
     }
 
     // create the dynamic attributes for Tango devices
@@ -489,7 +488,7 @@ namespace TangoAdapter {
   void AdapterDeviceImpl::create_dynamic_attributes() {
     DEBUG_STREAM << " TangoAdapter::create_dynamic_attributes " << std::endl;
 
-    auto descList = ChimeraTK::TangoAdapter::getInstance().getMapper().getAttDescList();
+    auto descList = ChimeraTK::TangoAdapter::getInstance().getMapper().getAttDescList(AdapterDeviceClass::getClassName() + "/" +get_name());
     for(const auto& attDesc : descList) {
       if(attDesc->attrDataFormat == ChimeraTK::SCALAR) {
         create_Scalar_Attr(attDesc);

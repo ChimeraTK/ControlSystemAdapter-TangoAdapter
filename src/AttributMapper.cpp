@@ -3,10 +3,6 @@
 #include <ChimeraTK/RegisterPath.h>
 #include <ChimeraTK/Utilities.h>
 
-#include <algorithm>
-#include <locale>
-#include <regex>
-
 namespace ChimeraTK {
 
   namespace util {
@@ -34,19 +30,19 @@ namespace ChimeraTK {
   } // namespace util
 
   /********************************************************************************************************************/
-  void AttributeMapper::directImport(std::set<std::string>& inputVariables) {
+  void AttributeMapper::directImport(std::set<std::string>& inputVariables, std::string device) {
     clear();
 
     _inputVariables = inputVariables;
     // import all
-    import("/", std::string(""));
+    import("/", device);
   }
   /********************************************************************************************************************/
-  void AttributeMapper::prepareOutput(std::vector<std::shared_ptr<ChimeraTK::AttributeProperty>>& attributeList) {
+  void AttributeMapper::prepareOutput(std::vector<std::shared_ptr<ChimeraTK::AttributeProperty>>& attributeList, std::string device) {
     clear();
 
-    _descriptions.insert(_descriptions.end(), attributeList.begin(), attributeList.end());
-    for(const auto& attrDesc : _descriptions) {
+    _descriptions[device].insert(_descriptions[device].end(), attributeList.begin(), attributeList.end());
+    for(const auto& attrDesc : _descriptions[device]) {
       _usedInputVariables.insert(attrDesc->path);
     }
   }
@@ -56,8 +52,8 @@ namespace ChimeraTK {
     _usedInputVariables.clear();
   }
   /********************************************************************************************************************/
-  std::list<std::shared_ptr<AttributeProperty>> const& AttributeMapper::getAttDescList() const {
-    return _descriptions;
+  std::list<std::shared_ptr<AttributeProperty>> const& AttributeMapper::getAttDescList(std::string device) const {
+    return _descriptions.at(device);
   }
   /********************************************************************************************************************/
   void AttributeMapper::import(std::string importSource, [[maybe_unused]] const std::string& importLocationName,
@@ -131,7 +127,7 @@ namespace ChimeraTK {
         // creating attribute property
         auto attributeProperty = std::make_shared<AttributeProperty>(
             attrName, nameSource, dataFormat, _dataType, processVariable->getDescription(), processVariable->getUnit());
-        _descriptions.push_back(attributeProperty);
+        _descriptions[importLocationName].push_back(attributeProperty);
         _usedInputVariables.insert(attributeProperty->path);
       }
     }
