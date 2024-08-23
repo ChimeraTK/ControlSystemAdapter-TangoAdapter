@@ -77,7 +77,7 @@ if(BUILD_TESTS)
                                PRIVATE ${CMAKE_SOURCE_DIR}/tests/include)
 
     # need to force no-as-needed otherwise the class_factory function from the
-    # adapter will  be discarded and the tango server will not start
+    # adapter will be discarded and the tango server will not start
     target_link_options(${executableName} PUBLIC "-Wl,--no-as-needed")
     target_link_libraries(${executableName} PUBLIC ${PROJECT_NAME}
                                                    TestLib
