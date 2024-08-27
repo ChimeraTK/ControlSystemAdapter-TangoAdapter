@@ -33,15 +33,15 @@
 //=============================================================================
 
 #include "AdapterDeviceClass.h"
+#include "AttributeMapper.h"
+#include "TangoAdapter.h"
 #include <tango/tango.h>
 
-//	Add class header files if needed
-
-/**
- *	Create AdapterDeviceImpl Class singleton and store it in DServer object.
- */
-
+// Factory function required from Tango.
 void Tango::DServer::class_factory() {
-  add_class(TangoAdapter::AdapterDeviceClass::init(TangoAdapter::AdapterDeviceClass::getClassName().c_str()));
+  auto& mapper = ChimeraTK::TangoAdapter::getInstance().getMapper();
+  for(auto& className : mapper.getClasses()) {
+    add_class(std::make_unique<TangoAdapter::AdapterDeviceClass>(className).release());
+  }
 }
 /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::ClassFactory.cpp

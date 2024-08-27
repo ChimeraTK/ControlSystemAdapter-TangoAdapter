@@ -35,24 +35,10 @@
 
 #include "AdapterDeviceClass.h"
 #include "TangoAdapter.h"
+#include "TangoLogCompat.h"
 
 #include <algorithm>
 #include <regex>
-
-// This is required naming by Tango, so disable the linter
-// NOLINTBEGIN(readability-identifier-naming)
-#ifdef TANGO_LOG_DEBUG
-#  ifndef cout4
-#    define cout4 TANGO_LOG_DEBUG
-#  endif
-
-#  ifndef cout2
-#    define cout2 TANGO_LOG_INFO
-#  endif
-#else
-#  define TANGO_LOG_DEBUG cout2
-#endif
-// NOLINTEND(readability-identifier-naming)
 
 /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass.cpp
 
@@ -69,18 +55,14 @@ __declspec(dllexport)
 #endif
 // Naming is for Tango
 // NOLINTNEXTLINE(readability-identifier-naming)
-Tango::DeviceClass*
-    _create_AdapterDeviceImpl_class(const char* name) {
-  return TangoAdapter::AdapterDeviceClass::init(name);
+Tango::DeviceClass* _create_AdapterDeviceImpl_class([[maybe_unused]] const char* name) {
+  // FIXME: Do we need to support this? It's for using this class in pytango
+  assert(false);
+  return nullptr;
 }
 }
 
 namespace TangoAdapter {
-  //===================================================================
-  //	Initialize pointer for singleton pattern
-  //===================================================================
-  AdapterDeviceClass* AdapterDeviceClass::_instance = nullptr;
-
   // Apply some heuristics to derive the class name from the executable name
   std::string AdapterDeviceClass::getClassName() {
     std::string ourName{Tango::Util::instance()->get_ds_exec_name()};
@@ -106,7 +88,7 @@ namespace TangoAdapter {
    */
   //--------------------------------------------------------
   AdapterDeviceClass::AdapterDeviceClass(std::string& s) : Tango::DeviceClass(s) {
-    cout2 << "Entering AdapterDeviceClass constructor" << std::endl;
+    TANGO_LOG_DEBUG << "Entering AdapterDeviceClass constructor" << std::endl;
     set_default_property();
     write_class_property();
 
@@ -114,58 +96,7 @@ namespace TangoAdapter {
 
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::constructor
 
-    cout2 << "Leaving AdapterDeviceClass constructor" << std::endl;
-  }
-
-  //--------------------------------------------------------
-  /**
-   * method : 		AdapterDeviceClass::~AdapterDeviceClass()
-   * description : 	destructor for the AdapterDeviceClass
-   */
-  //--------------------------------------------------------
-  AdapterDeviceClass::~AdapterDeviceClass() {
-    /*----- PROTECTED REGION ID(AdapterDeviceClass::destructor) ENABLED START -----*/
-
-    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::destructor
-
-    _instance = nullptr;
-  }
-
-  //--------------------------------------------------------
-  /**
-   * method : 		AdapterDeviceClass::init
-   * description : 	Create the object if not already done.
-   *                  Otherwise, just return a pointer to the object
-   *
-   * @param	name	The class name
-   */
-  //--------------------------------------------------------
-  AdapterDeviceClass* AdapterDeviceClass::init(const char* name) {
-    if(_instance == nullptr) {
-      try {
-        std::string s(name);
-        _instance = new AdapterDeviceClass(s);
-      }
-      catch(std::bad_alloc&) {
-        throw;
-      }
-    }
-    return _instance;
-  }
-
-  //--------------------------------------------------------
-  /**
-   * method : 		AdapterDeviceClass::instance
-   * description : 	Check if object already created,
-   *                  and return a pointer to the object
-   */
-  //--------------------------------------------------------
-  AdapterDeviceClass* AdapterDeviceClass::instance() {
-    if(_instance == nullptr) {
-      std::cerr << "Class is not initialised !!" << std::endl;
-      exit(-1);
-    }
-    return _instance;
+    TANGO_LOG_DEBUG << "Leaving AdapterDeviceClass constructor" << std::endl;
   }
 
   //===================================================================
@@ -210,7 +141,7 @@ namespace TangoAdapter {
    *	Method      : AdapterDeviceClass::get_default_class_property()
    *	Description : Return the default value for class property.
    */
-  //--------------------------------------------------------
+  /*------------------------------------------------------------------------------------------------------------------*/
   Tango::DbDatum AdapterDeviceClass::get_default_class_property(std::string& prop_name) {
     return getPropertyWithDefault(cl_def_prop, prop_name);
   }
@@ -225,31 +156,6 @@ namespace TangoAdapter {
    */
   //--------------------------------------------------------
   void AdapterDeviceClass::set_default_property() {
-    std::string prop_name;
-    std::string prop_desc;
-    std::string prop_def;
-    std::vector<std::string> vect_data;
-
-    //	Set Default Class Properties
-
-    //	Set Default device Properties
-    prop_name = "AttributeList";
-    prop_desc = "AttributeList";
-    prop_def = "";
-    vect_data.clear();
-    if(prop_def.length() > 0) {
-      Tango::DbDatum data(prop_name);
-      data << vect_data;
-      dev_def_prop.push_back(data);
-      add_wiz_dev_prop(prop_name, prop_desc, prop_def);
-    }
-    else {
-      add_wiz_dev_prop(prop_name, prop_desc);
-    }
-
-    prop_name = "WorkingFolder";
-    prop_desc = "Base folder containting DMAP files, server configuration etc.";
-    add_wiz_dev_prop(prop_name, prop_desc);
   }
 
   //--------------------------------------------------------
@@ -267,16 +173,20 @@ namespace TangoAdapter {
     Tango::DbData data;
     std::string classname = get_name();
 
+    auto ourClass = ChimeraTK::TangoAdapter::getInstance().getMapper().getClass(get_name());
+    assert(ourClass);
+
+
     //	Put title
     Tango::DbDatum title("ProjectTitle");
-    std::vector<std::string> str_title{AdapterDeviceClass::getClassName()};
+    std::vector<std::string> str_title{ourClass->title.value_or(ourClass->name)};
     title << str_title;
     data.push_back(title);
 
     //	Put Description
     Tango::DbDatum description("Description");
     std::vector<std::string> str_desc;
-    str_desc.emplace_back("ChimeraTK-based DeviceServer");
+    str_desc.emplace_back(ourClass->description.value_or("ChimeraTK-based DeviceServer"));
     description << str_desc;
     data.push_back(description);
 
@@ -307,37 +217,52 @@ namespace TangoAdapter {
 
     //	Add your own code
 
+    auto& adapter = ChimeraTK::TangoAdapter::getInstance();
+    auto& mapper = adapter.getMapper();
+
+    auto deviceClass = mapper.getClass(get_name());
+
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::device_factory_before
 
     //	Create devices and add it into the device list
-    for(unsigned long i = 0; i < devlist_ptr->length(); i++) {
-      cout4 << "Device name : " << (*devlist_ptr)[i].in() << std::endl;
-      device_list.push_back(new AdapterDeviceImpl(this, (*devlist_ptr)[i]));
-      device_list.back()->init_device();
+    for(unsigned int i = 0; i < devlist_ptr->length(); i++) {
+      const auto *deviceName = (*devlist_ptr)[i].in();
+
+      auto device = std::make_unique<AdapterDeviceImpl>(this, deviceName);
+      device->init_device();
+      if(!deviceClass->hasDevice(deviceName) &&
+          !deviceClass->hasDevice(ChimeraTK::TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data())) {
+        // See if we have the "generic" device"
+        DEV_ERROR_STREAM(device) << "Device " << deviceName << "not known in attribute mapper. Expect issues" << std::endl;
+        device->set_state(Tango::FAULT);
+        device->set_status("Device was not found in mapping file, no variables could be mapped.");
+      }
+      else {
+        // Move the generic device we have to this device.
+        if(!deviceClass->hasDevice(deviceName)) {
+          auto genericDevice =
+              deviceClass->devicesInDeviceClass[ChimeraTK::TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data()];
+          deviceClass->devicesInDeviceClass.erase(ChimeraTK::TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data());
+          genericDevice->name = deviceName;
+          deviceClass->devicesInDeviceClass[deviceName] = genericDevice;
+        }
+        device->attachToClassAttributes(deviceClass);
+      }
+
+      // Check before if database used.
+      if(Tango::Util::_UseDb && !Tango::Util::_FileDb) {
+        export_device(device.get());
+      }
+      else {
+        export_device(device.get(), deviceName);
+      }
+
+      // Hand over device pointer to Tango
+      device_list.push_back(device.release());
     }
 
     //	Manage dynamic attributes if any
-    // erase_dynamic_attributes(devlist_ptr, get_class_attr()->get_attr_list());
-
-    //	Export devices to the outside world
-    for(unsigned long i = 1; i <= devlist_ptr->length(); i++) {
-      //	Add dynamic attributes if any
-      auto* devImpl = dynamic_cast<AdapterDeviceImpl*>(device_list[device_list.size() - i]);
-
-      assert(devImpl != nullptr);
-      devImpl->add_dynamic_attributes();
-
-      //	Check before if database used.
-      if(Tango::Util::_UseDb && !Tango::Util::_FileDb) {
-        export_device(devImpl);
-      }
-      else {
-        export_device(devImpl, devImpl->get_name().c_str());
-      }
-    }
-
-    // Start application and updater here after all devices are created
-    ChimeraTK::TangoAdapter::getInstance().finalizeApplicationStartup();
+    erase_dynamic_attributes(devlist_ptr, get_class_attr()->get_attr_list());
 
     for(auto* dev : device_list) {
       // Only set the device state ok ON if it is still in the default constructed
@@ -348,13 +273,13 @@ namespace TangoAdapter {
       }
     }
 
-    /*----- PROTECTED REGION ID(AdapterDeviceClass::device_factory_after) ENABLED START -----*/
+    /*----- PROTECTED REGION ID(AdapterAdapterDeviceClass::device_factory_after) ENABLED START -----*/
 
     //	Add your own code
 
-    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::device_factory_after
+    /*----- PROTECTED REGION END -----*/ //	AdapterAdapterDeviceClass::device_factory_after
   }
-  //--------------------------------------------------------
+  /*------------------------------------------------------------------------------------------------------------------*/
   /**
    *	Method      : AdapterDeviceClass::attribute_factory()
    *	Description : Create the attribute object(s)
@@ -366,6 +291,15 @@ namespace TangoAdapter {
 
     //	Add your own code
 
+    auto& adapter = ChimeraTK::TangoAdapter::getInstance();
+    auto& mapper = adapter.getMapper();
+
+    auto deviceClass = mapper.getClass(get_name());
+
+    for(auto& attDesc : deviceClass->attributes) {
+      att_list.push_back(attDesc.toTangoAttribute().release());
+    }
+
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::attribute_factory_before
 
     //	Create a list of static attributes
@@ -374,7 +308,7 @@ namespace TangoAdapter {
 
     //	Add your own code
 
-    /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::attribute_factory_after
+    /*----- PROTECTED REGION END -----*/ //	AdapterAdapterDeviceClass::attribute_factory_after
   }
   //--------------------------------------------------------
   /**
@@ -435,7 +369,7 @@ namespace TangoAdapter {
       defaultAttList.push_back(att_name);
     }
 
-    cout2 << defaultAttList.size() << " attributes in default list" << std::endl;
+    TANGO_LOG_DEBUG << defaultAttList.size() << " attributes in default list" << std::endl;
 
     /*----- PROTECTED REGION ID(AdapterDeviceClass::create_static_att_list) ENABLED START -----*/
 
@@ -455,8 +389,8 @@ namespace TangoAdapter {
       const Tango::DevVarStringArray* devlist_ptr, std::vector<Tango::Attr*>& att_list) {
     Tango::Util* tg = Tango::Util::instance();
 
-    for(unsigned long i = 0; i < devlist_ptr->length(); i++) {
-      auto* dev_impl = tg->get_device_by_name(((std::string)(*devlist_ptr)[i]).c_str());
+    for(_CORBA_ULong i = 0; i < devlist_ptr->length(); i++) {
+      auto* dev_impl = tg->get_device_by_name((std::string((*devlist_ptr)[i]).c_str()));
       auto* dev = dynamic_cast<AdapterDeviceImpl*>(dev_impl);
       assert(dev != nullptr);
 
@@ -469,7 +403,7 @@ namespace TangoAdapter {
         }
         auto ite_str = find(defaultAttList.begin(), defaultAttList.end(), att_name);
         if(ite_str == defaultAttList.end()) {
-          cout2 << att_name << " is a UNWANTED dynamic attribute for device " << (*devlist_ptr)[i] << std::endl;
+          TANGO_LOG_DEBUG << att_name << " is a UNWANTED dynamic attribute for device " << (*devlist_ptr)[i] << std::endl;
           Tango::Attribute& att = dev->get_device_attr()->get_attr_by_name(att_name.c_str());
           dev->remove_attribute(att_list[att.get_attr_idx()], true, false);
           --ite_att;
@@ -481,24 +415,6 @@ namespace TangoAdapter {
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceClass::erase_dynamic_attributes
   }
 
-  //--------------------------------------------------------
-  /**
-   *	Method      : AdapterDeviceClass::get_attr_object_by_name()
-   *	Description : returns Tango::Attr * object found by name
-   */
-  //--------------------------------------------------------
-  // FIXME: Move into util namespace and the source file
-  Tango::Attr* AdapterDeviceClass::get_attr_object_by_name(
-      std::vector<Tango::Attr*>& att_list, const std::string& attname) {
-    std::vector<Tango::Attr*>::iterator it;
-    for(it = att_list.begin(); it < att_list.end(); ++it) {
-      if((*it)->get_name() == attname) {
-        return (*it);
-      }
-    }
-    //	Attr does not exist
-    return nullptr;
-  }
 
   /*----- PROTECTED REGION ID(AdapterDeviceClass::Additional Methods) ENABLED START -----*/
 

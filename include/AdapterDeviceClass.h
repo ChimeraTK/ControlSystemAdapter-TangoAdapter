@@ -70,16 +70,13 @@ namespace TangoAdapter {
 
     //	Method prototypes
     static std::string getClassName();
-    static AdapterDeviceClass* init(const char*);
-    static AdapterDeviceClass* instance();
-    ~AdapterDeviceClass() override;
+    explicit AdapterDeviceClass(std::string&);
+    ~AdapterDeviceClass() override = default;
     Tango::DbDatum get_class_property(std::string&);
     Tango::DbDatum get_default_device_property(std::string&);
     Tango::DbDatum get_default_class_property(std::string&);
 
    protected:
-    explicit AdapterDeviceClass(std::string&);
-    static AdapterDeviceClass* _instance;
     void command_factory() override;
     void attribute_factory(std::vector<Tango::Attr*>&) override;
     void pipe_factory() override;
@@ -94,7 +91,6 @@ namespace TangoAdapter {
     void create_static_attribute_list(std::vector<Tango::Attr*>&);
     void erase_dynamic_attributes(const Tango::DevVarStringArray*, std::vector<Tango::Attr*>&);
     std::vector<std::string> defaultAttList;
-    Tango::Attr* get_attr_object_by_name(std::vector<Tango::Attr*>& att_list, const std::string& attname);
 
     Tango::DbDatum getPropertyWithDefault(const Tango::DbData& list, const std::string& propertyName);
   };

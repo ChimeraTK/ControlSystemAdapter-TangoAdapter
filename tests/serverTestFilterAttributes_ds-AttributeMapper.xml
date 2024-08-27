@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer>
+    <deviceClass name="serverTestFilterAttributes">
+        <deviceInstance name="tango/test/servertestfilterattributes">
+            <attribute name="PlainRename" source="INT/FROM_DEVICE_SCALAR">
+                <egu />
+            </attribute>
+            <attribute name="ChangeAttributes" source="SHORT/FROM_DEVICE_SCALAR">
+                <description>ChangedDescription</description>
+                <egu>mA</egu>
+            </attribute>
+            <attribute name="INT_TO_DEVICE_SCALAR" source="INT/TO_DEVICE_SCALAR" />
+            <attribute name="SHORT_TO_DEVICE_SCALAR" source="SHORT/TO_DEVICE_SCALAR" />
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

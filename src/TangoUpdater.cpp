@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "TangoUpdater.h"
-
 #include "AdapterDeviceClass.h"
+#include "TangoLogCompat.h"
+#include "TangoUpdater.h"
 
 #include <ChimeraTK/ReadAnyGroup.h>
 
 namespace ChimeraTK {
 
   void TangoUpdater::addVariable(TransferElementAbstractor variable, const std::string& attrId) {
-    std::cout << ::TangoAdapter::AdapterDeviceClass::getClassName() <<": TangoUpdater::addVariable " << attrId << std::endl;
+    TANGO_LOG_DEBUG << "TangoAdapter::Updater adding variable " << attrId << std::endl;
 
     if(variable.isReadable()) {
       auto id = variable.getId();
@@ -61,7 +61,6 @@ namespace ChimeraTK {
       // FIXME: Ideally we would fill the Tango buffer for the attribute here, then attribute->read()
       // would just send it out to CORBA
       // FIXME: Also we would need to toggle the event here, once supported
-      std::cout << ::TangoAdapter::AdapterDeviceClass::getClassName()<<":TangoUpdater::updateLoop update attribute: " << descriptor.attributeID[0];
 
       // Call preRead for all TEs for the updated ID
       for(const auto& elem : descriptor.additionalTransferElements) {
@@ -89,7 +88,7 @@ namespace ChimeraTK {
       // Ignore
     }
     catch(std::system_error& e) {
-      std::cerr << ::TangoAdapter::AdapterDeviceClass::getClassName()<<":Failed to shut down updater thread: " << e.what() << std::endl;
+      TANGO_LOG_INFO << ::TangoAdapter::AdapterDeviceClass::getClassName()<<":Failed to shut down updater thread: " << e.what() << std::endl;
     }
   }
 

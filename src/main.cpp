@@ -48,6 +48,7 @@ int main(int argc, char* argv[]) {
   INSTALL_CRASH_HANDLER
 
   ChimeraTK::TangoAdapter::getInstance().run(argc, argv);
+  Tango::Util::instance()->server_cleanup();
   return (0);
 }
 
