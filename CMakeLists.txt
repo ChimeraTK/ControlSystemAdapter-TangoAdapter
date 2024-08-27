@@ -18,6 +18,7 @@ find_package(PkgConfig)
 
 # Add the dependencies
 find_package(ChimeraTK-ControlSystemAdapter 02.07 REQUIRED)
+pkg_check_modules(XMLPP REQUIRED IMPORTED_TARGET libxml++-2.6)
 pkg_check_modules(TANGO REQUIRED IMPORTED_TARGET tango>=9.3)
 
 # For some reason the system library has to be mentioned explicitly to the
@@ -48,7 +49,7 @@ set_target_properties(
                              SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME}
                       PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter)
-target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::TANGO)
+target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::TANGO PkgConfig::XMLPP)
 
 # do not remove runtime paths of the library when installing (helps for unsually
 # located implicit dependencies)
@@ -62,7 +63,7 @@ if(BUILD_TESTS)
   file(GLOB testLibraryHeaders ${CMAKE_SOURCE_DIR}/tests/include_lib/*.h)
 
   add_library(TestLib STATIC ${testLibrarySources} ${testLibraryHeaders})
-  target_link_libraries(TestLib PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter PkgConfig::TANGO )
+  target_link_libraries(TestLib PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter PkgConfig::TANGO PkgConfig::XMLPP)
   target_include_directories(TestLib PUBLIC ${CMAKE_SOURCE_DIR}/tests/include_lib)
   # loop over all sources files in execultables_src directory
   aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src testExecutables)
@@ -81,7 +82,7 @@ if(BUILD_TESTS)
     target_link_options(${executableName} PUBLIC "-Wl,--no-as-needed")
     target_link_libraries(${executableName} PUBLIC ${PROJECT_NAME}
                                                    TestLib
-                                                   PkgConfig::TANGO)
+                                                   PkgConfig::TANGO PkgConfig::XMLPP)
     if (NOT "${executableName}" STREQUAL "testTangoServer")
         add_test(${executableName} ${executableName})
     endif()
@@ -94,8 +95,10 @@ if(BUILD_TESTS)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testPersistSpectrumDatabase_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testFilterAttributes_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testMapTwice_template.db DESTINATION ${CMAKE_BINARY_DIR})
-  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testServerFaultWrongAttribute_template.db DESTINATION ${CMAKE_BINARY_DIR})
-  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testServerFaultNoDmap_template.db DESTINATION ${CMAKE_BINARY_DIR})
+
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestFilterAttributes_ds_AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestMapTwice_ds_AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
+
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/devices.dmap DESTINATION ${CMAKE_BINARY_DIR})
 endif()
 

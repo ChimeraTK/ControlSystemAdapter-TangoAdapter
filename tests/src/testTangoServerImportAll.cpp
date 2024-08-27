@@ -85,9 +85,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(testReadConstants, T, TestTypesNoVoid) {
       if constexpr(std::is_same_v<ChimeraTK::Boolean, T>) {
         expectedValues.push_back(i == 0 ? false : expectedValue);
       } else if constexpr(std::is_same_v<std::string, T>) {
-        expectedValues.push_back(std::to_string(i * i * 42.0));
+        expectedValues.push_back(std::to_string(double(i) * double(i) * 42.0));
       } else {
-        expectedValues.push_back(i * i * expectedValue);
+        expectedValues.push_back(TargetType(i) * TargetType(i) * expectedValue);
       }
     }
 
