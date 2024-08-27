@@ -101,6 +101,9 @@ struct ThreadedTangoServer {
   template <typename T>
   void setProperty(const std::string& name, T value);
 
+  template<typename T>
+  T getClassProperty(const std::string& name);
+
   std::string testName;
   std::string offlineDatabase;
   bool createOfflineDatabase{true};
@@ -124,9 +127,30 @@ inline void ThreadedTangoServer::setProperty(const std::string &name, T value)
   tg->get_device_by_name(device())->get_db_device()->put_property(list);
 }
 
-/*********************************************************************************************************************/
-/*********************************************************************************************************************/
-/*********************************************************************************************************************/
+template<typename T>
+inline T ThreadedTangoServer::getClassProperty(const std::string& name) {
+  Tango::DbDatum dbDatum(name);
+  std::vector<Tango::DbDatum> list{dbDatum};
+  const auto& classList = tg->get_class_list();
+  for(auto* c : *classList) {
+    if(c->get_name() == testName) {
+      classList->at(0)->get_db_class()->get_property(list);
+
+      T value;
+      dbDatum >> value;
+
+      return value;
+    }
+  }
+
+  assert(false);
+
+  return {};
+}
+
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 struct TangoTestFixtureImpl {
   TangoTestFixtureImpl();
@@ -178,7 +202,14 @@ inline bool TangoTestFixtureImpl::checkWithTimeout(std::string readName, T refer
   do {
     readValues = {};
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    proxy->read_attribute(readName) >> readValues;
+    try {
+      proxy->read_attribute(readName) >> readValues;
+    }
+    catch(CORBA::Exception& ex) {
+      Tango::Except::print_exception(ex);
+      std::rethrow_exception(std::current_exception());
+    }
+
   } while (referenceValues != readValues && (clock::now() - now) < TIMEOUT);
 
   return referenceValues == readValues;

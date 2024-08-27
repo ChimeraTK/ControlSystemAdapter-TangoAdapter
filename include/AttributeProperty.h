@@ -7,96 +7,56 @@
 
 #include <ChimeraTK/Exception.h>
 
-#include <map>
-#define TOKEN ";"
-
 namespace ChimeraTK {
+    inline Tango::CmdArgType deriveDataType(Tango::CmdArgType& inType) {
+      switch(inType) {
+        case Tango::DEV_ENUM:
+          // FIXME: HACK. There is no CHAR type in Tango, we use ENUM and map to SHORT
+          return Tango::DEV_SHORT;
+        case Tango::DEV_VOID:
+          // DEV_VOID is not a type. It is usually used to signify that a Command does not have a parameter
+          // or a return value. Hence we need to map it to something else, let's choose boolean for that
+          return Tango::DEV_BOOLEAN;
+        default:
+          return inType;
+      }
+    }
   enum AttrDataFormat { SCALAR, SPECTRUM, IMAGE };
 
   struct AttributeProperty {
     // Speed;Board/Reg;SCALAR;DEVShort
-    AttributeProperty(std::string attributeName, std::string variablePath, AttrDataFormat dataFormat,
+    AttributeProperty(std::string attributeName, AttrDataFormat dataFormat,
         Tango::CmdArgType attrDataType, std::string attrDesc, std::string attrUnit)
     : unit(std::move(attrUnit)), desc(std::move(attrDesc)), name(std::move(attributeName)),
-      path(std::move(variablePath)), attrDataFormat(dataFormat), dataType(attrDataType) {}
-
-    explicit AttributeProperty(std::string attrDesc) {
-      std::vector<std::string> splitDesc;
-      boost::algorithm::split(splitDesc, attrDesc, boost::is_any_of(TOKEN));
-      if(splitDesc.size() != 6) {
-        throw ChimeraTK::runtime_error("Error parsing AttributeProperty: " + attrDesc);
-      }
-      name = splitDesc[0];
-      path = splitDesc[1];
-      try {
-        attrDataFormat = regTypeMap.at(splitDesc[2]);
-      } catch (std::out_of_range&) {
-        throw ChimeraTK::runtime_error("Invalid accessor format: " + splitDesc[2]);
-      }
-
-      if(splitDesc[3] == "DevUChar") {
-        dataType = Tango::DEV_UCHAR;
-      }
-      if(splitDesc[3] == "DevUShort") {
-        dataType = Tango::DEV_USHORT;
-      }
-      else if(splitDesc[3] == "DevULong") {
-        dataType = Tango::DEV_ULONG;
-      }
-      else if(splitDesc[3] == "DevULong64") {
-        dataType = Tango::DEV_ULONG64;
-      }
-      else if(splitDesc[3] == "DevChar") {
-        dataType = Tango::DEV_SHORT;
-      }
-      else if(splitDesc[3] == "DevShort") {
-        dataType = Tango::DEV_SHORT;
-      }
-      else if(splitDesc[3] == "DevLong") {
-        dataType = Tango::DEV_LONG;
-      }
-      else if(splitDesc[3] == "DevLong64") {
-        dataType = Tango::DEV_LONG64;
-      }
-      else if(splitDesc[3] == "DevFloat") {
-        dataType = Tango::DEV_FLOAT;
-      }
-      else if(splitDesc[3] == "DevDouble") {
-        dataType = Tango::DEV_DOUBLE;
-      }
-      else if(splitDesc[3] == "DevBoolean") {
-        dataType = Tango::DEV_BOOLEAN;
-      }
-      else if(splitDesc[3] == "DevString") {
-        dataType = Tango::DEV_STRING;
-      }
-      else if(splitDesc[3] == "DevVoid") {
-        dataType = Tango::DEV_VOID;
-      }
-
-      if (dataType == Tango::DATA_TYPE_UNKNOWN) {
-        throw ChimeraTK::runtime_error("Could not parse type name: " + splitDesc[3]);
-      }
-
-      desc = splitDesc[4];
-      unit = splitDesc[5];
-    }
+      attrDataFormat(dataFormat), dataType(attrDataType) {}
 
     ~AttributeProperty() = default;
 
     void operator=(AttributeProperty const&) = delete;
 
-    std::map<std::string, ChimeraTK::AttrDataFormat> regTypeMap = {{"SCALAR", ChimeraTK::AttrDataFormat::SCALAR},
-        {"SPECTRUM", ChimeraTK::AttrDataFormat::SPECTRUM}, {"IMAGE", ChimeraTK::AttrDataFormat::IMAGE}};
+    std::unique_ptr<Tango::Attr> toTangoAttribute();
 
     std::string unit;
     std::string desc;
     std::string name;
-    std::string path;
+    size_t length{0};
 
     ChimeraTK::AttrDataFormat attrDataFormat{};
     Tango::CmdArgType dataType{Tango::DATA_TYPE_UNKNOWN};
     Tango::AttrWriteType writeType{Tango::AttrWriteType::WT_UNKNOWN};
   };
-
 } // namespace ChimeraTK
+
+namespace std {
+  inline std::ostream& operator<<(std::ostream& os, const ChimeraTK::AttributeProperty& prop) {
+    os << "Dumping AttributeProperty " << prop.name << std::endl;
+    os << "   unit: " << prop.unit << "\n"
+       << "   desc: " << prop.desc << "\n"
+       << "   length: " << prop.length << "\n"
+       << "   format: " << prop.attrDataFormat << "\n"
+       << "   type: " << prop.dataType << "\n"
+       << "   writeType: " << prop.writeType << std::endl;
+
+    return os;
+  }
+} // namespace std

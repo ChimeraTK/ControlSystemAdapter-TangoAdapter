@@ -3,16 +3,11 @@
 
 #include "TangoAdapter.h"
 
-#include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
-
 #include <tango/tango.h>
 
-#include <filesystem>
+#include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
 
-// Compatibility with TANGO < 9.4 - cout may also be a macro there.
-#ifndef TANGO_LOG
-#  define TANGO_LOG cout
-#endif
+#include <filesystem>
 
 namespace ChimeraTK {
   TangoAdapter::TangoAdapter() {
@@ -21,42 +16,64 @@ namespace ChimeraTK {
   }
 
   std::set<std::string> TangoAdapter::getCsVariableNames() {
-    std::set<std::string> output;
-    for(auto& pv : _controlSystemPVManager->getAllProcessVariables()) {
-      output.insert(pv->getName());
-    }
+    static std::set<std::string> variables = _attributeMapper.getCsVariableNames();
 
-    return output;
+    return variables;
   }
 
-  void TangoAdapter::run(int argc, char* argv[]) {
+  // This gets passed in commandline arguments
+  // NOLINTNEXTLINE(modernize-avoid-c-arrays)
+  void TangoAdapter::run(int argc, char* argv[], std::optional<std::function<void()>> postInitHook) {
     prepareApplicationStartup();
     try {
       // Initialise the device server
       //----------------------------------------
       Tango::Util* tg = Tango::Util::init(argc, argv);
 
+      // This has to be done after Util::init since it needs some information from Tango
+      // if the mapper file is missing some information (e.g. Class name)
+      _attributeMapper.readMapperFile();
+
       // Create the device server singleton
       //	which will create everything
       //----------------------------------------
       tg->server_init(false);
 
+      // Start application and updater here after all classes and devices are created in server_init
+      ChimeraTK::TangoAdapter::getInstance().finalizeApplicationStartup();
+
+      // check for variables not yet initialised - we must guarantee that all to-application variables are written
+      // exactly once at server start.
+      for(auto& pv : _controlSystemPVManager->getAllProcessVariables()) {
+        if(!pv->isWriteable()) {
+          continue;
+        }
+
+        if(pv->getVersionNumber() == ChimeraTK::VersionNumber(nullptr)) {
+          // The variable has not yet been written. Do it now, even if we just send a 0.
+          pv->write();
+        }
+      }
+
+      if(postInitHook) {
+        postInitHook.value()();
+      }
+
       // Run the endless loop
-      //----------------------------------------
-      TANGO_LOG << "Ready to accept request" << std::endl;
+      /*--------------------------------------------------------------------------------------------------------------*/
+      std::cout << "Ready to accept request" << std::endl;
       tg->server_run();
     }
     catch(std::bad_alloc&) {
-      TANGO_LOG << "Can't allocate memory to store device object !!!" << std::endl;
-      TANGO_LOG << "Exiting" << std::endl;
+      std::cerr << "Can't allocate memory to store device object !!!" << std::endl;
+      std::cerr << "Exiting" << std::endl;
     }
     catch(CORBA::Exception& e) {
       Tango::Except::print_exception(e);
 
-      TANGO_LOG << "Received a CORBA_Exception" << std::endl;
-      TANGO_LOG << "Exiting" << std::endl;
+      std::cerr << "Received a CORBA_Exception" << std::endl;
+      std::cerr << "Exiting" << std::endl;
     }
-    Tango::Util::instance()->server_cleanup();
     shutdown();
   }
 

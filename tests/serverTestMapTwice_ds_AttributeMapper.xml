@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<DeviceServer>
+    <DeviceClass name="serverTestMapTwice">
+        <DeviceInstance name="tango/test/servertestmaptwice">
+            <Attribute name="PlainRename1" source="INT/FROM_DEVICE_SCALAR" />
+            <Attribute name="PlainRename2" source="INT/FROM_DEVICE_SCALAR" />
+            <Attribute name="INT_TO_DEVICE_SCALAR" source="INT/TO_DEVICE_SCALAR" />
+        </DeviceInstance>
+    </DeviceClass>
+</DeviceServer>

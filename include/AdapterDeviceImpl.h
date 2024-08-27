@@ -32,7 +32,8 @@
 #pragma once
 
 #include "AttributeProperty.h"
-
+#include "AttributeMapper.h"
+#include "ChimeraTK/TransferElementAbstractor.h"
 #include <tango/tango.h>
 
 // Most of the non-conforming naming is a requierment from Tango, so just disable this check
@@ -89,7 +90,7 @@ namespace TangoAdapter {
     /**
      * The device object destructor.
      */
-    ~AdapterDeviceImpl() override { delete_device(); };
+    ~AdapterDeviceImpl() override { delete_device(); }
 
     //	Miscellaneous methods
     /*
@@ -108,6 +109,17 @@ namespace TangoAdapter {
      *	Always executed method before execution command method.
      */
     void always_executed_hook() override;
+
+    std::map<std::string, ChimeraTK::TransferElementAbstractor> attributeToPvMap;
+
+    ChimeraTK::TransferElementAbstractor getPvForAttribute(const std::string& attributeName) {
+      try {
+        return attributeToPvMap.at(attributeName);
+      }
+      catch(std::out_of_range&) {
+        return {};
+      }
+    }
 
     //	Attribute methods
     //--------------------------------------------------------
@@ -139,21 +151,15 @@ namespace TangoAdapter {
 
     /*----- PROTECTED REGION ID(AdapterDeviceImpl::Additional Method prototypes) ENABLED START -----*/
 
-    void write_inited_values();
+    void write_inited_values(const std::list<ChimeraTK::AttributeProperty> &);
     void create_dynamic_attributes();
-    void create_Scalar_Attr(std::shared_ptr<ChimeraTK::AttributeProperty> const& attProp);
-    void create_Spectrum_Attr(std::shared_ptr<ChimeraTK::AttributeProperty> const& attProp);
-    void create_Image_Attr(std::shared_ptr<ChimeraTK::AttributeProperty> const& attProp);
 
     void detach_dynamic_attributes_from_device();
     void attach_dynamic_attributes_to_device();
 
-    // dynamic attribute list
-    std::vector<Tango::Attr*> _dynamic_attribute_list;
-    // list W spectrum attributes for initialization
-    std::map<std::shared_ptr<ChimeraTK::AttributeProperty>, int> _write_spectrum_attr_list;
-
     /*----- PROTECTED REGION END -----*/ //	AdapterDeviceImpl::Additional Method prototypes
+    void attachToClassAttributes(const std::shared_ptr<ChimeraTK::AttributeMapper::DeviceClass>& deviceClass);
+
   };
 
   /*----- PROTECTED REGION ID(AdapterDeviceImpl::Additional Classes Definitions) ENABLED START -----*/
