@@ -454,7 +454,7 @@ namespace ChimeraTK {
         auto pv = boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<int8_t>>(processVariable);
         auto* scalar_attr_t = new SpectrumAttribTempl<Tango::DevShort, int8_t>(_device, pv, attProp);
         _dynamic_attribute_list.push_back(scalar_attr_t);
-        _updater->addVariable(ChimeraTK::ScalarRegisterAccessor<int8_t>(pv), attProp->name);
+        _updater->addVariable(ChimeraTK::OneDRegisterAccessor<int8_t>(pv), attProp->name);
         break;
       }
       case Tango::DEV_USHORT: {
