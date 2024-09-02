@@ -1,6 +1,4 @@
 #include "AttributeMapper.h"
-#include "ScalarAttribTempl.h"
-#include "SpectrumAttribTempl.h"
 #include "TangoAdapter.h"
 #include "TangoLogCompat.h"
 #include <libxml++/libxml++.h>
@@ -190,8 +188,8 @@ namespace ChimeraTK {
 
   /********************************************************************************************************************/
 
-  void AttributeMapper::addAttribute(
-      std::shared_ptr<DeviceInstance>& device, const std::string& attrName, const std::string& processVariableName) {
+  void AttributeMapper::addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
+      const std::string& processVariableName, std::optional<std::string> unit, std::optional<std::string> description) {
     // derive the datatype
     auto processVariable = _controlSystemPVManager->getProcessVariable(processVariableName);
     std::type_info const& valueType = processVariable->getValueType();
@@ -222,8 +220,8 @@ namespace ChimeraTK {
     // creating attribute property
     device->attributeToSource[attrName] = processVariableName;
 
-    device->ourClass->attributes.emplace_back(
-        attrName, dataFormat, tangoType, processVariable->getDescription(), processVariable->getUnit());
+    device->ourClass->attributes.emplace_back(attrName, dataFormat, tangoType,
+        description.value_or(processVariable->getDescription()), unit.value_or(processVariable->getUnit()));
 
     auto& attr = device->ourClass->attributes.back();
     TANGO_LOG_DEBUG << "Adding attribute to class: " << attr << std::endl;
@@ -265,7 +263,40 @@ namespace ChimeraTK {
     if(name.empty()) {
       name = util::deriveAttributeName(source->get_value());
     }
-    addAttribute(device, name, source->get_value());
+
+    std::optional<std::string> description;
+    std::optional<std::string> unit;
+    for(const auto* child : node->get_children()) {
+      if(child->get_name() == "Description") {
+        description = std::make_optional<std::string>();
+        for(const auto* descriptionChild : child->get_children()) {
+          if(util::nodeIsWhitespace(descriptionChild)) {
+            continue;
+          }
+          const auto* nodeAsText = dynamic_cast<const xmlpp::TextNode*>(descriptionChild);
+          if(nodeAsText == nullptr) {
+            continue;
+          }
+
+          *description += nodeAsText->get_content();
+        }
+      }
+      else if(child->get_name() == "Egu") {
+        unit = std::make_optional<std::string>();
+        for(const auto* eguChild : child->get_children()) {
+          if(util::nodeIsWhitespace(eguChild)) {
+            continue;
+          }
+          const auto* nodeAsText = dynamic_cast<const xmlpp::TextNode*>(eguChild);
+          if(nodeAsText == nullptr) {
+            continue;
+          }
+
+          *unit += nodeAsText->get_content();
+        }
+      }
+    }
+    addAttribute(device, name, source->get_value(), unit, description);
   }
 
   /********************************************************************************************************************/
@@ -406,7 +437,7 @@ namespace ChimeraTK {
 
       if(processVariableName.find(importSource + "/") == 0) {
         auto attrName = util::deriveAttributeName(processVariableName, importSource);
-        addAttribute(device, attrName, processVariableName);
+        addAttribute(device, attrName, processVariableName, {}, {});
       }
     }
   }

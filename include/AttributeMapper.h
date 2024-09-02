@@ -75,8 +75,8 @@ namespace ChimeraTK {
     std::map<std::string, std::list<std::shared_ptr<AttributeProperty>>> _descriptions;
     boost::shared_ptr<ControlSystemPVManager> _controlSystemPVManager;
 
-    void addAttribute(
-        std::shared_ptr<DeviceInstance>& device, const string& attrName, const string& processVariableName);
+    void addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
+        const std::string& processVariableName, std::optional<string> unit, std::optional<string> description);
   };
 
 } // namespace ChimeraTK
