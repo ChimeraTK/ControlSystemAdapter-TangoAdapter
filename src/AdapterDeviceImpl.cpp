@@ -64,8 +64,12 @@ namespace TangoAdapter {
 
   AdapterDeviceImpl::AdapterDeviceImpl(Tango::DeviceClass* cl, const char* s) : TANGO_BASE_CLASS(cl, s) {}
 
+  /********************************************************************************************************************/
+
   AdapterDeviceImpl::AdapterDeviceImpl(Tango::DeviceClass* cl, const char* s, const char* d)
   : TANGO_BASE_CLASS(cl, s, d) {}
+
+  /********************************************************************************************************************/
 
   void AdapterDeviceImpl::delete_device() {
     DEBUG_STREAM << "AdapterDeviceImpl::delete_device() " << device_name << std::endl;
