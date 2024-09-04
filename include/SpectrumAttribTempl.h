@@ -2,15 +2,14 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include "AttributeProperty.h"
 #include "AdapterDeviceImpl.h"
+#include "AttributeProperty.h"
 #include "TangoPropertyHelper.h"
 
 #include <ChimeraTK/NDRegisterAccessor.h>
 
-
-namespace ChimeraTK {
-  template<typename TangoType, typename AdapterType , typename TangoWriteType = TangoType>
+namespace TangoAdapter {
+  template<typename TangoType, typename AdapterType, typename TangoWriteType = TangoType>
   class SpectrumAttribTempl : public Tango::SpectrumAttr {
    public:
     explicit SpectrumAttribTempl(AttributeProperty& attProperty);
@@ -23,10 +22,10 @@ namespace ChimeraTK {
     }
 
     std::string memoriedPropertyName;
+
    private:
     using GenericAccessor = ChimeraTK::NDRegisterAccessor<AdapterType>;
     using BooleanAccessor = ChimeraTK::NDRegisterAccessor<ChimeraTK::Boolean>;
-
   };
 
   /********************************************************************************************************************/
@@ -35,8 +34,8 @@ namespace ChimeraTK {
 
   template<typename TangoType, typename AdapterType, typename TangoWriteType>
   SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::SpectrumAttribTempl(AttributeProperty& attProperty)
-  : Tango::SpectrumAttr(attProperty.name.c_str(), ChimeraTK::deriveDataType(attProperty.dataType),
-        attProperty.writeType, attProperty.length) {
+  : Tango::SpectrumAttr(
+        attProperty.name.c_str(), attProperty.getDataType(), attProperty.writeType, attProperty.length) {
     if(attProperty.writeType != Tango::READ) {
       memoriedPropertyName = "__Memoried_" + attProperty.name;
     }
@@ -206,10 +205,10 @@ namespace ChimeraTK {
     }
 
     if(att.get_quality() == Tango::AttrQuality::ATTR_INVALID || data == nullptr) {
-      processSpectrum->setDataValidity(DataValidity::faulty);
+      processSpectrum->setDataValidity(ChimeraTK::DataValidity::faulty);
     }
     else {
-      processSpectrum->setDataValidity(DataValidity::ok);
+      processSpectrum->setDataValidity(ChimeraTK::DataValidity::ok);
     }
 
     processSpectrum->write();
@@ -220,9 +219,9 @@ namespace ChimeraTK {
     else {
       if(Tango::Util::_UseDb) {
         // memory the written value if connected to database
-        setProperty<std::string>(dev, memoriedPropertyName, memoried_value);
+        TangoAdapter::setProperty<std::string>(dev, memoriedPropertyName, memoried_value);
       }
     }
   }
 
-} // namespace ChimeraTK
+} // namespace TangoAdapter

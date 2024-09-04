@@ -9,9 +9,9 @@
 
 #include <filesystem>
 
-namespace ChimeraTK {
+namespace TangoAdapter {
   TangoAdapter::TangoAdapter() {
-    std::tie(_controlSystemPVManager, _devicePVManager) = createPVManager();
+    std::tie(_controlSystemPVManager, _devicePVManager) = ChimeraTK::createPVManager();
     _attributeMapper.setCSPVManager(_controlSystemPVManager);
   }
 
@@ -27,7 +27,7 @@ namespace ChimeraTK {
     prepareApplicationStartup();
     try {
       // Initialise the device server
-      //----------------------------------------
+
       Tango::Util* tg = Tango::Util::init(argc, argv);
 
       // This has to be done after Util::init since it needs some information from Tango
@@ -36,11 +36,10 @@ namespace ChimeraTK {
 
       // Create the device server singleton
       //	which will create everything
-      //----------------------------------------
       tg->server_init(false);
 
       // Start application and updater here after all classes and devices are created in server_init
-      ChimeraTK::TangoAdapter::getInstance().finalizeApplicationStartup();
+      finalizeApplicationStartup();
 
       // check for variables not yet initialised - we must guarantee that all to-application variables are written
       // exactly once at server start.
@@ -55,6 +54,7 @@ namespace ChimeraTK {
         }
       }
 
+      // Run anything else that needs to be done after server start - This is mainly used in the tests
       if(postInitHook) {
         postInitHook.value()();
       }
@@ -76,6 +76,8 @@ namespace ChimeraTK {
     }
     shutdown();
   }
+
+  /********************************************************************************************************************/
 
   void TangoAdapter::prepareApplicationStartup() {
     // We do not get ownership of the application here. A plain pointer is used because the reference returned
@@ -109,10 +111,15 @@ namespace ChimeraTK {
     _appInstance->initialise();
   }
 
+  /********************************************************************************************************************/
+
   void TangoAdapter::finalizeApplicationStartup() {
     if(!_error.empty()) {
       return;
     }
+
+    _appInstance->optimiseUnmappedVariables(_attributeMapper.getUnusedVariables());
+
     // start the application
     _appInstance->run();
     _updater.run();
@@ -122,4 +129,4 @@ namespace ChimeraTK {
     _updater.stop();
   }
 
-} // namespace ChimeraTK
+} // namespace TangoAdapter

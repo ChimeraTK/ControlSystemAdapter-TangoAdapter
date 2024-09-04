@@ -4,11 +4,9 @@
 #define BOOST_TEST_MODULE serverTestFilterAttributes
 
 #include "TangoTestServer.h"
-
-#include <boost/test/included/unit_test.hpp>
-
 #include <tango/tango.h>
 
+#include <boost/test/included/unit_test.hpp>
 
 struct TestFixtureConfig {
   static void apply(TangoTestFixtureImpl& f) {
@@ -18,8 +16,9 @@ struct TestFixtureConfig {
 };
 
 using Fixture_t = TangoTestFixture<TestFixtureConfig>;
-
 BOOST_GLOBAL_FIXTURE(Fixture_t);
+
+/**********************************************************************************************************************/
 
 BOOST_AUTO_TEST_CASE(testPropertyFiltering) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
@@ -29,10 +28,8 @@ BOOST_AUTO_TEST_CASE(testPropertyFiltering) {
   // We expect the 4 mapped properties and the built-in "State" and "Status"
   BOOST_TEST(attributes->size() == 6);
 
-  BOOST_CHECK(std::find_if(attributes->begin(), attributes->end(), [](auto& attr) {
-    return attr == "PlainRename";
-  }) != attributes->end());
-
+  BOOST_CHECK(std::find_if(attributes->begin(), attributes->end(), [](auto& attr) { return attr == "PlainRename"; }) !=
+      attributes->end());
 
   auto info = proxy.get_attribute_config("PlainRename");
   BOOST_TEST(info.unit == "");
@@ -44,9 +41,8 @@ BOOST_AUTO_TEST_CASE(testPropertyFiltering) {
 
   BOOST_CHECK(tf.checkWithTimeout(std::string("PlainRename"), Tango::DevLong(42)));
 
-  BOOST_CHECK(std::find_if(attributes->begin(), attributes->end(), [](auto& attr) {
-    return attr == "ChangeAttributes";
-  }) != attributes->end());
+  BOOST_CHECK(std::find_if(attributes->begin(), attributes->end(),
+                  [](auto& attr) { return attr == "ChangeAttributes"; }) != attributes->end());
 
   info = proxy.get_attribute_config("ChangeAttributes");
   BOOST_TEST(info.unit == "mA");

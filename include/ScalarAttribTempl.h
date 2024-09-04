@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
 #include "AdapterDeviceImpl.h"
@@ -5,7 +7,7 @@
 
 #include <ChimeraTK/NDRegisterAccessor.h>
 
-namespace ChimeraTK {
+namespace TangoAdapter {
   template<typename TangoType, typename AdapterType>
   class ScalarAttribTempl : public Tango::Attr {
    public:
@@ -29,7 +31,7 @@ namespace ChimeraTK {
 
   template<typename TangoType, typename AdapterType>
   ScalarAttribTempl<TangoType, AdapterType>::ScalarAttribTempl(AttributeProperty& attProperty)
-  : Tango::Attr(attProperty.name.c_str(), ChimeraTK::deriveDataType(attProperty.dataType), attProperty.writeType) {
+  : Tango::Attr(attProperty.name.c_str(), attProperty.getDataType(), attProperty.writeType) {
     // memory the written value and write at initialization
     if(attProperty.writeType == Tango::READ_WRITE || attProperty.writeType == Tango::WRITE) {
       set_memorized();
@@ -85,7 +87,7 @@ namespace ChimeraTK {
       assert(pvAsBool != nullptr);
 
       auto value = std::make_unique<Tango::DevBoolean>();
-      if constexpr(std::is_same_v<AdapterType, Void>) {
+      if constexpr(std::is_same_v<AdapterType, ChimeraTK::Void>) {
         *(value.get()) = true;
       }
       else {
@@ -151,12 +153,12 @@ namespace ChimeraTK {
     }
 
     if(att.get_quality() == Tango::AttrQuality::ATTR_INVALID) {
-      processScalar->setDataValidity(DataValidity::faulty);
+      processScalar->setDataValidity(ChimeraTK::DataValidity::faulty);
     }
     else {
-      processScalar->setDataValidity(DataValidity::ok);
+      processScalar->setDataValidity(ChimeraTK::DataValidity::ok);
     }
     processScalar->write();
   }
 
-} // namespace ChimeraTK
+} // namespace TangoAdapter

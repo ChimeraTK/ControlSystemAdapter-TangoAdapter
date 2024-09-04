@@ -46,7 +46,7 @@ class ExampleApp : public ctk::Application {
   // `#include <ChimeraTK/ApplicationCore/VersionInfoProvider.h>` line,
   // The server is also expected to have a module named "Application"
   // with a variable named "configPatchVersion" of type "int32" in its "config.xml" file.
-  //ctk::VersionInfoProvider vip{this};
+  // ctk::VersionInfoProvider vip{this};
 
   // Periodic trigger used to readout data from the device periodically.
   //! [Snippet: PeriodicTrigger Instance]

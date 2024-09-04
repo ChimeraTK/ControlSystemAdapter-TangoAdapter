@@ -10,15 +10,21 @@
 
 #include <boost/test/included/unit_test.hpp>
 
+/**********************************************************************************************************************/
+
 struct TestFixtureConfig {
   static void apply(TangoTestFixtureImpl&) {
-    ExtendedReferenceTestApplication::additionalVariables.emplace_back(ChimeraTK::SynchronizationDirection::deviceToControlSystem, "plainVariableInRoot", 1);
+    ExtendedReferenceTestApplication::additionalVariables.emplace_back(
+        ChimeraTK::SynchronizationDirection::deviceToControlSystem, "plainVariableInRoot", 1);
   }
 };
 
-using Fixture_t = TangoTestFixture<TestFixtureConfig>;
+/**********************************************************************************************************************/
 
+using Fixture_t = TangoTestFixture<TestFixtureConfig>;
 BOOST_GLOBAL_FIXTURE(Fixture_t);
+
+/**********************************************************************************************************************/
 
 BOOST_AUTO_TEST_CASE(testPropertyMapping) {
   // Test that we can also properly handle variables that do not have any hierarchy level
@@ -28,7 +34,6 @@ BOOST_AUTO_TEST_CASE(testPropertyMapping) {
   std::unique_ptr<std::vector<std::string>> attributes(proxy.get_attribute_list());
   BOOST_TEST(attributes->size() == 77);
 
-  BOOST_CHECK(std::find_if(attributes->begin(), attributes->end(), [](auto& attr) {
-    return attr == "plainVariableInRoot";
-  }) != attributes->end());
+  BOOST_CHECK(std::find_if(attributes->begin(), attributes->end(),
+                  [](auto& attr) { return attr == "plainVariableInRoot"; }) != attributes->end());
 }

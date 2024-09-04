@@ -10,7 +10,7 @@
 #include <list>
 #include <set>
 
-namespace ChimeraTK {
+namespace TangoAdapter {
 
   class AttributeMapper {
    public:
@@ -22,6 +22,8 @@ namespace ChimeraTK {
       std::map<std::string, std::string> attributeToSource;
       DeviceClass* ourClass;
     };
+
+    /******************************************************************************************************************/
 
     struct DeviceClass {
       std::string name;
@@ -36,35 +38,36 @@ namespace ChimeraTK {
       bool hasDevice(const std::string& deviceName) {
         return devicesInDeviceClass.find(deviceName) != devicesInDeviceClass.end();
       }
+
+      std::shared_ptr<DeviceInstance> getDevice(const std::string& deviceName);
     };
+
+    /******************************************************************************************************************/
 
     AttributeMapper() = default;
     AttributeMapper(AttributeMapper&) = delete;
     void operator=(AttributeMapper const&) = delete;
-    [[nodiscard]] std::set<std::string> getUnusedVariables();
-    [[nodiscard]] std::list<std::shared_ptr<AttributeProperty>> const& getAttDescList(const string& device) const;
 
-    void setCSPVManager(boost::shared_ptr<ControlSystemPVManager> csPVManager) {
+    [[nodiscard]] std::set<std::string> getUnusedVariables();
+    [[nodiscard]] std::list<std::shared_ptr<AttributeProperty>> const& getAttDescList(const std::string& device) const;
+
+    void setCSPVManager(boost::shared_ptr<ChimeraTK::ControlSystemPVManager> csPVManager) {
       _controlSystemPVManager = std::move(csPVManager);
     }
 
     std::set<std::string> getCsVariableNames();
-
     std::list<std::string> getClasses();
-
     std::shared_ptr<DeviceClass> getClass(std::string& name) { return _classes[name]; }
 
     void readMapperFile();
 
     Tango::Attr* createAttribute(AttributeProperty& attr);
 
-   protected:
+   private:
     void processDeviceClassNode(xmlpp::Node* classNode);
     void processDeviceInstanceNode(const std::shared_ptr<DeviceClass>&, xmlpp::Node* instanceNode);
     void processAttributeNode(std::shared_ptr<DeviceInstance> device, xmlpp::Node* node);
     void import(std::string importSource, std::shared_ptr<DeviceInstance> device);
-    Tango::Attr* createScalarAttribute(ChimeraTK::AttributeProperty& attProp);
-    Tango::Attr* createSpectrumAttribute(ChimeraTK::AttributeProperty& attProp);
 
     // For passing on to the class constructor in the class factory
     std::map<std::string, std::shared_ptr<DeviceClass>> _classes;
@@ -73,10 +76,11 @@ namespace ChimeraTK {
     std::set<std::string> _usedInputVariables; // For tracing which variables are
                                                // not to be imported.
     std::map<std::string, std::list<std::shared_ptr<AttributeProperty>>> _descriptions;
-    boost::shared_ptr<ControlSystemPVManager> _controlSystemPVManager;
+    boost::shared_ptr<ChimeraTK::ControlSystemPVManager> _controlSystemPVManager;
 
     void addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
-        const std::string& processVariableName, std::optional<string> unit, std::optional<string> description);
+        const std::string& processVariableName, std::optional<std::string> unit,
+        const std::optional<std::string>& description);
   };
 
-} // namespace ChimeraTK
+} // namespace TangoAdapter

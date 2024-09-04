@@ -1,10 +1,6 @@
-
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
-
-#include "AttributeProperty.h"
-#include "ScalarAttribTempl.h"
-#include "SpectrumAttribTempl.h"
-#include <unordered_map>
 
 #include <ChimeraTK/OneDRegisterAccessor.h>
 #include <ChimeraTK/ScalarRegisterAccessor.h>
@@ -14,7 +10,7 @@
 #include <boost/noncopyable.hpp>
 
 #include <map>
-namespace ChimeraTK {
+namespace TangoAdapter {
 
   /** A class to synchronise DeviceToControlSystem variable to Tango.
    *  It contains a list of TransferElements and a thread which is monitoring them
@@ -36,11 +32,6 @@ namespace ChimeraTK {
     void run();
     void stop();
 
-    // Add a variable to be updated. Together with the TransferElementAbstractor
-    // pointing to the ChimeraTK::ProcessArray, the EqFct* to obtain the lock for
-    // and a function to be called which executes the actual update should be
-    // specified. The lock is held while the updaterFunction is called, so it must
-    // neither obtained nor freed within the updaterFunction.
     void addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId);
 
     const std::list<ChimeraTK::TransferElementAbstractor>& getElementsToRead() { return _elementsToRead; }
@@ -57,4 +48,4 @@ namespace ChimeraTK {
     };
     std::map<ChimeraTK::TransferElementID, UpdateDescriptor> _descriptorMap;
   };
-} // namespace ChimeraTK
+} // namespace TangoAdapter
