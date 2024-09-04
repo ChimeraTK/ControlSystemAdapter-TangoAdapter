@@ -11,7 +11,7 @@
  * Extends the ReferenceTestApplication so that it is possible to register additional
  * variables for extended name mapping (regression) tests.
  */
-class ExtendedReferenceTestApplication: public ReferenceTestApplication {
+class ExtendedReferenceTestApplication : public ReferenceTestApplication {
  public:
   using ReferenceTestApplication::ReferenceTestApplication;
 

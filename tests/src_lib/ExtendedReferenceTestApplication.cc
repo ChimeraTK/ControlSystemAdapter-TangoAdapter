@@ -7,9 +7,8 @@
 #include <ChimeraTK/ControlSystemAdapter/DevicePVManager.h>
 #include <ChimeraTK/ControlSystemAdapter/ProcessArray.h>
 
-
 void ExtendedReferenceTestApplication::initialise() {
-  for (const auto &[direction, name, size]: ExtendedReferenceTestApplication::additionalVariables) {
+  for(const auto& [direction, name, size] : ExtendedReferenceTestApplication::additionalVariables) {
     additionalProcessArrays.emplace_back(_processVariableManager->createProcessArray<int>(direction, name, size));
   }
   ReferenceTestApplication::initialise();

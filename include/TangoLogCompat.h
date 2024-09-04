@@ -8,6 +8,6 @@
 // NOLINTBEGIN(readability-identifier-naming)
 #ifndef TANGO_LOG_DEBUG
 #  define TANGO_LOG_DEBUG cout3
-#  define TANGO_LOG_INFO  cout1
+#  define TANGO_LOG_INFO cout1
 #endif
 // NOLINTEND(readability-identifier-naming)

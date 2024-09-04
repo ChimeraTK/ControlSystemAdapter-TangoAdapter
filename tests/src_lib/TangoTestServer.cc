@@ -12,7 +12,7 @@
 ThreadedTangoServer::ThreadedTangoServer(std::string setTestName, bool setVerbose)
 : testName(std::move(setTestName)), verbose(setVerbose) {}
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 ThreadedTangoServer::~ThreadedTangoServer() {
   if(tangoServerThread.joinable()) {
@@ -29,10 +29,8 @@ ThreadedTangoServer::~ThreadedTangoServer() {
   }
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
-// Attention: This has to mimic what happens in TangoAdapter::run()
-// FIXME: Find a way to not have to maintain this code in two places.
 void ThreadedTangoServer::start() {
   std::mutex in_mtx;
   std::unique_lock<std::mutex> in(in_mtx);
@@ -40,11 +38,11 @@ void ThreadedTangoServer::start() {
   bool threadRunning{false};
 
   tangoServerThread = std::thread([&]() {
-    auto& adapter = ChimeraTK::TangoAdapter::getInstance();
+    auto& adapter = TangoAdapter::TangoAdapter::getInstance();
     argv.emplace_back(testName + "_ds");
     argv.emplace_back("Test" + testName);
     if(verbose || std::getenv("TANGO_TESTS_VERBOSE") != nullptr) {
-      argv.emplace_back("-v4");
+      argv.emplace_back("-v5");
     }
     deviceString = std::string("tango/test/") + testName;
 
@@ -91,14 +89,14 @@ void ThreadedTangoServer::start() {
   cv.wait(in, [&] { return threadRunning; });
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 void ThreadedTangoServer::stop() {
   ThreadedTangoServer::shutdownRequested.store(true);
   tangoServerThread.join();
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 std::string ThreadedTangoServer::port() {
   static std::string corbaPort;
@@ -111,19 +109,19 @@ std::string ThreadedTangoServer::port() {
   return corbaPort;
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 std::string ThreadedTangoServer::getClientUrl() const {
   return "tango://localhost:" + port() + "/" + device() + "#dbase=no";
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 const std::string& ThreadedTangoServer::device() const {
   return deviceString;
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 ThreadedTangoServer& ThreadedTangoServer::setCreateOfflineDatabase(bool create) {
   createOfflineDatabase = create;
@@ -131,7 +129,7 @@ ThreadedTangoServer& ThreadedTangoServer::setCreateOfflineDatabase(bool create) 
   return *this;
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 ThreadedTangoServer& ThreadedTangoServer::setKeepOfflineDatabase(bool keep) {
   keepOfflineDatabase = keep;
@@ -139,7 +137,7 @@ ThreadedTangoServer& ThreadedTangoServer::setKeepOfflineDatabase(bool keep) {
   return *this;
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 ThreadedTangoServer& ThreadedTangoServer::setOfflineDatabase(const std::string& basePath) {
   offlineDatabase = basePath + ".db";
@@ -157,7 +155,7 @@ ThreadedTangoServer& ThreadedTangoServer::setOfflineDatabase(const std::string& 
   return *this;
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 ThreadedTangoServer& ThreadedTangoServer::overrideNames(const std::string& newNames) {
   testName = newNames;
@@ -165,13 +163,13 @@ ThreadedTangoServer& ThreadedTangoServer::overrideNames(const std::string& newNa
   return *this;
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 std::atomic<bool> ThreadedTangoServer::shutdownRequested{false};
 
-/*********************************************************************************************************************/
-/*********************************************************************************************************************/
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 TangoTestFixtureImpl::TangoTestFixtureImpl()
 : theFactory(boost::unit_test::framework::master_test_suite().p_name.value),
@@ -179,7 +177,7 @@ TangoTestFixtureImpl::TangoTestFixtureImpl()
   f = this;
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 void TangoTestFixtureImpl::startup() {
   theServer.start();
@@ -231,7 +229,7 @@ void TangoTestFixtureImpl::startup() {
   }
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 int TangoTestFixtureImpl::name2TypeId(const std::string& name) {
   static std::map<std::string, int> name2Type{{"DOUBLE", Tango::DEV_DOUBLE}, {"FLOAT", Tango::DEV_FLOAT},
@@ -243,7 +241,7 @@ int TangoTestFixtureImpl::name2TypeId(const std::string& name) {
   return name2Type.at(name);
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 TangoTestFixtureImpl::~TangoTestFixtureImpl() {
   // Shutdown proxy first, then the server, otherwise we will get a CORBA exception
@@ -254,12 +252,12 @@ TangoTestFixtureImpl::~TangoTestFixtureImpl() {
   theServer.stop();
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 void TangoTestFixtureImpl::setManualLoopControl(bool manualControl) {
   manualLoopControl = manualControl;
 }
 
-/*********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 TangoTestFixtureImpl* TangoTestFixtureImpl::f;
