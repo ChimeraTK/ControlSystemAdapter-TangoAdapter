@@ -3,11 +3,11 @@
 #pragma once
 
 #include "AttributeMapper.h"
-#include "TangoUpdater.h"
 #include "ChimeraTK/ControlSystemAdapter/ControlSystemPVManager.h"
+#include "TangoUpdater.h"
 
 #include <boost/smart_ptr/shared_ptr.hpp>
-namespace ChimeraTK {
+namespace TangoAdapter {
   class TangoAdapter {
    public:
     static constexpr std::string_view PLAIN_IMPORT_DUMMY_DEVICE{"__CHIMERATK_TEMPLATE_DEVICE_RAW_IMPORT"};
@@ -23,8 +23,10 @@ namespace ChimeraTK {
     void finalizeApplicationStartup();
     void shutdown();
     [[nodiscard]] std::string getError() { return _error; }
-    [[nodiscard]] boost::shared_ptr<ControlSystemPVManager> getCsPvManager() { return _controlSystemPVManager; }
-    [[nodiscard]] boost::shared_ptr<DevicePVManager> getDevicePvManager() { return _devicePVManager; }
+    [[nodiscard]] boost::shared_ptr<ChimeraTK::ControlSystemPVManager> getCsPvManager() {
+      return _controlSystemPVManager;
+    }
+    [[nodiscard]] boost::shared_ptr<ChimeraTK::DevicePVManager> getDevicePvManager() { return _devicePVManager; }
 
     [[nodiscard]] std::set<std::string> getCsVariableNames();
     [[nodiscard]] AttributeMapper& getMapper() { return _attributeMapper; }
@@ -32,11 +34,11 @@ namespace ChimeraTK {
 
    private:
     TangoAdapter();
-    boost::shared_ptr<ControlSystemPVManager> _controlSystemPVManager;
-    boost::shared_ptr<DevicePVManager> _devicePVManager;
+    boost::shared_ptr<ChimeraTK::ControlSystemPVManager> _controlSystemPVManager;
+    boost::shared_ptr<ChimeraTK::DevicePVManager> _devicePVManager;
     AttributeMapper _attributeMapper;
     TangoUpdater _updater;
     ChimeraTK::ApplicationBase* _appInstance{nullptr};
     std::string _error;
   };
-} // namespace ChimeraTK
+} // namespace TangoAdapter

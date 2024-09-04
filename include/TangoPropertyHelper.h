@@ -1,24 +1,18 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-/*!
- * \authors See AUTHORS file
- */
 
-// ============================================================================
-// DEPENDENCIES
-// ============================================================================
 #include <tango/tango.h>
+
 #include <iostream>
 #include <sstream>
 #include <string>
 
-#define SEPERATOR ';'
-namespace ChimeraTK {
+namespace TangoAdapter {
+  constexpr char SEPERATOR = ';';
 
-  //-------------------------------------------------------------------------
-  // PropertyHelper::setProperty
-  //-------------------------------------------------------------------------
+  /********************************************************************************************************************/
+
   template<class T>
   void setProperty(Tango::DeviceImpl* dev_p, const std::string& property_name, T value) {
     if(!Tango::Util::_UseDb) {
@@ -40,9 +34,8 @@ namespace ChimeraTK {
     }
   }
 
-  //-------------------------------------------------------------------------
-  // PropertyHelper::getProperty
-  //-------------------------------------------------------------------------
+  /********************************************************************************************************************/
+
   template<class T>
   T getProperty(Tango::DeviceImpl* dev_p, const std::string& property_name) {
     if(!Tango::Util::_UseDb) {
@@ -65,9 +58,8 @@ namespace ChimeraTK {
     return value;
   }
 
-  //-------------------------------------------------------------------------
-  // PropertyHelper::createPropertyIfEmpty
-  //-------------------------------------------------------------------------
+  /********************************************************************************************************************/
+
   template<class T>
   void createPropertyIfEmpty(
       Tango::DeviceImpl* dev_p, Tango::DbData& dev_prop, T value, const std::string& property_name) {
@@ -104,6 +96,8 @@ namespace ChimeraTK {
     }
   }
 
+  /********************************************************************************************************************/
+
   template<class T>
   std::vector<T> stringToArray(const std::string& memoried_value) {
     std::vector<T> spectrum_values;
@@ -117,7 +111,8 @@ namespace ChimeraTK {
         int val;
         tmp >> val;
         element = uint8_t(val);
-      } else {
+      }
+      else {
         tmp >> element;
       }
       spectrum_values.push_back(element);
@@ -128,7 +123,7 @@ namespace ChimeraTK {
   // FIXME: This breaks if string values contain ";"
   template<class T>
   std::string arrayToString(T* values, size_t length) {
-    if (values == nullptr) {
+    if(values == nullptr) {
       return {};
     }
     std::ostringstream os;
@@ -136,7 +131,8 @@ namespace ChimeraTK {
     for(size_t i = 0; i < length; i++) {
       if constexpr(std::is_same_v<T, uint8_t const> || std::is_same_v<T, uint8_t>) {
         os << int(values[i]);
-      } else {
+      }
+      else {
         os << values[i];
       }
       if(i < length - 1) {
@@ -147,4 +143,4 @@ namespace ChimeraTK {
     return os.str();
   }
 
-} // namespace ChimeraTK
+} // namespace TangoAdapter

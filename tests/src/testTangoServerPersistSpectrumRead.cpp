@@ -3,12 +3,11 @@
 #define BOOST_TEST_MODULE serverTestPersistSpectrum
 
 #include "TangoTestServer.h"
+#include <tango/tango.h>
 
-#include <boost/test/included/unit_test.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/map.hpp>
-
-#include <tango/tango.h>
+#include <boost/test/included/unit_test.hpp>
 
 struct TestFixtureConfig {
   static void apply(TangoTestFixtureImpl& f) {
@@ -18,10 +17,10 @@ struct TestFixtureConfig {
         .overrideNames("serverTestPersistSpectrum");
   }
 };
-
 using Fixture_t = TangoTestFixture<TestFixtureConfig>;
-
 BOOST_GLOBAL_FIXTURE(Fixture_t);
+
+/********************************************************************************************************************/
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(testReadPersistedArray, T, TestTypesNoVoid) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();

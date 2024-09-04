@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
 #include "AttributeMapper.h"
 #include "TangoAdapter.h"
 #include "TangoLogCompat.h"
@@ -10,7 +13,7 @@
 #include <memory>
 #include <regex>
 
-namespace ChimeraTK {
+namespace TangoAdapter {
 
   namespace util {
     static std::pair<std::string, std::string> splitStringAtFirstSlash(std::string& input) {
@@ -33,8 +36,8 @@ namespace ChimeraTK {
       }
       return std::make_pair(locationName, propertyName);
     }
+
     /******************************************************************************************************************/
-    /********************************************************************************************************************/
 
     bool nodeIsWhitespace(const xmlpp::Node* node) {
       const auto* nodeAsText = dynamic_cast<const xmlpp::TextNode*>(node);
@@ -43,8 +46,8 @@ namespace ChimeraTK {
       }
       return false;
     }
+
     /******************************************************************************************************************/
-    /********************************************************************************************************************/
 
     static void iterateChildrenFiltered(
         xmlpp::Node* node, const std::function<void(xmlpp::Node*)>& functor,
@@ -64,8 +67,8 @@ namespace ChimeraTK {
         functor(child);
       }
     }
+
     /******************************************************************************************************************/
-    /********************************************************************************************************************/
 
     std::optional<std::string> childContentAsOptional(xmlpp::Node* node, const std::string& child) {
       std::optional<std::string> result;
@@ -121,8 +124,8 @@ namespace ChimeraTK {
 
       return attrName;
     }
+
     /******************************************************************************************************************/
-    /********************************************************************************************************************/
 
     Tango::CmdArgType deriveType(std::type_info const& info) {
       Tango::CmdArgType dataType{Tango::CmdArgType::DATA_TYPE_UNKNOWN};
@@ -175,6 +178,8 @@ namespace ChimeraTK {
   } // namespace util
 
   /********************************************************************************************************************/
+  /********************************************************************************************************************/
+  /********************************************************************************************************************/
 
   std::list<std::string> AttributeMapper::getClasses() {
     std::list<std::string> keys;
@@ -189,7 +194,8 @@ namespace ChimeraTK {
   /********************************************************************************************************************/
 
   void AttributeMapper::addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
-      const std::string& processVariableName, std::optional<std::string> unit, std::optional<std::string> description) {
+      const std::string& processVariableName, std::optional<std::string> unit,
+      const std::optional<std::string>& description) {
     // derive the datatype
     auto processVariable = _controlSystemPVManager->getProcessVariable(processVariableName);
     std::type_info const& valueType = processVariable->getValueType();
@@ -201,7 +207,7 @@ namespace ChimeraTK {
     size_t nChannels;
 
     // function in Device Access to check if valueType is in the map userTypeMap
-    callForType(valueType, [&](auto t) {
+    ChimeraTK::callForType(valueType, [&](auto t) {
       using T = decltype(t);
       boost::shared_ptr<ChimeraTK::NDRegisterAccessor<T>> pv =
           boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<T>>(processVariable);
@@ -209,12 +215,12 @@ namespace ChimeraTK {
       nChannels = pv->getNumberOfChannels();
     });
 
-    ChimeraTK::AttrDataFormat dataFormat = SCALAR;
+    auto dataFormat = AttrDataFormat::SCALAR;
     if(nChannels > 1) {
-      dataFormat = IMAGE;
+      dataFormat = AttrDataFormat::IMAGE;
     }
     else if(nSamples > 1) {
-      dataFormat = SPECTRUM;
+      dataFormat = AttrDataFormat::SPECTRUM;
     }
 
     // creating attribute property
@@ -422,4 +428,32 @@ namespace ChimeraTK {
 
     return output;
   }
-} // namespace ChimeraTK
+
+  /********************************************************************************************************************/
+
+  std::shared_ptr<AttributeMapper::DeviceInstance> AttributeMapper::DeviceClass::getDevice(
+      const std::string& deviceName) {
+    try {
+      return devicesInDeviceClass.at(deviceName);
+    }
+    catch(std::out_of_range&) {
+    }
+
+    auto device = std::make_shared<DeviceInstance>(deviceName, this);
+    devicesInDeviceClass[deviceName] = device;
+
+    return device;
+  }
+
+  /********************************************************************************************************************/
+
+  std::set<std::string> AttributeMapper::getUnusedVariables() {
+    std::set<std::string> unused;
+    auto all = getCsVariableNames();
+
+    std::set_difference(all.begin(), all.end(), _usedInputVariables.begin(), _usedInputVariables.end(),
+        std::inserter(unused, unused.begin()));
+
+    return unused;
+  }
+} // namespace TangoAdapter
