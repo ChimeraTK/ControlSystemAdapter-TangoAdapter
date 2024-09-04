@@ -270,38 +270,8 @@ namespace TangoAdapter {
       name = util::deriveAttributeName(source->get_value());
     }
 
-    std::optional<std::string> description;
-    std::optional<std::string> unit;
-    for(const auto* child : node->get_children()) {
-      if(child->get_name() == "Description") {
-        description = std::make_optional<std::string>();
-        for(const auto* descriptionChild : child->get_children()) {
-          if(util::nodeIsWhitespace(descriptionChild)) {
-            continue;
-          }
-          const auto* nodeAsText = dynamic_cast<const xmlpp::TextNode*>(descriptionChild);
-          if(nodeAsText == nullptr) {
-            continue;
-          }
-
-          *description += nodeAsText->get_content();
-        }
-      }
-      else if(child->get_name() == "Egu") {
-        unit = std::make_optional<std::string>();
-        for(const auto* eguChild : child->get_children()) {
-          if(util::nodeIsWhitespace(eguChild)) {
-            continue;
-          }
-          const auto* nodeAsText = dynamic_cast<const xmlpp::TextNode*>(eguChild);
-          if(nodeAsText == nullptr) {
-            continue;
-          }
-
-          *unit += nodeAsText->get_content();
-        }
-      }
-    }
+    auto description = util::childContentAsOptional(node, "description");
+    auto unit = util::childContentAsOptional(node, "egu");
     addAttribute(device, name, source->get_value(), unit, description);
   }
 
