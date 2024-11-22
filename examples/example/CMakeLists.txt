@@ -24,7 +24,7 @@ include(cmake/set_default_flags.cmake)
 
 # Add the dependencies. We need ApplicationCore and a control system adapter
 # implementation.
-find_package(ChimeraTK-ApplicationCore 03.03 REQUIRED)
+find_package(ChimeraTK-ApplicationCore 04.00 REQUIRED)
 find_package(ChimeraTK-ControlSystemAdapter-TangoAdapter REQUIRED)
 
 aux_source_directory(${CMAKE_SOURCE_DIR}/src sources)

@@ -19,7 +19,6 @@
 #include <ChimeraTK/ApplicationCore/ConfigReader.h>
 #include <ChimeraTK/ApplicationCore/PeriodicTrigger.h>
 #include <ChimeraTK/ApplicationCore/ScriptedInitialisationHandler.h>
-//#include <ChimeraTK/ApplicationCore/VersionInfoProvider.h>
 
 namespace ctk = ChimeraTK;
 
@@ -36,10 +35,6 @@ class ExampleApp : public ctk::Application {
   //! [Snippet: SetDMapFilePath]
   ctk::SetDMapFilePath dmapPath{getName() + ".dmap"};
   //! [Snippet: SetDMapFilePath]
-
-  // Provide configuration constants as process variables and for use at construction phase
-  // Using the application name as a base helps for automated testing against different config files.
-  ctk::ConfigReader config{this, "/", getName() + "-config.xml"};
 
   // Provide version information from the `CMakeLists.txt` as process variables
   // Apart from the line below and the inclusion of the
@@ -83,7 +78,7 @@ class ExampleApp : public ctk::Application {
   //! [Snippet: ControlUnit ModuleGroup]
 
   // Optionally instantiate the automated setpoint ramping module
-  SetpointRamp ramp{config.get<ChimeraTK::Boolean>("Configuration/enableSetpointRamping") ?
+  SetpointRamp ramp{appConfig().get<ChimeraTK::Boolean>("Configuration/enableSetpointRamping") ?
           SetpointRamp(this, "SetpointRamp", "Slow ramping of temperator setpoint") :
           SetpointRamp()};
   //! [Snippet: Class Definition End]
