@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deviceServer>
+    <deviceClass name="MD22">
+        <description>DFMC-MD22 stepper motor</description>
+        <deviceInstance name="test/md22/0">
+            <import>/Motor1</import>
+        </deviceInstance>
+        <deviceInstance name="test/md22/1">
+            <import>/Motor2</import>
+        </deviceInstance>
+    </deviceClass>
+    <deviceClass name="MD22Controller">
+        <title>MD22 Controller</title>
+        <description>DFMC-MD22 stepper controller</description>
+        <deviceInstance name="test/md22/controller">
+            <attribute name="numberOfMotors" source="/Motors/nMotors">
+                <description>The number of motors in this device server</description>
+                <egu>n/a</egu>
+            </attribute>
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

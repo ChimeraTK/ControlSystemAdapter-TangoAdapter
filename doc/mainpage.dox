@@ -6,6 +6,7 @@ The ChimeraTK-ControlSystemAdapter-TangoAdapter implements the %ChimeraTK Contro
 
 Prerequisites:
 \li The application has been written with the ChimeraTK-ApplicationCore library
+\li The application MUST have a ChimeraTK::ApplicationFactory instead of a plain static application instance
 
 To integrate the application into Tango, it has to be linked against the ChimeraTK-ControlSystemAdapter-TangoAdapter
 library. Simply use the `find_package()` Feature from CMake. The package provides imported targets, so all you have to
@@ -23,50 +24,32 @@ If no property is provided, the working folder will be the folder that contains 
 
 \subsubsection attribute_mapping ApplicationCore to Tango attribute mapping
 
-By default, the Tango adapter will export all variables available in the variable household of the application
-to Tango as attributes. ApplicationCore's hierarchical names are as follows:
+By default, the Tango adapter will export all available variables in the variable household of the application
+to Tango as attributes. ApplicationCore's hierarchical names are translated as follows:
 
 The top level Application module is separated from the rest of the hierarchy with an underscore. The rest of the
 hierarchy is appended translating "/" to ".". For example, `/ControlUnit/AverageCurrent/heatingCurrentAveraged`
 becomes `ControlUnit_AverageCurrent.heatingCurrentAveraged`.
 
-It is possible to filter and rename the list of exported attributes using the AttributeList property of the device
-server. The format consists of six values separated by ";"
+\subsubsection attribute_mapping_file Complex mapping of attributes through configuration
+More complex mapping and filtering of process variables is supported as well through a configuration file.
 
-1. The name of the Tango property
-2. The full path of the ApplicationCore
-3. Whether the variable is a SCALAR or a SPECTRUM
-4. The Tango type
-5. A description (will override a description that is available from ApplicationCore)
-6. The EGU (will override the one provided by ApplicationCore)
+The configuration file for the extended attribute mapping configuration is called `applicationName-AttributeMapper.xml`. `applicationName` must be replaced with the name of your application.
 
-```
-SetTemp;SetpointRamp/operatorSetpoint;SCALAR;DevFloat;Temperature setpoint for the oven;c
-OvenDeviceStatus;Devices/oven/status_message;SCALAR;DevString;;
-Current;Monitoring/heatingCurrent;SCALAR;DevFloat;Heating current of the oven;mA
-Temp;/Monitoring/tempartureOvenTop;SCALAR;DevFloat;;c
-```
+\include example-AttributeMapper.xml
 
-Currently the type has to match exactly with the automatic type mapping done in the TangoAdapter.
-In future versions it will be possible to change the type of a variable between ApplicationCore and Tango.
+In the example above we declare a `deviceServer` with two `deviceClasses` and three `deviceInstances`.
 
-Please refer to the following mapping of ApplicationCore types to Tango types for now:
+There can only be one `deviceServer` per configuration. The number of device classes and device instances, however,
+is not limited.
 
-ApplicationCore | Tango
-----------------|------
-uint8           | DevUChar
-int8            | DevChar
-uint16          | DevUShort
-int16           | DevShort
-uint32          | DevULong
-int32           | DevLong
-uint64          | DevULong64
-int64           | DevLong64
-float           | DevFloat
-double          | DevDouble
-bool            | DevBolean
-string          | DevString
-void            | DevVoid
+The deviceClass has a mandatory `name` attribute and contains any number of `deviceInstances`. Variables inside the device instance can either be mass-imported by using the `import` tag, where the naming translation as described above is applied.
+
+A device class can have an optional `title` and `description`. Those override the device properties usually provided by the C++ code. If not given, `title` defaults to the class name and `description` to "ChimeraTK-based DeviceServer".
+
+It is also possible to map individual variables to attributes using the `<attribute>` tag. The `<attribute>` tag has a mandatory `source` attribute describing the path to the process variable. Using the optional `name` attribute, the attribute name can be specified.
+
+It is also possible to override the description and egu of the process variable using the `<description>` and `<egu>` child tags of `<attribute>`.
 
 
  */
