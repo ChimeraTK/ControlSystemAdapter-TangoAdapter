@@ -40,7 +40,7 @@ namespace TangoAdapter {
    private:
     void device_factory(const Tango::DevVarStringArray*) override;
     void create_static_attribute_list(std::vector<Tango::Attr*>&);
-    void erase_dynamic_attributes(const Tango::DevVarStringArray*, std::vector<Tango::Attr*>&);
+    void erase_dynamic_attributes(std::vector<Tango::Attr*>&);
     std::vector<std::string> defaultAttList;
 
     Tango::DbDatum getPropertyWithDefault(const Tango::DbData& list, const std::string& propertyName);

@@ -138,6 +138,12 @@ namespace TangoAdapter {
     for(unsigned int i = 0; i < devlist_ptr->length(); i++) {
       const auto* deviceName = (*devlist_ptr)[i].in();
 
+      if(!deviceClass->hasDevice(deviceName) &&
+          !deviceClass->hasDevice(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data())) {
+        std::cerr << "Device " << deviceName << "not known in attribute mapper. Skipping." << std::endl;
+        continue;
+      }
+
       auto device = std::make_unique<AdapterDeviceImpl>(this, deviceName);
       device->init_device();
       if(!deviceClass->hasDevice(deviceName) &&
@@ -172,7 +178,7 @@ namespace TangoAdapter {
     }
 
     //	Manage dynamic attributes if any
-    erase_dynamic_attributes(devlist_ptr, get_class_attr()->get_attr_list());
+    erase_dynamic_attributes(get_class_attr()->get_attr_list());
 
     for(auto* dev : device_list) {
       // Only set the device state ok ON if it is still in the default constructed
@@ -221,12 +227,8 @@ namespace TangoAdapter {
 
   /********************************************************************************************************************/
 
-  void AdapterDeviceClass::erase_dynamic_attributes(
-      const Tango::DevVarStringArray* devlist_ptr, std::vector<Tango::Attr*>& att_list) {
-    Tango::Util* tg = Tango::Util::instance();
-
-    for(_CORBA_ULong i = 0; i < devlist_ptr->length(); i++) {
-      auto* dev_impl = tg->get_device_by_name((std::string((*devlist_ptr)[i]).c_str()));
+  void AdapterDeviceClass::erase_dynamic_attributes(std::vector<Tango::Attr*>& att_list) {
+    for(auto* dev_impl : device_list) {
       auto* dev = dynamic_cast<AdapterDeviceImpl*>(dev_impl);
       assert(dev != nullptr);
 
@@ -239,8 +241,7 @@ namespace TangoAdapter {
         }
         auto ite_str = find(defaultAttList.begin(), defaultAttList.end(), att_name);
         if(ite_str == defaultAttList.end()) {
-          TANGO_LOG_DEBUG << att_name << " is a UNWANTED dynamic attribute for device " << (*devlist_ptr)[i]
-                          << std::endl;
+          TANGO_LOG_DEBUG << att_name << " is a UNWANTED dynamic attribute for device " << dev->name() << std::endl;
           Tango::Attribute& att = dev->get_device_attr()->get_attr_by_name(att_name.c_str());
           dev->remove_attribute(att_list[att.get_attr_idx()], true, false);
           --ite_att;
