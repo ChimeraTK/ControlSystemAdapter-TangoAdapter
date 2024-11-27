@@ -1,5 +1,5 @@
-project(ChimeraTK-ControlSystemAdapter-TangoAdapter)
 cmake_minimum_required(VERSION 3.16)
+project(ChimeraTK-ControlSystemAdapter-TangoAdapter)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
@@ -23,7 +23,7 @@ pkg_check_modules(XMLPP REQUIRED IMPORTED_TARGET libxml++-2.6)
 pkg_check_modules(TANGO REQUIRED IMPORTED_TARGET tango>=9.3)
 
 # For some reason the system library has to be mentioned explicitly to the
-# linker. This is strange because the thead library has it as a dependency.
+# linker. This is strange because the thread library has it as a dependency.
 option(BUILD_TESTS "Build test programs" ON)
 
 if(BUILD_TESTS)
