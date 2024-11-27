@@ -270,6 +270,10 @@ namespace TangoAdapter {
       name = util::deriveAttributeName(source->get_value());
     }
 
+    if(name == "Status" || name == "State") {
+      throw ChimeraTK::logic_error("Reserved attribute name \"" + name + "\". Please modify your mapping");
+    }
+
     auto description = util::childContentAsOptional(node, "description");
     auto unit = util::childContentAsOptional(node, "egu");
     addAttribute(device, name, source->get_value(), unit, description);
