@@ -196,6 +196,11 @@ namespace TangoAdapter {
   void AttributeMapper::addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
       const std::string& processVariableName, std::optional<std::string> unit,
       const std::optional<std::string>& description) {
+    if(attrName == "Status" || attrName == "State") {
+      throw ChimeraTK::logic_error("Reserved attribute name \"" + attrName + "\", derived from " + processVariableName +
+          ". Modify your mapping");
+    }
+
     // derive the datatype
     auto processVariable = _controlSystemPVManager->getProcessVariable(processVariableName);
     std::type_info const& valueType = processVariable->getValueType();
@@ -268,10 +273,6 @@ namespace TangoAdapter {
     auto name = std::string(element->get_attribute_value("name"));
     if(name.empty()) {
       name = util::deriveAttributeName(source->get_value());
-    }
-
-    if(name == "Status" || name == "State") {
-      throw ChimeraTK::logic_error("Reserved attribute name \"" + name + "\". Please modify your mapping");
     }
 
     auto description = util::childContentAsOptional(node, "description");
