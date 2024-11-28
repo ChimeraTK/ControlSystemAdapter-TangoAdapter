@@ -10,7 +10,8 @@
 
 namespace TangoAdapter {
 
-  void TangoUpdater::addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId) {
+  void TangoUpdater::addVariable(
+      ChimeraTK::TransferElementAbstractor variable, const std::string& attrId, const std::function<void()>& updater) {
     TANGO_LOG_DEBUG << "TangoAdapter::Updater adding variable " << attrId << std::endl;
 
     if(variable.isReadable()) {
@@ -26,6 +27,7 @@ namespace TangoAdapter {
       // push variable.getHighLevelImplElement()/updaterFunction/eq_fct in _descriptorMap
       // and push TransferElementAbstractor _elementsToRead
       _descriptorMap[id].attributeID.push_back(attrId);
+      _descriptorMap[id].updaterList.push_back(updater);
     }
   }
 
@@ -49,9 +51,9 @@ namespace TangoAdapter {
 
     while(true) {
       // Wait until any variable got an update
-      auto notification = group.waitAny();               // inside has a //handlePreRead TransferElement
-      auto updatedElement = notification.getId();        // 1 ID
-      auto& descriptor = _descriptorMap[updatedElement]; // one descriptor
+      auto notification = group.waitAny();
+      auto updatedElement = notification.getId();
+      auto& descriptor = _descriptorMap[updatedElement];
 
       // Complete the read transfer of the process variable
       notification.accept();
@@ -68,6 +70,10 @@ namespace TangoAdapter {
       // Call preRead for all TEs for the updated ID
       for(const auto& elem : descriptor.additionalTransferElements) {
         elem->preRead(ChimeraTK::TransferType::read);
+      }
+
+      for(auto& update : descriptor.updaterList) {
+        update();
       }
 
       // Allow shutting down this thread...

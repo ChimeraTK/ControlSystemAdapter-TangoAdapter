@@ -194,8 +194,8 @@ namespace TangoAdapter {
   /********************************************************************************************************************/
 
   void AttributeMapper::addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
-      const std::string& processVariableName, std::optional<std::string> unit,
-      const std::optional<std::string>& description) {
+      const std::string& processVariableName, const std::optional<std::string>& unit,
+      const std::optional<std::string>& description, const std::optional<std::string>& notify) {
     if(attrName == "Status" || attrName == "State") {
       throw ChimeraTK::logic_error("Reserved attribute name \"" + attrName + "\", derived from " + processVariableName +
           ". Modify your mapping");
@@ -248,6 +248,19 @@ namespace TangoAdapter {
     }
     attr.length = nSamples;
 
+    if(notify && *notify != "none") {
+      if(*notify == "data-ready") {
+        attr.notificationType = AttributeProperty::NotificationType::data_ready;
+      }
+      else if(*notify == "change") {
+        attr.notificationType = AttributeProperty::NotificationType::change;
+      }
+      else {
+        throw ChimeraTK::logic_error(
+            "Invalid notification type " + *notify + " for attribute " + attrName + ", mapping " + processVariableName);
+      }
+    }
+
     TANGO_LOG_DEBUG << "Adding attribute "
                     << "\n"
                     << attr << std::endl;
@@ -277,7 +290,8 @@ namespace TangoAdapter {
 
     auto description = util::childContentAsOptional(node, "description");
     auto unit = util::childContentAsOptional(node, "egu");
-    addAttribute(device, name, source->get_value(), unit, description);
+    auto notify = util::childContentAsOptional(node, "notify");
+    addAttribute(device, name, source->get_value(), unit, description, notify);
   }
 
   /********************************************************************************************************************/
@@ -418,7 +432,7 @@ namespace TangoAdapter {
 
       if(processVariableName.find(importSource + "/") == 0) {
         auto attrName = util::deriveAttributeName(processVariableName, importSource);
-        addAttribute(device, attrName, processVariableName, {}, {});
+        addAttribute(device, attrName, processVariableName);
       }
     }
   }

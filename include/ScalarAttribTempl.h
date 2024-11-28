@@ -49,6 +49,17 @@ namespace TangoAdapter {
       att_prop.set_unit(attProperty.unit.c_str());
     }
 
+    switch(attProperty.notificationType) {
+      case AttributeProperty::NotificationType::change:
+        set_change_event(true, true);
+        break;
+      case AttributeProperty::NotificationType::data_ready:
+        set_data_ready_event(true);
+        break;
+      default:
+        break;
+    }
+
     // Since Tango does not support int8 natively and we have to resort to SHORT,
     // limit the values to the int8 limits
     if constexpr(std::is_same_v<AdapterType, int8_t>) {

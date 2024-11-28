@@ -79,8 +79,8 @@ namespace TangoAdapter {
     boost::shared_ptr<ChimeraTK::ControlSystemPVManager> _controlSystemPVManager;
 
     void addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
-        const std::string& processVariableName, std::optional<std::string> unit,
-        const std::optional<std::string>& description);
+        const std::string& processVariableName, const std::optional<std::string>& unit = {},
+        const std::optional<std::string>& description = {}, const std::optional<std::string>& notify = {});
   };
 
 } // namespace TangoAdapter

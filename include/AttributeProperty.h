@@ -14,7 +14,8 @@ namespace TangoAdapter {
   enum class AttrDataFormat { SCALAR, SPECTRUM, IMAGE };
 
   struct AttributeProperty {
-    // Speed;Board/Reg;SCALAR;DEVShort
+    enum class NotificationType { none, change, data_ready };
+
     AttributeProperty(std::string attributeName, AttrDataFormat dataFormat, Tango::CmdArgType attrDataType,
         std::string attrDesc, std::string attrUnit)
     : unit(std::move(attrUnit)), desc(std::move(attrDesc)), name(std::move(attributeName)), attrDataFormat(dataFormat),
@@ -31,6 +32,7 @@ namespace TangoAdapter {
     std::string desc;
     std::string name;
     size_t length{0};
+    NotificationType notificationType{NotificationType::none};
 
     AttrDataFormat attrDataFormat{};
     Tango::CmdArgType dataType{Tango::DATA_TYPE_UNKNOWN};

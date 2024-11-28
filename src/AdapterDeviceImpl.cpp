@@ -235,7 +235,11 @@ namespace TangoAdapter {
       _attributeToPvMap[attr.name] = pv;
 
       // Properly namespace the pv in the updater so we can distinguish per device
-      adapter.getUpdater().addVariable(pv, get_name() + "/" + attr.name);
+      adapter.getUpdater().addVariable(pv, get_name() + "/" + attr.name, [this, attr]() {
+        if(attr.notificationType == AttributeProperty::NotificationType::change) {
+          push_chage_event();
+        }
+      });
 
       if(attr.attrDataFormat == AttrDataFormat::SPECTRUM &&
           (attr.writeType == Tango::WRITE || attr.writeType == Tango::READ_WRITE)) {

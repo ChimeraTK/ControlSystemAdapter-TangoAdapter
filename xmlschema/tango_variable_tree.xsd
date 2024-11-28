@@ -6,6 +6,7 @@
     <xs:sequence>
       <xs:element name="description" type="xs:string" minOccurs="0" />
       <xs:element name="egu" type="xs:string" minOccurs="0" />
+      <xs:element name="event" type="NotificationType" minOccurs="0" />
     </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="optional" />
     <xs:attribute name="source" type="xs:string" use="required" />
@@ -38,6 +39,14 @@
       <xs:element name="title" type="xs:string" minOccurs="0" maxOccurs="1" />
     </xs:choice>
   </xs:group>
+
+  <xs:simpleType name="NotificationType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="none" />
+      <xs:enumeration value="change" />
+      <xs:enumeration value="data-ready" />
+    </xs:restriction>
+  </xs:simpleType>
 
   <!-- Root element -->
   <xs:element name="deviceServer">
