@@ -4,13 +4,14 @@
 #include "TangoUpdater.h"
 
 #include "AdapterDeviceClass.h"
+#include "TangoLogCompat.h"
 
 #include <ChimeraTK/ReadAnyGroup.h>
 
-namespace ChimeraTK {
+namespace TangoAdapter {
 
-  void TangoUpdater::addVariable(TransferElementAbstractor variable, const std::string& attrId) {
-    INFO_STREAM << ::TangoAdapter::AdapterDeviceClass::getClassName() <<": TangoUpdater::addVariable " << attrId << std::endl;
+  void TangoUpdater::addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId) {
+    TANGO_LOG_DEBUG << "TangoAdapter::Updater adding variable " << attrId << std::endl;
 
     if(variable.isReadable()) {
       auto id = variable.getId();
@@ -28,12 +29,14 @@ namespace ChimeraTK {
     }
   }
 
+  /********************************************************************************************************************/
+
   void TangoUpdater::updateLoop() {
     if(_elementsToRead.empty()) {
       return;
     }
 
-    ReadAnyGroup group(_elementsToRead.begin(), _elementsToRead.end());
+    ChimeraTK::ReadAnyGroup group(_elementsToRead.begin(), _elementsToRead.end());
 
     // Call preRead for all TEs on additional transfer elements. waitAny() is doing this for all elements in the
     // ReadAnyGroup. Unnecessary calls to preRead() are anyway ignored and merely pose a performance issue. For large
@@ -61,7 +64,6 @@ namespace ChimeraTK {
       // FIXME: Ideally we would fill the Tango buffer for the attribute here, then attribute->read()
       // would just send it out to CORBA
       // FIXME: Also we would need to toggle the event here, once supported
-      DEBUG_STREAM << ::TangoAdapter::AdapterDeviceClass::getClassName()<<":TangoUpdater::updateLoop update attribute: " << descriptor.attributeID[0];
 
       // Call preRead for all TEs for the updated ID
       for(const auto& elem : descriptor.additionalTransferElements) {
@@ -73,9 +75,13 @@ namespace ChimeraTK {
     }
   }
 
+  /********************************************************************************************************************/
+
   void TangoUpdater::run() {
     _syncThread = boost::thread([&]() { updateLoop(); });
   }
+
+  /********************************************************************************************************************/
 
   void TangoUpdater::stop() {
     try {
@@ -89,9 +95,12 @@ namespace ChimeraTK {
       // Ignore
     }
     catch(std::system_error& e) {
-      ERROR_STREAM << ::TangoAdapter::AdapterDeviceClass::getClassName()<<":Failed to shut down updater thread: " << e.what() << std::endl;
+      TANGO_LOG_INFO << ::TangoAdapter::AdapterDeviceClass::getClassName()
+                     << ":Failed to shut down updater thread: " << e.what() << std::endl;
     }
   }
+
+  /********************************************************************************************************************/
 
   // ChimeraTK::logic_error is theoretically thrown in ::interrupt(), practically should not happen and if it does,
   // we should have aborted anyway much sooner
@@ -100,4 +109,4 @@ namespace ChimeraTK {
     stop();
   }
 
-} // namespace ChimeraTK
+} // namespace TangoAdapter

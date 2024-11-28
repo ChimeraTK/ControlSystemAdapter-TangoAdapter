@@ -1,9 +1,9 @@
-project(ChimeraTK-ControlSystemAdapter-TangoAdapter)
 cmake_minimum_required(VERSION 3.16)
+project(ChimeraTK-ControlSystemAdapter-TangoAdapter)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
-set(${PROJECT_NAME}_MAJOR_VERSION 01)
+set(${PROJECT_NAME}_MAJOR_VERSION 02)
 set(${PROJECT_NAME}_MINOR_VERSION 00)
 set(${PROJECT_NAME}_PATCH_VERSION 00)
 include(cmake/set_version_numbers.cmake)
@@ -13,15 +13,17 @@ include(cmake/add_linter_target.cmake)
 include(cmake/set_default_flags.cmake)
 include(cmake/enable_code_coverage_report.cmake)
 include(cmake/enable_doxygen_documentation.cmake)
+include(cmake/enable_code_style_check.cmake)
 
 find_package(PkgConfig)
 
 # Add the dependencies
 find_package(ChimeraTK-ControlSystemAdapter 02.07 REQUIRED)
+pkg_check_modules(XMLPP REQUIRED IMPORTED_TARGET libxml++-2.6)
 pkg_check_modules(TANGO REQUIRED IMPORTED_TARGET tango>=9.3)
 
 # For some reason the system library has to be mentioned explicitly to the
-# linker. This is strange because the thead library has it as a dependency.
+# linker. This is strange because the thread library has it as a dependency.
 option(BUILD_TESTS "Build test programs" ON)
 
 if(BUILD_TESTS)
@@ -48,7 +50,7 @@ set_target_properties(
                              SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME}
                       PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter)
-target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::TANGO)
+target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::TANGO PkgConfig::XMLPP)
 
 # do not remove runtime paths of the library when installing (helps for unsually
 # located implicit dependencies)
@@ -62,7 +64,7 @@ if(BUILD_TESTS)
   file(GLOB testLibraryHeaders ${CMAKE_SOURCE_DIR}/tests/include_lib/*.h)
 
   add_library(TestLib STATIC ${testLibrarySources} ${testLibraryHeaders})
-  target_link_libraries(TestLib PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter PkgConfig::TANGO )
+  target_link_libraries(TestLib PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter PkgConfig::TANGO PkgConfig::XMLPP)
   target_include_directories(TestLib PUBLIC ${CMAKE_SOURCE_DIR}/tests/include_lib)
   # loop over all sources files in execultables_src directory
   aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src testExecutables)
@@ -77,11 +79,11 @@ if(BUILD_TESTS)
                                PRIVATE ${CMAKE_SOURCE_DIR}/tests/include)
 
     # need to force no-as-needed otherwise the class_factory function from the
-    # adapter will  be discarded and the tango server will not start
+    # adapter will be discarded and the tango server will not start
     target_link_options(${executableName} PUBLIC "-Wl,--no-as-needed")
     target_link_libraries(${executableName} PUBLIC ${PROJECT_NAME}
                                                    TestLib
-                                                   PkgConfig::TANGO)
+                                                   PkgConfig::TANGO PkgConfig::XMLPP)
     if (NOT "${executableName}" STREQUAL "testTangoServer")
         add_test(${executableName} ${executableName})
     endif()
@@ -94,8 +96,10 @@ if(BUILD_TESTS)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testPersistSpectrumDatabase_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testFilterAttributes_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testMapTwice_template.db DESTINATION ${CMAKE_BINARY_DIR})
-  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testServerFaultWrongAttribute_template.db DESTINATION ${CMAKE_BINARY_DIR})
-  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testServerFaultNoDmap_template.db DESTINATION ${CMAKE_BINARY_DIR})
+
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestFilterAttributes_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestMapTwice_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
+
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/devices.dmap DESTINATION ${CMAKE_BINARY_DIR})
 endif()
 

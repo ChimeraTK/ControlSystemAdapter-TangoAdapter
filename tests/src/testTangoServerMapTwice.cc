@@ -4,11 +4,9 @@
 #define BOOST_TEST_MODULE serverTestMapTwice
 
 #include "TangoTestServer.h"
-
-#include <boost/test/included/unit_test.hpp>
-
 #include <tango/tango.h>
 
+#include <boost/test/included/unit_test.hpp>
 
 struct TestFixtureConfig {
   static void apply(TangoTestFixtureImpl& f) {
@@ -16,13 +14,12 @@ struct TestFixtureConfig {
     f.theServer.setOfflineDatabase("testMapTwice");
   }
 };
-
 using Fixture_t = TangoTestFixture<TestFixtureConfig>;
-
 BOOST_GLOBAL_FIXTURE(Fixture_t);
 
-BOOST_AUTO_TEST_CASE(testDoublePropertyMapping)
-{
+/**********************************************************************************************************************/
+
+BOOST_AUTO_TEST_CASE(testDoublePropertyMapping) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
 
   std::unique_ptr<std::vector<std::string>> attributes(proxy.get_attribute_list());

@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <!-- Define reusable complex type for 'attribute' -->
+  <xs:complexType name="AttributeType">
+    <xs:sequence>
+      <xs:element name="description" type="xs:string" minOccurs="0" />
+      <xs:element name="egu" type="xs:string" minOccurs="0" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="optional" />
+    <xs:attribute name="source" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <!-- Define reusable complex type for 'deviceInstance' -->
+  <xs:complexType name="DeviceInstanceType">
+    <xs:choice minOccurs="1" maxOccurs="unbounded">
+      <!-- Multiple attributes are allowed -->
+      <xs:element name="attribute" type="AttributeType" maxOccurs="unbounded" />
+      <!-- Multiple imports are also allowed -->
+      <xs:element name="import" type="xs:string" maxOccurs="unbounded" />
+    </xs:choice>
+    <xs:attribute name="name" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <!-- Define reusable complex type for 'deviceClass' -->
+  <xs:complexType name="DeviceClassType">
+    <xs:sequence>
+      <!-- Separate 'description' and 'title', allowing at most one of each -->
+      <xs:group ref="DeviceClassDetails" maxOccurs="unbounded" />
+      <xs:element name="deviceInstance" type="DeviceInstanceType" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:group name="DeviceClassDetails">
+    <xs:choice>
+      <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1" />
+      <xs:element name="title" type="xs:string" minOccurs="0" maxOccurs="1" />
+    </xs:choice>
+  </xs:group>
+
+  <!-- Root element -->
+  <xs:element name="deviceServer">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="deviceClass" type="DeviceClassType" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

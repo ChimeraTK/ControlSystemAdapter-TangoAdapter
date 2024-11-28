@@ -11,17 +11,15 @@
 #include <boost/test/included/unit_test.hpp>
 
 struct TestFixtureConfig {
-  static void apply(TangoTestFixtureImpl& f) {
-    f.setManualLoopControl(true);
-  }
+  static void apply(TangoTestFixtureImpl& f) { f.setManualLoopControl(true); }
 };
-
 using Fixture_t = TangoTestFixture<TestFixtureConfig>;
 
 BOOST_GLOBAL_FIXTURE(Fixture_t);
 
-bool checkQualityWithTimeout(Tango::DeviceProxy& proxy, std::string readName, Tango::AttrQuality quality)
-{
+/**********************************************************************************************************************/
+
+bool checkQualityWithTimeout(Tango::DeviceProxy& proxy, std::string readName, Tango::AttrQuality quality) {
   const auto TIMEOUT = std::chrono::seconds(5);
   using clock = std::chrono::steady_clock;
   auto now = clock::now();
@@ -30,10 +28,12 @@ bool checkQualityWithTimeout(Tango::DeviceProxy& proxy, std::string readName, Ta
   do {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     attr = proxy.read_attribute(readName);
-  } while (attr.get_quality() != quality && (clock::now() - now) < TIMEOUT);
+  } while(attr.get_quality() != quality && (clock::now() - now) < TIMEOUT);
 
   return attr.get_quality() == quality;
 }
+
+/**********************************************************************************************************************/
 
 BOOST_AUTO_TEST_CASE(testScalar) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
@@ -49,6 +49,8 @@ BOOST_AUTO_TEST_CASE(testScalar) {
 
   BOOST_CHECK(checkQualityWithTimeout(proxy, std::string("INT_FROM_DEVICE_SCALAR"), Tango::AttrQuality::ATTR_INVALID));
 }
+
+/**********************************************************************************************************************/
 
 BOOST_AUTO_TEST_CASE(testArray) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();

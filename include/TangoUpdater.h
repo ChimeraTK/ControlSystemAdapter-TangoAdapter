@@ -1,10 +1,6 @@
-
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
-
-#include "AttributeProperty.h"
-#include "ScalarAttribTempl.h"
-#include "SpectrumAttribTempl.h"
-#include <unordered_map>
 
 #include <ChimeraTK/OneDRegisterAccessor.h>
 #include <ChimeraTK/ScalarRegisterAccessor.h>
@@ -14,7 +10,7 @@
 #include <boost/noncopyable.hpp>
 
 #include <map>
-namespace ChimeraTK {
+namespace TangoAdapter {
 
   /** A class to synchronise DeviceToControlSystem variable to Tango.
    *  It contains a list of TransferElements and a thread which is monitoring them
@@ -23,14 +19,12 @@ namespace ChimeraTK {
    * the stop() function which returns after the thread has been joined). This
    * happens latest in the destructor.
    */
-  class TangoUpdater : public boost::noncopyable, Tango::LogAdapter {
+  class TangoUpdater : public boost::noncopyable {
    public:
-    explicit TangoUpdater(TANGO_BASE_CLASS* tangoDevice) : Tango::LogAdapter(tangoDevice), _device(tangoDevice) {}
-
     // ChimeraTK::logic_error is theoretically thrown in ::interrupt(), practically should not happen and if it does,
     // we should have aborted anyway much sooner
     // NOLINTNEXTLINE(bugprone-exception-escape)
-    ~TangoUpdater() override;
+    ~TangoUpdater();
 
     void updateLoop(); // Endless loop with interruption point around the update
                        // function.
@@ -38,11 +32,6 @@ namespace ChimeraTK {
     void run();
     void stop();
 
-    // Add a variable to be updated. Together with the TransferElementAbstractor
-    // pointing to the ChimeraTK::ProcessArray, the EqFct* to obtain the lock for
-    // and a function to be called which executes the actual update should be
-    // specified. The lock is held while the updaterFunction is called, so it must
-    // neither obtained nor freed within the updaterFunction.
     void addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId);
 
     const std::list<ChimeraTK::TransferElementAbstractor>& getElementsToRead() { return _elementsToRead; }
@@ -58,6 +47,5 @@ namespace ChimeraTK {
       std::set<boost::shared_ptr<ChimeraTK::TransferElement>> additionalTransferElements;
     };
     std::map<ChimeraTK::TransferElementID, UpdateDescriptor> _descriptorMap;
-    TANGO_BASE_CLASS* _device;
   };
-} // namespace ChimeraTK
+} // namespace TangoAdapter
