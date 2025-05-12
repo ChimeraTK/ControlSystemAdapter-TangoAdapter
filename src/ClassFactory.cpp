@@ -4,6 +4,7 @@
 #include "AdapterDeviceClass.h"
 #include "AttributeMapper.h"
 #include "TangoAdapter.h"
+
 #include <tango/tango.h>
 
 // Factory function required from Tango.

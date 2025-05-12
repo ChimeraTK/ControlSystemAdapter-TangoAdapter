@@ -4,6 +4,7 @@
 #define BOOST_TEST_MODULE serverTestFilterAttributes
 
 #include "TangoTestServer.h"
+
 #include <tango/tango.h>
 
 #include <boost/test/included/unit_test.hpp>

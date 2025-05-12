@@ -3,9 +3,9 @@
 
 #include "TangoAdapter.h"
 
-#include <tango/tango.h>
-
 #include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
+
+#include <tango/tango.h>
 
 #include <filesystem>
 

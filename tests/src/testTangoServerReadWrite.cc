@@ -4,6 +4,7 @@
 #define BOOST_TEST_MODULE serverTestReadWrite
 
 #include "TangoTestServer.h"
+
 #include <tango/tango.h>
 
 #include <boost/mpl/list.hpp>

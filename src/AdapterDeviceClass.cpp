@@ -15,9 +15,10 @@ extern "C" {
 
 __declspec(dllexport)
 #endif
-    // Naming is for Tango
-    // NOLINTNEXTLINE(readability-identifier-naming,reserved-identifier)
-    Tango::DeviceClass* _create_AdapterDeviceImpl_class([[maybe_unused]] const char* name) {
+// Naming is for Tango
+// NOLINTNEXTLINE(readability-identifier-naming,reserved-identifier)
+Tango::DeviceClass*
+    _create_AdapterDeviceImpl_class([[maybe_unused]] const char* name) {
   // FIXME: Do we need to support this? It's for using this class in pytango
   assert(false);
   return nullptr;

@@ -4,9 +4,10 @@
 #define BOOST_TEST_MODULE serverTestImportAll
 
 #include "TangoTestServer.h"
-#include <tango/tango.h>
 
 #include <ChimeraTK/cppext/finally.hpp>
+
+#include <tango/tango.h>
 
 #include <boost/test/included/unit_test.hpp>
 

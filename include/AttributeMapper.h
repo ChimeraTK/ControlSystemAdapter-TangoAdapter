@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include <libxml++/libxml++.h>
-
 #include <ChimeraTK/ControlSystemAdapter/ControlSystemPVManager.h>
 
+#include <libxml++/libxml++.h>
+
 #include <AttributeProperty.h>
+
 #include <list>
 #include <set>
 

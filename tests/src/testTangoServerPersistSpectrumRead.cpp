@@ -3,6 +3,7 @@
 #define BOOST_TEST_MODULE serverTestPersistSpectrum
 
 #include "TangoTestServer.h"
+
 #include <tango/tango.h>
 
 #include <boost/mpl/list.hpp>

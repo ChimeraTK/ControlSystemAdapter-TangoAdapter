@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include <tango/tango.h>
-
 #include <ChimeraTK/Exception.h>
+
+#include <tango/tango.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>

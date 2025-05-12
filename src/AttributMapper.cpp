@@ -4,11 +4,12 @@
 #include "AttributeMapper.h"
 #include "TangoAdapter.h"
 #include "TangoLogCompat.h"
-#include <libxml++/libxml++.h>
 
 #include <ChimeraTK/RegisterPath.h>
 #include <ChimeraTK/Utilities.h>
 #include <ChimeraTK/VoidRegisterAccessor.h>
+
+#include <libxml++/libxml++.h>
 
 #include <memory>
 #include <regex>

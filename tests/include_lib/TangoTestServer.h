@@ -3,10 +3,11 @@
 #pragma once
 
 #include "ExtendedReferenceTestApplication.h"
-#include <tango/tango.h>
 
 #include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
 #include <ChimeraTK/ControlSystemAdapter/Testing/ReferenceTestApplication.h>
+
+#include <tango/tango.h>
 
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/map.hpp>
