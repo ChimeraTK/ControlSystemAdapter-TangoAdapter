@@ -35,18 +35,18 @@ namespace TangoAdapter {
   template<typename TangoType, typename AdapterType, typename TangoWriteType>
   SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::SpectrumAttribTempl(AttributeProperty& attProperty)
   : Tango::SpectrumAttr(
-        attProperty.name.c_str(), attProperty.getDataType(), attProperty.writeType, attProperty.length) {
+        attProperty.description.name.c_str(), attProperty.getDataType(), attProperty.writeType, attProperty.length) {
     if(attProperty.writeType != Tango::READ) {
-      memoriedPropertyName = "__Memoried_" + attProperty.name;
+      memoriedPropertyName = "__Memoried_" + attProperty.description.name;
     }
 
     Tango::UserDefaultAttrProp axis_prop;
-    axis_prop.set_label(attProperty.name.c_str());
+    axis_prop.set_label(attProperty.description.name.c_str());
 
-    axis_prop.set_description(attProperty.desc.c_str());
+    axis_prop.set_description(attProperty.description.description.value().c_str());
 
-    if(!(attProperty.unit.empty())) {
-      axis_prop.set_unit(attProperty.unit.c_str());
+    if(attProperty.description.unit) {
+      axis_prop.set_unit(attProperty.description.unit.value().c_str());
     }
 
     // Since Tango does not support int8 natively and we have to resort to SHORT,

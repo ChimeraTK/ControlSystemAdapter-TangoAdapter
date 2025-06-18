@@ -31,7 +31,7 @@ namespace TangoAdapter {
 
   template<typename TangoType, typename AdapterType>
   ScalarAttribTempl<TangoType, AdapterType>::ScalarAttribTempl(AttributeProperty& attProperty)
-  : Tango::Attr(attProperty.name.c_str(), attProperty.getDataType(), attProperty.writeType) {
+  : Tango::Attr(attProperty.description.name.c_str(), attProperty.getDataType(), attProperty.writeType) {
     // memory the written value and write at initialization
     if(attProperty.writeType == Tango::READ_WRITE || attProperty.writeType == Tango::WRITE) {
       set_memorized();
@@ -41,12 +41,12 @@ namespace TangoAdapter {
     Tango::UserDefaultAttrProp att_prop;
 
     // The c_str() are fine, tango internally creates a std::string of them.
-    att_prop.set_label(attProperty.name.c_str());
+    att_prop.set_label(attProperty.description.name.c_str());
 
-    att_prop.set_description(attProperty.desc.c_str());
+    att_prop.set_description(attProperty.description.description.value().c_str());
 
-    if(!(attProperty.unit.empty())) {
-      att_prop.set_unit(attProperty.unit.c_str());
+    if(attProperty.description.unit) {
+      att_prop.set_unit(attProperty.description.unit.value().c_str());
     }
 
     // Since Tango does not support int8 natively and we have to resort to SHORT,

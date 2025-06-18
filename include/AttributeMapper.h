@@ -6,6 +6,7 @@
 
 #include <libxml++/libxml++.h>
 
+#include <AttributeMappingDescription.h>
 #include <AttributeProperty.h>
 
 #include <list>
@@ -16,6 +17,8 @@ namespace TangoAdapter {
   class AttributeMapper {
    public:
     struct DeviceClass;
+
+    /******************************************************************************************************************/
 
     struct DeviceInstance {
       DeviceInstance(std::string ourName, DeviceClass* parent) : name(std::move(ourName)), ourClass(parent) {}
@@ -81,9 +84,7 @@ namespace TangoAdapter {
     std::map<std::string, std::list<std::shared_ptr<AttributeProperty>>> _descriptions;
     boost::shared_ptr<ChimeraTK::ControlSystemPVManager> _controlSystemPVManager;
 
-    void addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
-        const std::string& processVariableName, std::optional<std::string> unit,
-        const std::optional<std::string>& description);
+    void addAttribute(std::shared_ptr<DeviceInstance>& device, AttributeMappingDescription desc);
   };
 
 } // namespace TangoAdapter

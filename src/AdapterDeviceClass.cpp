@@ -16,8 +16,8 @@ extern "C" {
 __declspec(dllexport)
 #endif
 // Naming is for Tango
-// NOLINTNEXTLINE(readability-identifier-naming,reserved-identifier)
 Tango::DeviceClass*
+    // NOLINTNEXTLINE(readability-identifier-naming,reserved-identifier)
     _create_AdapterDeviceImpl_class([[maybe_unused]] const char* name) {
   // FIXME: Do we need to support this? It's for using this class in pytango
   assert(false);
@@ -57,7 +57,8 @@ namespace TangoAdapter {
 
   Tango::DbDatum AdapterDeviceClass::getPropertyWithDefault(
       const Tango::DbData& list, const std::string& propertyName) {
-    const auto& position = std::find_if(list.begin(), list.end(), [&](auto x) { return x.name == propertyName; });
+    const auto& position =
+        std::ranges::find_if(list.begin(), list.end(), [&](const auto& x) { return x.name == propertyName; });
     if(position != list.end()) {
       return *position;
     }
@@ -96,7 +97,6 @@ namespace TangoAdapter {
     }
 
     Tango::DbData data;
-    std::string classname = get_name();
 
     auto ourClass = TangoAdapter::getInstance().getMapper().getClass(get_name());
     assert(ourClass);
@@ -139,16 +139,14 @@ namespace TangoAdapter {
     for(unsigned int i = 0; i < devlist_ptr->length(); i++) {
       const auto* deviceName = (*devlist_ptr)[i].in();
 
-      if(!deviceClass->hasDevice(deviceName) &&
-          !deviceClass->hasDevice(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data())) {
+      if(!deviceClass->hasDevice(deviceName) && !deviceClass->hasDevice(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE)) {
         std::cerr << "Device " << deviceName << " not known in attribute mapper. Skipping." << std::endl;
         continue;
       }
 
       auto device = std::make_unique<AdapterDeviceImpl>(this, deviceName);
       device->init_device();
-      if(!deviceClass->hasDevice(deviceName) &&
-          !deviceClass->hasDevice(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data())) {
+      if(!deviceClass->hasDevice(deviceName) && !deviceClass->hasDevice(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE)) {
         // See if we have the "generic" device"
         DEV_ERROR_STREAM(device) << "Device " << deviceName << " not known in attribute mapper. Expect issues"
                                  << std::endl;
@@ -158,8 +156,8 @@ namespace TangoAdapter {
       else {
         // Move the generic device we have to this device.
         if(!deviceClass->hasDevice(deviceName)) {
-          auto genericDevice = deviceClass->devicesInDeviceClass[TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data()];
-          deviceClass->devicesInDeviceClass.erase(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data());
+          auto genericDevice = deviceClass->devicesInDeviceClass[TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE];
+          deviceClass->devicesInDeviceClass.erase(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE);
           genericDevice->name = deviceName;
           deviceClass->devicesInDeviceClass[deviceName] = genericDevice;
         }
@@ -219,7 +217,7 @@ namespace TangoAdapter {
   void AdapterDeviceClass::create_static_attribute_list(std::vector<Tango::Attr*>& att_list) {
     for(auto* attr : att_list) {
       auto att_name = attr->get_name();
-      std::transform(att_name.begin(), att_name.end(), att_name.begin(), ::tolower);
+      std::ranges::transform(att_name, att_name.begin(), ::tolower);
       defaultAttList.push_back(att_name);
     }
 
@@ -240,8 +238,8 @@ namespace TangoAdapter {
         if((att_name == "state") || (att_name == "status")) {
           continue;
         }
-        auto ite_str = find(defaultAttList.begin(), defaultAttList.end(), att_name);
-        if(ite_str == defaultAttList.end()) {
+
+        if(auto ite_str = std::ranges::find(defaultAttList, att_name); ite_str == defaultAttList.end()) {
           TANGO_LOG_DEBUG << att_name << " is a UNWANTED dynamic attribute for device " << dev->name() << std::endl;
           Tango::Attribute& att = dev->get_device_attr()->get_attr_by_name(att_name.c_str());
           dev->remove_attribute(att_list[att.get_attr_idx()], true, false);

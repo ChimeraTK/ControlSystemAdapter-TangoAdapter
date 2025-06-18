@@ -9,16 +9,15 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-namespace TangoAdapter {
+#include <AttributeMappingDescription.h>
 
-  enum class AttrDataFormat { SCALAR, SPECTRUM, IMAGE };
+namespace TangoAdapter {
 
   struct AttributeProperty {
     // Speed;Board/Reg;SCALAR;DEVShort
-    AttributeProperty(std::string attributeName, AttrDataFormat dataFormat, Tango::CmdArgType attrDataType,
-        std::string attrDesc, std::string attrUnit)
-    : unit(std::move(attrUnit)), desc(std::move(attrDesc)), name(std::move(attributeName)), attrDataFormat(dataFormat),
-      dataType(attrDataType) {}
+    explicit AttributeProperty(AttributeMappingDescription attrDescription) : description(std::move(attrDescription)) {
+      TANGO_LOG_DEBUG << "Hello World" << std::endl;
+    }
 
     ~AttributeProperty() = default;
 
@@ -27,12 +26,9 @@ namespace TangoAdapter {
     std::unique_ptr<Tango::Attr> toTangoAttribute();
     [[nodiscard]] Tango::CmdArgType getDataType() const;
 
-    std::string unit;
-    std::string desc;
-    std::string name;
+    AttributeMappingDescription description;
     size_t length{0};
 
-    AttrDataFormat attrDataFormat{};
     Tango::CmdArgType dataType{Tango::DATA_TYPE_UNKNOWN};
     Tango::AttrWriteType writeType{Tango::AttrWriteType::WT_UNKNOWN};
   };
@@ -42,35 +38,15 @@ namespace TangoAdapter {
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/
 
+/********************************************************************************************************************/
+
 namespace std {
-  inline std::ostream& operator<<(std::ostream& os, const TangoAdapter::AttrDataFormat& f) {
-    switch(f) {
-      case TangoAdapter::AttrDataFormat::SCALAR:
-        os << "SCALAR";
-        break;
-      case TangoAdapter::AttrDataFormat::SPECTRUM:
-        os << "SCALAR";
-        break;
-      case TangoAdapter::AttrDataFormat::IMAGE:
-        os << "SCALAR";
-        break;
-      default:
-        os << "UNKNOWN";
-        assert(false);
-        break;
-    }
-
-    return os;
-  }
-
-  /********************************************************************************************************************/
-
   inline std::ostream& operator<<(std::ostream& os, const TangoAdapter::AttributeProperty& prop) {
-    os << "Dumping AttributeProperty " << prop.name << std::endl;
-    os << "   unit: " << prop.unit << "\n"
-       << "   desc: " << prop.desc << "\n"
+    os << "Dumping AttributeProperty " << prop.description.name << std::endl;
+    os << "   unit: " << prop.description.unit.value_or("unset") << "\n"
+       << "   desc: " << prop.description.description.value_or("unset") << "\n"
        << "   length: " << prop.length << "\n"
-       << "   format: " << prop.attrDataFormat << "\n"
+       << "   format: " << prop.description.dataLayout << "\n"
        << "   type: " << prop.dataType << "\n"
        << "   writeType: " << prop.writeType << std::endl;
 

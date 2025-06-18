@@ -194,19 +194,15 @@ namespace TangoAdapter {
 
   /********************************************************************************************************************/
 
-  void AttributeMapper::addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
-      const std::string& processVariableName, std::optional<std::string> unit,
-      const std::optional<std::string>& description) {
-    if(attrName == "Status" || attrName == "State") {
-      throw ChimeraTK::logic_error("Reserved attribute name \"" + attrName + "\", derived from " + processVariableName +
-          ". Modify your mapping");
+  void AttributeMapper::addAttribute(std::shared_ptr<DeviceInstance>& device, AttributeMappingDescription desc) {
+    if(desc.name == "Status" || desc.name == "State") {
+      throw ChimeraTK::logic_error(
+          "Reserved attribute name \"" + desc.name + "\", derived from " + desc.source + ". Modify your mapping");
     }
 
     // derive the datatype
-    auto processVariable = _controlSystemPVManager->getProcessVariable(processVariableName);
+    auto processVariable = _controlSystemPVManager->getProcessVariable(desc.source);
     std::type_info const& valueType = processVariable->getValueType();
-
-    auto tangoType = util::deriveType(valueType);
 
     // detect dataFormat
     size_t nSamples;
@@ -221,21 +217,25 @@ namespace TangoAdapter {
       nChannels = pv->getNumberOfChannels();
     });
 
-    auto dataFormat = AttrDataFormat::SCALAR;
+    desc.dataLayout = AttributeDataLayout::SCALAR;
     if(nChannels > 1) {
-      dataFormat = AttrDataFormat::IMAGE;
+      desc.dataLayout = AttributeDataLayout::IMAGE;
     }
     else if(nSamples > 1) {
-      dataFormat = AttrDataFormat::SPECTRUM;
+      desc.dataLayout = AttributeDataLayout::SPECTRUM;
     }
 
     // creating attribute property
-    device->attributeToSource[attrName] = processVariableName;
+    device->attributeToSource[desc.name] = desc.source;
 
-    device->ourClass->attributes.emplace_back(attrName, dataFormat, tangoType,
-        description.value_or(processVariable->getDescription()), unit.value_or(processVariable->getUnit()));
+    // Replace optionals with default values
+    desc.description = desc.description.value_or(processVariable->getDescription());
+    desc.unit = desc.unit.value_or(processVariable->getUnit());
+
+    device->ourClass->attributes.emplace_back(desc);
 
     auto& attr = device->ourClass->attributes.back();
+    attr.dataType = util::deriveType(valueType);
     TANGO_LOG_DEBUG << "Adding attribute to class: " << attr << std::endl;
 
     if(processVariable->isWriteable() && processVariable->isReadable()) {
@@ -252,8 +252,8 @@ namespace TangoAdapter {
     TANGO_LOG_DEBUG << "Adding attribute "
                     << "\n"
                     << attr << std::endl;
-    TANGO_LOG_DEBUG << "Adding " << processVariableName << " to used input variables" << std::endl;
-    _usedInputVariables.insert(processVariableName);
+    TANGO_LOG_DEBUG << "Adding " << desc.source << " to used input variables" << std::endl;
+    _usedInputVariables.insert(desc.source);
   }
 
   /********************************************************************************************************************/
@@ -278,7 +278,25 @@ namespace TangoAdapter {
 
     auto description = util::childContentAsOptional(node, "description");
     auto unit = util::childContentAsOptional(node, "egu");
-    addAttribute(device, name, source->get_value(), unit, description);
+    auto eventing = AttributeEventing::NONE;
+
+    if(auto eventingTypeStr = util::childContentAsOptional(node, "eventingType"); eventingTypeStr) {
+      if(eventingTypeStr == "none") {
+        eventing = AttributeEventing::NONE;
+      }
+      else if(eventingTypeStr == "data-ready") {
+        eventing = AttributeEventing::DATA_READY;
+      }
+      else if(eventingTypeStr == "data") {
+        eventing = AttributeEventing::DATA;
+      }
+      else {
+        throw ChimeraTK::logic_error(std::format("Attribute note has unknown eventing type \"{}\" in line {}",
+            eventingTypeStr.value(), std::to_string(element->get_line())));
+      }
+    }
+
+    addAttribute(device, {name, std::string(source->get_value()), description, unit, eventing});
   }
 
   /********************************************************************************************************************/
@@ -404,7 +422,7 @@ namespace TangoAdapter {
 
       auto deviceClass = std::make_shared<DeviceClass>(ourName);
       _classes[ourName] = deviceClass;
-      auto deviceInstance = deviceClass->getDevice(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data());
+      auto deviceInstance = deviceClass->getDevice(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE);
       import("/", deviceInstance);
     }
   }
@@ -432,7 +450,7 @@ namespace TangoAdapter {
 
       if(processVariableName.find(importSource + "/") == 0) {
         auto attrName = util::deriveAttributeName(processVariableName, importSource);
-        addAttribute(device, attrName, processVariableName, {}, {});
+        addAttribute(device, {attrName, processVariableName, {}, {}});
       }
     }
   }
@@ -470,8 +488,7 @@ namespace TangoAdapter {
     std::set<std::string> unused;
     auto all = getCsVariableNames();
 
-    std::set_difference(all.begin(), all.end(), _usedInputVariables.begin(), _usedInputVariables.end(),
-        std::inserter(unused, unused.begin()));
+    std::ranges::set_difference(all, _usedInputVariables, std::inserter(unused, unused.begin()));
 
     return unused;
   }

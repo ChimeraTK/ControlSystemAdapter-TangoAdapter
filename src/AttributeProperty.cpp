@@ -123,10 +123,10 @@ namespace TangoAdapter {
   /********************************************************************************************************************/
 
   std::unique_ptr<Tango::Attr> AttributeProperty::toTangoAttribute() {
-    switch(attrDataFormat) {
-      case AttrDataFormat::SCALAR:
+    switch(description.dataLayout) {
+      case AttributeDataLayout::SCALAR:
         return util::toScalarTangoAttribute(*this);
-      case AttrDataFormat::SPECTRUM:
+      case AttributeDataLayout::SPECTRUM:
         return util::toSpectrumTangoAttribute(*this);
       default:
         throw ChimeraTK::logic_error("Unsupported attribute type in mapper");

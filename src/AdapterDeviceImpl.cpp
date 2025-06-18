@@ -130,18 +130,18 @@ namespace TangoAdapter {
 
     // read spectrum values from memoried properties then write as initialised values
     for(const auto& attProp : writeableSpectrums) {
-      DEBUG_STREAM << AdapterDeviceClass::getClassName() << ":name: " << attProp.name << " type:" << attProp.dataType
-                   << std::endl;
+      DEBUG_STREAM << AdapterDeviceClass::getClassName() << ":name: " << attProp.description.name
+                   << " type:" << attProp.dataType << std::endl;
 
       // get write attribute name, in case it is different (READ_WITH_WRITE)
-      auto& write_attribute = get_device_attr()->get_w_attr_by_name(attProp.name.c_str());
-      std::string attName = attProp.name;
+      auto& write_attribute = get_device_attr()->get_w_attr_by_name(attProp.description.name.c_str());
+      std::string attName = attProp.description.name;
       auto& baseAttribute = get_device_class()->get_class_attr()->get_attr(attName);
 
       // get value of memoried property (__Memorized_<attributename>)
-      auto mem_value = getProperty<std::string>(this, "__Memoried_" + attProp.name);
+      auto mem_value = getProperty<std::string>(this, "__Memoried_" + attProp.description.name);
 
-      DEBUG_STREAM << AdapterDeviceClass::getClassName() << ":__Memoried_" << attProp.name
+      DEBUG_STREAM << AdapterDeviceClass::getClassName() << ":__Memoried_" << attProp.description.name
                    << " mem_value: " << mem_value << std::endl;
 
       if(mem_value.empty()) {
@@ -228,17 +228,17 @@ namespace TangoAdapter {
     auto& updater = adapter.getUpdater();
     DEBUG_STREAM << "Attaching Variables to device instance " << device->name << std::endl;
     for(auto& attr : deviceClass->attributes) {
-      auto& source = device->attributeToSource[attr.name];
+      auto& source = device->attributeToSource[attr.description.name];
       DEBUG_STREAM << "    " << source << std::endl;
 
       auto processVariable = csPvManager->getProcessVariable(source);
       auto pv = ChimeraTK::TransferElementAbstractor(processVariable);
-      _attributeToPvMap[attr.name] = pv;
+      _attributeToPvMap[attr.description.name] = pv;
 
       // Properly namespace the pv in the updater so we can distinguish per device
-      updater.addVariable(pv, get_name() + "/" + attr.name);
+      updater.addVariable(pv, get_name() + "/" + attr.description.name);
 
-      if(attr.attrDataFormat == AttrDataFormat::SPECTRUM &&
+      if(attr.description.dataLayout == AttributeDataLayout::SPECTRUM &&
           (attr.writeType == Tango::WRITE || attr.writeType == Tango::READ_WRITE)) {
         writeableSpectrums.push_back(attr);
       }

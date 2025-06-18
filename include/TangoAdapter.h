@@ -13,7 +13,7 @@
 namespace TangoAdapter {
   class TangoAdapter {
    public:
-    static constexpr std::string_view PLAIN_IMPORT_DUMMY_DEVICE{"__CHIMERATK_TEMPLATE_DEVICE_RAW_IMPORT"};
+    static constexpr auto PLAIN_IMPORT_DUMMY_DEVICE{"__CHIMERATK_TEMPLATE_DEVICE_RAW_IMPORT"};
     static TangoAdapter& getInstance() {
       static TangoAdapter instance;
 
