@@ -186,22 +186,19 @@ void TangoTestFixtureImpl::startup() {
   auto start = clock::now();
 
   auto url = theServer.getClientUrl();
-  try {
-    std::cout << "Trying to connect to Tango server " << theServer.getClientUrl() << std::endl;
-    proxy = std::make_unique<Tango::DeviceProxy>(url);
-  }
-  catch(CORBA::Exception& e) {
-    Tango::Except::print_exception(e);
-    throw;
-  }
-
-  while(!proxy->is_connected()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(250));
-    if(std::chrono::duration_cast<std::chrono::seconds>(clock::now() - start).count() > 5) {
-      std::cerr << "Timeout while waiting for Tango server to become available" << std::endl;
+  while(true) {
+    try {
+      std::cout << "Trying to connect to Tango server " << theServer.getClientUrl() << std::endl;
+      proxy = std::make_unique<Tango::DeviceProxy>(url);
+      proxy->read_attribute("State");
       break;
     }
-    proxy->connect(url);
+    catch(CORBA::Exception& e) {
+      if(auto now = clock::now(); now > start + std::chrono::seconds(10)) {
+        Tango::Except::print_exception(e);
+        assert(false);
+      }
+    }
   }
 
   // Cannot call any of the BOOST_ tests here, otherwise it will mark the setup as failed, regardless of the test outcome
