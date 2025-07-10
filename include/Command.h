@@ -4,7 +4,11 @@
 
 #include "AdapterDeviceImpl.h"
 
+#include <ChimeraTK/VoidRegisterAccessor.h>
+
 #include <tango/tango.h>
+
+#include <utility>
 
 namespace TangoAdapter {
 
@@ -39,14 +43,22 @@ namespace TangoAdapter {
     std::shared_ptr<CommandBase> _owner;
   };
 
-  template<typename ArgumentUserType, typename ResultUserType>
   class Command : CommandBase {
    public:
+    // NOLINTNEXTLINE(google-explicit-constructor)
+    Command(boost::shared_ptr<ChimeraTK::VoidRegisterAccessor> trigger = {}) : _triggerAccessor(std::move(trigger)) {}
+
     CORBA::Any* execute(Tango::DeviceImpl* dev, [[maybe_unused]] const CORBA::Any& in) override {
       auto* adapterDevice = dynamic_cast<AdapterDeviceImpl*>(dev);
       assert(adapterDevice != nullptr);
+
+      auto v = ChimeraTK::VersionNumber();
+      _triggerAccessor->write(v);
       return std::make_unique<CORBA::Any>().release();
     };
+
+   private:
+    boost::shared_ptr<ChimeraTK::VoidRegisterAccessor> _triggerAccessor;
   };
 
 }; // namespace TangoAdapter
