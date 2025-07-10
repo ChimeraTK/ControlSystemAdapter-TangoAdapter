@@ -12,7 +12,20 @@ namespace TangoAdapter {
     std::string name;
   };
 
-  class Command;
+  class ProxyCommand;
+
+  class CommandBase {
+   public:
+    // NOLINTNEXTLINE(google-explicit-constructor)
+    operator bool() { return _proxy != nullptr; }
+    void notifyDeleted() { _proxy = nullptr; }
+
+    virtual CORBA::Any* execute(Tango::DeviceImpl* dev, const CORBA::Any& in) = 0;
+
+   protected:
+    ProxyCommand* _proxy;
+    cppext::future_queue<void> _waitForResult;
+  };
 
   class ProxyCommand : public Tango::Command {
    public:
@@ -23,27 +36,17 @@ namespace TangoAdapter {
     }
 
    private:
-    std::shared_ptr<Command> _owner;
+    std::shared_ptr<CommandBase> _owner;
   };
 
-  class Command {
+  template<typename ArgumentUserType, typename ResultUserType>
+  class Command : CommandBase {
    public:
-    // NOLINTNEXTLINE(google-explicit-constructor)
-    operator bool() { return _proxy != nullptr; }
-    void notifyDeleted() { _proxy = nullptr; }
-
-    CORBA::Any* execute(Tango::DeviceImpl* dev, const CORBA::Any& in) {
+    CORBA::Any* execute(Tango::DeviceImpl* dev, [[maybe_unused]] const CORBA::Any& in) override {
       auto* adapterDevice = dynamic_cast<AdapterDeviceImpl*>(dev);
       assert(adapterDevice != nullptr);
-
       return std::make_unique<CORBA::Any>().release();
-    }
-
-   private:
-    ProxyCommand* _proxy;
-    ChimeraTK::TransferElementAbstractor _trigger;
-    ChimeraTK::TransferElementAbstractor _argument;
-    cppext::future_queue<void> _waitForResult;
+    };
   };
 
 }; // namespace TangoAdapter
