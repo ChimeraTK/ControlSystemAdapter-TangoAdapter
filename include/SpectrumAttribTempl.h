@@ -120,7 +120,7 @@ namespace TangoAdapter {
     auto pv = adapterDevice->getPvForAttribute(att.get_name());
     assert(pv.getValueType() == typeid(AdapterType));
 
-    auto processSpectrum = boost::reinterpret_pointer_cast<GenericAccessor>(pv.getHighLevelImplElement());
+    auto processSpectrum = boost::dynamic_pointer_cast<GenericAccessor>(pv.getHighLevelImplElement());
 
     if(!processSpectrum) {
       DEV_WARN_STREAM(dev) << "pv type mismatch (expected: " << boost::core::demangle(pv.getValueType().name())
