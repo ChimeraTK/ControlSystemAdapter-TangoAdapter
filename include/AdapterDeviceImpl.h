@@ -4,11 +4,10 @@
 
 #include "AttributeMapper.h"
 #include "AttributeProperty.h"
-#include "ChimeraTK/TransferElementAbstractor.h"
+
+#include <ChimeraTK/TransferElementAbstractor.h>
 
 #include <tango/tango.h>
-
-#include <AttributeProperty.h>
 
 // Most of the non-conforming naming is a requierment from Tango, so just disable this check
 // NOLINTBEGIN(readability-identifier-naming)
@@ -33,6 +32,7 @@ namespace TangoAdapter {
 
     void attachToClassAttributes(const std::shared_ptr<AttributeMapper::DeviceClass>& deviceClass);
     ChimeraTK::TransferElementAbstractor getPvForAttribute(const std::string& attributeName);
+    ChimeraTK::TransferElementAbstractor getPvForCommand(const std::string& command);
 
     // Lint: Disabling because this is Tango code
     // NOLINTNEXTLINE(google-runtime-int)
@@ -42,6 +42,7 @@ namespace TangoAdapter {
 
    private:
     std::map<std::string, ChimeraTK::TransferElementAbstractor> _attributeToPvMap;
+    std::map<std::string, ChimeraTK::TransferElementAbstractor> _commandToPvMap;
     void restoreMemoriedSpectra(const std::list<AttributeProperty>&);
   };
 } // namespace TangoAdapter

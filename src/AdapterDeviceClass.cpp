@@ -213,7 +213,16 @@ namespace TangoAdapter {
 
   /********************************************************************************************************************/
 
-  void AdapterDeviceClass::command_factory() {}
+  void AdapterDeviceClass::command_factory() {
+    auto& adapter = TangoAdapter::getInstance();
+    auto& mapper = adapter.getMapper();
+
+    auto deviceClass = mapper.getClass(get_name());
+
+    for(auto& command : deviceClass->commands) {
+      command_list.push_back(command->getTangoProxy());
+    }
+  }
   /********************************************************************************************************************/
 
   void AdapterDeviceClass::create_static_attribute_list(std::vector<Tango::Attr*>& att_list) {

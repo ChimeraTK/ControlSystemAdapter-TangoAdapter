@@ -14,7 +14,6 @@ namespace TangoAdapter {
   enum class AttrDataFormat { SCALAR, SPECTRUM, IMAGE };
 
   struct AttributeProperty {
-    // Speed;Board/Reg;SCALAR;DEVShort
     AttributeProperty(std::string attributeName, AttrDataFormat dataFormat, Tango::CmdArgType attrDataType,
         std::string attrDesc, std::string attrUnit)
     : unit(std::move(attrUnit)), desc(std::move(attrDesc)), name(std::move(attributeName)), attrDataFormat(dataFormat),
@@ -49,10 +48,10 @@ namespace std {
         os << "SCALAR";
         break;
       case TangoAdapter::AttrDataFormat::SPECTRUM:
-        os << "SCALAR";
+        os << "SPECTRUM";
         break;
       case TangoAdapter::AttrDataFormat::IMAGE:
-        os << "SCALAR";
+        os << "IMAGE";
         break;
       default:
         os << "UNKNOWN";

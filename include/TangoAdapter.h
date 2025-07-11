@@ -28,7 +28,6 @@ namespace TangoAdapter {
     }
     [[nodiscard]] boost::shared_ptr<ChimeraTK::DevicePVManager> getDevicePvManager() { return _devicePVManager; }
 
-    [[nodiscard]] std::set<std::string> getCsVariableNames();
     [[nodiscard]] AttributeMapper& getMapper() { return _attributeMapper; }
     [[nodiscard]] TangoUpdater& getUpdater() { return _updater; }
 

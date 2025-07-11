@@ -15,12 +15,6 @@ namespace TangoAdapter {
     _attributeMapper.setCSPVManager(_controlSystemPVManager);
   }
 
-  std::set<std::string> TangoAdapter::getCsVariableNames() {
-    static std::set<std::string> variables = _attributeMapper.getCsVariableNames();
-
-    return variables;
-  }
-
   // This gets passed in commandline arguments
   // NOLINTNEXTLINE(modernize-avoid-c-arrays)
   void TangoAdapter::run(int argc, char* argv[], std::optional<std::function<void()>> postInitHook) {

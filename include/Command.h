@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include "AdapterDeviceImpl.h"
-
 #include <ChimeraTK/VoidRegisterAccessor.h>
 
 #include <tango/tango.h>
@@ -18,22 +16,44 @@ namespace TangoAdapter {
 
   class ProxyCommand;
 
-  class CommandBase {
+  class CommandBase : public std::enable_shared_from_this<CommandBase> {
    public:
+    CommandBase(std::string name, std::string triggerSourceName, ProxyCommand* proxy)
+    : _proxy(proxy), _name(std::move(name)), _triggerSourceName(std::move(triggerSourceName)) {}
     // NOLINTNEXTLINE(google-explicit-constructor)
     operator bool() { return _proxy != nullptr; }
     void notifyDeleted() { _proxy = nullptr; }
+    ProxyCommand* getTangoProxy();
 
-    virtual CORBA::Any* execute(Tango::DeviceImpl* dev, const CORBA::Any& in) = 0;
+    void setTrigger(const ChimeraTK::TransferElementAbstractor& triggerAccessor) {
+      _triggerAccessor.replace(triggerAccessor);
+    }
+
+    [[nodiscard]] const std::string& getName() const { return _name; }
+    [[nodiscard]] const std::string& getTriggerSourceName() const { return _triggerSourceName; }
 
    protected:
     ProxyCommand* _proxy;
+    std::string _name;
+    std::string _triggerSourceName;
     cppext::future_queue<void> _waitForResult;
+    ChimeraTK::TransferElementAbstractor _triggerAccessor;
+
+    friend class ProxyCommand;
+    virtual CORBA::Any* execute(Tango::DeviceImpl*, const CORBA::Any&) { return nullptr; };
   };
 
   class ProxyCommand : public Tango::Command {
    public:
+    using Tango::Command::Command;
     ~ProxyCommand() override;
+
+    void setOwner(const std::shared_ptr<CommandBase>& owner) {
+      assert(not _owner);
+      _owner = owner;
+    }
+
+    [[nodiscard]] bool hasOwner() const { return bool(_owner); }
 
     CORBA::Any* execute(Tango::DeviceImpl* dev, const CORBA::Any& in_any) override {
       return _owner->execute(dev, in_any);
@@ -43,22 +63,28 @@ namespace TangoAdapter {
     std::shared_ptr<CommandBase> _owner;
   };
 
-  class Command : CommandBase {
+  inline ProxyCommand* CommandBase::getTangoProxy() {
+    if(!_proxy->hasOwner()) {
+      _proxy->setOwner(shared_from_this());
+    }
+
+    return _proxy;
+  }
+
+  class Command : public CommandBase {
    public:
     // NOLINTNEXTLINE(google-explicit-constructor)
-    Command(boost::shared_ptr<ChimeraTK::VoidRegisterAccessor> trigger = {}) : _triggerAccessor(std::move(trigger)) {}
+    Command(const std::string& name, const std::string& triggerSourceName)
+    : CommandBase(name, triggerSourceName,
+          std::make_unique<ProxyCommand>(name, Tango::DEV_VOID, Tango::DEV_VOID, Tango::OPERATOR).release()) {}
 
-    CORBA::Any* execute(Tango::DeviceImpl* dev, [[maybe_unused]] const CORBA::Any& in) override {
-      auto* adapterDevice = dynamic_cast<AdapterDeviceImpl*>(dev);
-      assert(adapterDevice != nullptr);
-
+    CORBA::Any* execute([[maybe_unused]] Tango::DeviceImpl* dev, [[maybe_unused]] const CORBA::Any& in) override {
       auto v = ChimeraTK::VersionNumber();
-      _triggerAccessor->write(v);
+      _triggerAccessor.write(v);
       return std::make_unique<CORBA::Any>().release();
-    };
+    }
 
    private:
-    boost::shared_ptr<ChimeraTK::VoidRegisterAccessor> _triggerAccessor;
   };
 
 }; // namespace TangoAdapter

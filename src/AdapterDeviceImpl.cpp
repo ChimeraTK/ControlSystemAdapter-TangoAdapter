@@ -243,6 +243,13 @@ namespace TangoAdapter {
       }
     }
 
+    DEBUG_STREAM << "Attaching Commands to device instance " << device->name << std::endl;
+    for(auto& cmd : deviceClass->commands) {
+      auto processVariable = csPvManager->getProcessVariable(cmd->getTriggerSourceName());
+      auto pv = ChimeraTK::TransferElementAbstractor(processVariable);
+      cmd->setTrigger(pv);
+    }
+
     // only need to write spectrum attributes (manual writing bug in Tango)
     // scalar attributes are memoried and initialized by Tango
     // But only if we are running with a database. If not, there is nothing to
@@ -261,5 +268,15 @@ namespace TangoAdapter {
     catch(std::out_of_range&) {
       return {};
     }
+  }
+
+  /********************************************************************************************************************/
+
+  ChimeraTK::TransferElementAbstractor AdapterDeviceImpl::getPvForCommand(const std::string& command) {
+    if(auto it = _commandToPvMap.find(command); it != _commandToPvMap.end()) {
+      return it->second;
+    }
+
+    return {};
   }
 } // namespace TangoAdapter

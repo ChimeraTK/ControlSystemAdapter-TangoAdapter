@@ -3,6 +3,8 @@
 namespace TangoAdapter {
 
   ProxyCommand::~ProxyCommand() {
-    _owner->notifyDeleted();
+    if(_owner) {
+      _owner->notifyDeleted();
+    }
   }
 } // namespace TangoAdapter
