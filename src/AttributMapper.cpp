@@ -7,7 +7,6 @@
 
 #include <ChimeraTK/RegisterPath.h>
 #include <ChimeraTK/Utilities.h>
-#include <ChimeraTK/VoidRegisterAccessor.h>
 
 #include <libxml++/libxml++.h>
 
@@ -71,7 +70,8 @@ namespace TangoAdapter {
 
     /******************************************************************************************************************/
 
-    std::optional<std::string> childContentAsOptional(xmlpp::Node* node, const std::string& child) {
+    template<typename T = std::string>
+    std::optional<T> childContentAsOptional(xmlpp::Node* node, const std::string& child) {
       std::optional<std::string> result;
       iterateChildrenFiltered(
           node,
@@ -91,7 +91,11 @@ namespace TangoAdapter {
           },
           [&child](auto* n) { return n->get_name() == child; });
 
-      return result;
+      if constexpr(std::is_same_v<std::string, T>) {
+        return result;
+      }
+
+      return result.transform([](auto& v) { return ChimeraTK::userTypeToUserType<T>(v); });
     }
 
     /******************************************************************************************************************/
@@ -258,6 +262,20 @@ namespace TangoAdapter {
 
   /********************************************************************************************************************/
 
+  void AttributeMapper::addCommand(
+      std::shared_ptr<DeviceInstance>& device, const std::string& commandName, const std::string& processVariableName) {
+    if(commandName == "Status" || commandName == "State" || commandName == "Init") {
+      throw ChimeraTK::logic_error("Reserved attribute name \"" + commandName + "\", derived from " +
+          processVariableName + ". Modify your mapping");
+    }
+
+    // TODO: Prevent trigger being mapped as an attribute
+    device->ourClass->commands.push_back(std::make_shared<Command>(commandName, processVariableName));
+    _usedInputVariables.insert(processVariableName);
+  }
+
+  /********************************************************************************************************************/
+
   void AttributeMapper::processAttributeNode(std::shared_ptr<DeviceInstance> device, xmlpp::Node* node) {
     auto* element = dynamic_cast<xmlpp::Element*>(node);
     if(element == nullptr) {
@@ -300,6 +318,9 @@ namespace TangoAdapter {
 
     auto device = deviceClass->getDevice(attribute->get_value());
     TANGO_LOG_DEBUG << "Creating new Instance with name " << device->name << std::endl;
+    device->autoMapCommandsFromVoid = util::childContentAsOptional<bool>(instanceNode, "autoMapCommandsFromVoid");
+    TANGO_LOG_DEBUG << std::format("  Auto-mapping void as commands: {}",
+        device->autoMapCommandsFromVoid ? std::to_string(device->autoMapCommandsFromVoid.value()) : "unset");
     util::iterateChildrenFiltered(instanceNode, [this, device](auto* node) {
       if(node->get_name() == "attribute") {
         processAttributeNode(device, node);
@@ -332,12 +353,16 @@ namespace TangoAdapter {
     // Implicitly create new DeviceClass if not exists in map
     auto deviceClass = _classes[nameAttribute->get_value()];
     if(!deviceClass) {
-      deviceClass = std::make_shared<DeviceClass>(nameAttribute->get_value());
+      deviceClass = std::make_shared<DeviceClass>(nameAttribute->get_value(), this);
       deviceClass->description = util::childContentAsOptional(classNode, "description");
       deviceClass->title = util::childContentAsOptional(classNode, "title");
+      deviceClass->autoMapCommandsFromVoid = util::childContentAsOptional<bool>(classNode, "autoMapCommandsFromVoid");
       _classes[nameAttribute->get_value()] = deviceClass;
     }
+
     TANGO_LOG_DEBUG << "Creating new DeviceClass with name " << deviceClass->name << std::endl;
+    TANGO_LOG_DEBUG << std::format("  Auto-mapping void as commands: {}",
+        deviceClass->autoMapCommandsFromVoid ? std::to_string(deviceClass->autoMapCommandsFromVoid.value()) : "unset");
 
     util::iterateChildrenFiltered(
         classNode, [this, deviceClass](auto* node) { processDeviceInstanceNode(deviceClass, node); },
@@ -358,6 +383,10 @@ namespace TangoAdapter {
         xmlpp::Node* rootNode = parser.get_document()->get_root_node();
 
         assert(rootNode->get_name() == "deviceServer");
+
+        _autoMapCommandsFromVoid = util::childContentAsOptional<bool>(rootNode, "autoMapCommandsFromVoid");
+        TANGO_LOG_DEBUG << std::format("DeviceServer: Auto-mapping void as commands: {}",
+            _autoMapCommandsFromVoid ? std::to_string(_autoMapCommandsFromVoid.value()) : "unset");
 
         util::iterateChildrenFiltered(
             rootNode, [this](auto* node) { processDeviceClassNode(node); },
@@ -389,7 +418,7 @@ namespace TangoAdapter {
       TANGO_LOG_DEBUG << "Deriving class name from executable name: " << Tango::Util::instance()->get_ds_exec_name()
                       << " -> " << ourName << std::endl;
 
-      auto deviceClass = std::make_shared<DeviceClass>(ourName);
+      auto deviceClass = std::make_shared<DeviceClass>(ourName, this);
       _classes[ourName] = deviceClass;
       auto deviceInstance = deviceClass->getDevice(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data());
       import("/", deviceInstance);
@@ -419,7 +448,13 @@ namespace TangoAdapter {
 
       if(processVariableName.find(importSource + "/") == 0) {
         auto attrName = util::deriveAttributeName(processVariableName, importSource);
-        addAttribute(device, attrName, processVariableName, {}, {});
+        auto var = _controlSystemPVManager->getProcessVariable(processVariableName);
+        if(var->getValueType() == typeid(ChimeraTK::Void) && _autoMapCommandsFromVoid) {
+          addCommand(device, attrName, processVariableName);
+        }
+        else {
+          addAttribute(device, attrName, processVariableName, {}, {});
+        }
       }
     }
   }
