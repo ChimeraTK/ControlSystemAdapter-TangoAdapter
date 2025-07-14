@@ -32,7 +32,6 @@ namespace TangoAdapter {
 
     void attachToClassAttributes(const std::shared_ptr<AttributeMapper::DeviceClass>& deviceClass);
     ChimeraTK::TransferElementAbstractor getPvForAttribute(const std::string& attributeName);
-    ChimeraTK::TransferElementAbstractor getPvForCommand(const std::string& command);
 
     // Lint: Disabling because this is Tango code
     // NOLINTNEXTLINE(google-runtime-int)

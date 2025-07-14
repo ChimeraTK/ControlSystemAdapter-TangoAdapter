@@ -81,6 +81,7 @@ namespace TangoAdapter {
     void processDeviceClassNode(xmlpp::Node* classNode);
     void processDeviceInstanceNode(const std::shared_ptr<DeviceClass>&, xmlpp::Node* instanceNode);
     void processAttributeNode(std::shared_ptr<DeviceInstance> device, xmlpp::Node* node);
+    void processCommandNode(std::shared_ptr<DeviceInstance> device, xmlpp::Node* node);
     void import(std::string importSource, std::shared_ptr<DeviceInstance> device);
 
     // For passing on to the class constructor in the class factory
