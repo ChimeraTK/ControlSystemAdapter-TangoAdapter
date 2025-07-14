@@ -270,13 +270,4 @@ namespace TangoAdapter {
     }
   }
 
-  /********************************************************************************************************************/
-
-  ChimeraTK::TransferElementAbstractor AdapterDeviceImpl::getPvForCommand(const std::string& command) {
-    if(auto it = _commandToPvMap.find(command); it != _commandToPvMap.end()) {
-      return it->second;
-    }
-
-    return {};
-  }
 } // namespace TangoAdapter

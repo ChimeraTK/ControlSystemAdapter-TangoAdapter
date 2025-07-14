@@ -77,11 +77,11 @@ namespace TangoAdapter {
           node,
           [&result](auto* n) {
             result = std::make_optional<std::string>();
-            for(const auto* eguChild : n->get_children()) {
-              if(util::nodeIsWhitespace(eguChild)) {
+            for(const auto* textChildren : n->get_children()) {
+              if(util::nodeIsWhitespace(textChildren)) {
                 continue;
               }
-              const auto* nodeAsText = dynamic_cast<const xmlpp::TextNode*>(eguChild);
+              const auto* nodeAsText = dynamic_cast<const xmlpp::TextNode*>(textChildren);
               if(nodeAsText == nullptr) {
                 continue;
               }
@@ -93,6 +93,10 @@ namespace TangoAdapter {
 
       if constexpr(std::is_same_v<std::string, T>) {
         return result;
+      }
+
+      if constexpr(std::is_same_v<bool, T>) {
+        return result.transform([](auto& v) { return bool(ChimeraTK::userTypeToUserType<ChimeraTK::Boolean>(v)); });
       }
 
       return result.transform([](auto& v) { return ChimeraTK::userTypeToUserType<T>(v); });
@@ -175,6 +179,54 @@ namespace TangoAdapter {
       }
       if(info == typeid(ChimeraTK::Void)) {
         dataType = Tango::DEV_VOID;
+      }
+
+      return dataType;
+    }
+
+    /******************************************************************************************************************/
+
+    Tango::CmdArgType deriveArrayType(std::type_info const& info) {
+      Tango::CmdArgType dataType{Tango::CmdArgType::DATA_TYPE_UNKNOWN};
+
+      if(info == typeid(uint8_t)) {
+        // FIXME: Is this correct?
+        dataType = Tango::DEVVAR_USHORTARRAY;
+      }
+
+      if(info == typeid(int8_t)) {
+        dataType = Tango::DEVVAR_CHARARRAY;
+      }
+
+      if(info == typeid(uint16_t)) {
+        dataType = Tango::DEVVAR_USHORTARRAY;
+      }
+      if(info == typeid(int16_t)) {
+        dataType = Tango::DEVVAR_SHORTARRAY;
+      }
+      if(info == typeid(uint32_t)) {
+        dataType = Tango::DEVVAR_ULONGARRAY;
+      }
+      if(info == typeid(int32_t)) {
+        dataType = Tango::DEVVAR_LONGARRAY;
+      }
+      if(info == typeid(uint64_t)) {
+        dataType = Tango::DEVVAR_ULONG64ARRAY;
+      }
+      if(info == typeid(int64_t)) {
+        dataType = Tango::DEVVAR_LONG64ARRAY;
+      }
+      if(info == typeid(float)) {
+        dataType = Tango::DEVVAR_FLOATARRAY;
+      }
+      if(info == typeid(double)) {
+        dataType = Tango::DEVVAR_DOUBLEARRAY;
+      }
+      if(info == typeid(std::string)) {
+        dataType = Tango::DEVVAR_STRINGARRAY;
+      }
+      if(info == typeid(ChimeraTK::Boolean)) {
+        dataType = Tango::DEVVAR_BOOLEANARRAY;
       }
 
       return dataType;
@@ -276,11 +328,45 @@ namespace TangoAdapter {
 
   /********************************************************************************************************************/
 
+  void AttributeMapper::processCommandNode(std::shared_ptr<DeviceInstance> device, xmlpp::Node* node) {
+    auto* element = dynamic_cast<xmlpp::Element*>(node);
+
+    if(element == nullptr) {
+      throw ChimeraTK::logic_error(std::format("Command node is not an element in line {}", node->get_line()));
+    }
+
+    auto* trigger = element->get_attribute("trigger");
+    auto* inputArgument = element->get_attribute("inputArgument");
+    auto* returnValue = element->get_attribute("returnValue");
+
+    if(trigger == nullptr && inputArgument == nullptr) {
+      throw ChimeraTK::logic_error(std::format(
+          "Must specify at least a trigger or an input parameter for Command in line {}", node->get_line()));
+    }
+
+    auto name = std::string(element->get_attribute_value("name"));
+    if(name.empty()) {
+      if(trigger != nullptr) {
+        name = util::deriveAttributeName(trigger->get_value());
+      }
+      else if(inputArgument != nullptr) {
+        name = util::deriveAttributeName(inputArgument->get_value());
+      }
+    }
+
+    auto inputDescription = util::childContentAsOptional(node, "inputDescription");
+    auto outputDescription = util::childContentAsOptional(node, "outputDescription");
+
+    addCommand(device, name, trigger->get_value());
+  }
+
+  /********************************************************************************************************************/
+
   void AttributeMapper::processAttributeNode(std::shared_ptr<DeviceInstance> device, xmlpp::Node* node) {
     auto* element = dynamic_cast<xmlpp::Element*>(node);
     if(element == nullptr) {
       throw ChimeraTK::logic_error(
-          "Invalid argument: DeviceInstance node is not an Element in line " + std::to_string(node->get_line()));
+          "Invalid argument: Attribute node is not an Element in line " + std::to_string(node->get_line()));
     }
 
     auto* source = element->get_attribute("source");
@@ -319,7 +405,7 @@ namespace TangoAdapter {
     auto device = deviceClass->getDevice(attribute->get_value());
     TANGO_LOG_DEBUG << "Creating new Instance with name " << device->name << std::endl;
     device->autoMapCommandsFromVoid = util::childContentAsOptional<bool>(instanceNode, "autoMapCommandsFromVoid");
-    TANGO_LOG_DEBUG << std::format("  Auto-mapping void as commands: {}",
+    std::cout << std::format("  Auto-mapping void as commands: {}",
         device->autoMapCommandsFromVoid ? std::to_string(device->autoMapCommandsFromVoid.value()) : "unset");
     util::iterateChildrenFiltered(instanceNode, [this, device](auto* node) {
       if(node->get_name() == "attribute") {
@@ -361,7 +447,7 @@ namespace TangoAdapter {
     }
 
     TANGO_LOG_DEBUG << "Creating new DeviceClass with name " << deviceClass->name << std::endl;
-    TANGO_LOG_DEBUG << std::format("  Auto-mapping void as commands: {}",
+    std::cout << std::format("  Auto-mapping void as commands: {}",
         deviceClass->autoMapCommandsFromVoid ? std::to_string(deviceClass->autoMapCommandsFromVoid.value()) : "unset");
 
     util::iterateChildrenFiltered(
@@ -385,7 +471,7 @@ namespace TangoAdapter {
         assert(rootNode->get_name() == "deviceServer");
 
         _autoMapCommandsFromVoid = util::childContentAsOptional<bool>(rootNode, "autoMapCommandsFromVoid");
-        TANGO_LOG_DEBUG << std::format("DeviceServer: Auto-mapping void as commands: {}",
+        std::cout << std::format("DeviceServer: Auto-mapping void as commands: {}",
             _autoMapCommandsFromVoid ? std::to_string(_autoMapCommandsFromVoid.value()) : "unset");
 
         util::iterateChildrenFiltered(
