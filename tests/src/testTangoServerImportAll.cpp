@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(testVariableExistence) {
 
   std::unique_ptr<std::vector<std::string>> attributes(proxy.get_attribute_list());
   // All of our attributes and the built-in "State" and "Status"
-  BOOST_TEST(attributes->size() == 76);
+  BOOST_TEST(attributes->size() == 89);
 
   for(const auto* const directory : {"DOUBLE", "FLOAT", "LONG", "INT", "SHORT", "ULONG", "UCHAR", "UINT", "USHORT",
           "CHAR", "BOOLEAN", "VOID", "STRING"}) {
@@ -41,7 +41,8 @@ BOOST_AUTO_TEST_CASE(testVariableExistence) {
       std::cout << "test done " << std::endl;
     }
 
-    for(const auto* const variable : {"DATA_TYPE_CONSTANT", "FROM_DEVICE_SCALAR", "TO_DEVICE_SCALAR"}) {
+    for(const auto* const variable :
+        {"DATA_TYPE_CONSTANT", "FROM_DEVICE_SCALAR", "TO_DEVICE_SCALAR", "BIDIRECTIONAL"}) {
       if(std::string(directory) == "VOID" && std::string(variable) == "DATA_TYPE_CONSTANT") {
         continue;
       }
