@@ -21,6 +21,8 @@ namespace TangoAdapter {
    public:
     CommandBase(std::string name, std::string triggerSourceName, ProxyCommand* proxy)
     : _proxy(proxy), _name(std::move(name)), _triggerSourceName(std::move(triggerSourceName)) {}
+    virtual ~CommandBase() = default;
+
     // NOLINTNEXTLINE(google-explicit-constructor)
     operator bool() { return _proxy != nullptr; }
     void notifyDeleted() { _proxy = nullptr; }
@@ -49,6 +51,7 @@ namespace TangoAdapter {
   class Command : public CommandBase {
    public:
     Command(const std::string& name, const std::string& triggerSourceName);
+    ~Command() override = default;
 
     CORBA::Any* execute([[maybe_unused]] Tango::DeviceImpl* dev, [[maybe_unused]] const CORBA::Any& in) override;
   };
