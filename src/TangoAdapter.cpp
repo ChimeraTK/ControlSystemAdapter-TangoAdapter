@@ -38,9 +38,6 @@ namespace TangoAdapter {
       //	which will create everything
       tg->server_init(false);
 
-      // Start application and updater here after all classes and devices are created in server_init
-      finalizeApplicationStartup();
-
       // check for variables not yet initialised - we must guarantee that all to-application variables are written
       // exactly once at server start.
       for(auto& pv : _controlSystemPVManager->getAllProcessVariables()) {
@@ -53,6 +50,9 @@ namespace TangoAdapter {
           pv->write();
         }
       }
+
+      // Start application and updater here after all classes and devices are created in server_init
+      finalizeApplicationStartup();
 
       // Run anything else that needs to be done after server start - This is mainly used in the tests
       if(postInitHook) {
