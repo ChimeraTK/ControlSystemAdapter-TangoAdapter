@@ -3,6 +3,8 @@
 
 #include "TangoAdapter.h"
 
+#include "ClassFactory.h"
+
 #include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
 
 #include <tango/tango.h>
@@ -29,6 +31,9 @@ namespace TangoAdapter {
       // Initialise the device server
 
       Tango::Util* tg = Tango::Util::init(argc, argv);
+#if TANGO_VERSION >= TANGO_MAKE_VERSION(10, 3, 0)
+      tg->register_dserver_constructor(constructor);
+#endif
 
       // This has to be done after Util::init since it needs some information from Tango
       // if the mapper file is missing some information (e.g. Class name)

@@ -6,7 +6,10 @@
 #include "ChimeraTK/ControlSystemAdapter/ControlSystemPVManager.h"
 #include "TangoUpdater.h"
 
+#include <tango/tango.h>
+
 #include <boost/smart_ptr/shared_ptr.hpp>
+
 namespace TangoAdapter {
   class TangoAdapter {
    public:
