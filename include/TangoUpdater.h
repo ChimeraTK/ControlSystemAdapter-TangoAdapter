@@ -32,7 +32,8 @@ namespace TangoAdapter {
     void run();
     void stop();
 
-    void addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId);
+    void addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId,
+        std::optional<std::function<void()>> callback = {});
 
     const std::list<ChimeraTK::TransferElementAbstractor>& getElementsToRead() { return _elementsToRead; }
 
@@ -45,6 +46,7 @@ namespace TangoAdapter {
     struct UpdateDescriptor {
       std::vector<std::string> attributeID;
       std::set<boost::shared_ptr<ChimeraTK::TransferElement>> additionalTransferElements;
+      std::vector<std::function<void()>> callbacks;
     };
     std::map<ChimeraTK::TransferElementID, UpdateDescriptor> _descriptorMap;
   };

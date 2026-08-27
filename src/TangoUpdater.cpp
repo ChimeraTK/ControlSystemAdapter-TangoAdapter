@@ -10,22 +10,24 @@
 
 namespace TangoAdapter {
 
-  void TangoUpdater::addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId) {
+  void TangoUpdater::addVariable(ChimeraTK::TransferElementAbstractor variable, const std::string& attrId,
+      std::optional<std::function<void()>> callback) {
     TANGO_LOG_DEBUG << "TangoAdapter::Updater adding variable " << attrId << std::endl;
 
     if(variable.isReadable()) {
       auto id = variable.getId();
-      // device, Attribute  read(device,attribute)
-      if(_descriptorMap.find(id) ==
-          _descriptorMap.end()) { // jade: push to _elementsToRead if not found in _descriptorMap
+
+      if(_descriptorMap.find(id) == _descriptorMap.end()) {
         _elementsToRead.push_back(variable);
       }
       else {
         _descriptorMap[id].additionalTransferElements.insert(variable.getHighLevelImplElement());
       }
-      // push variable.getHighLevelImplElement()/updaterFunction/eq_fct in _descriptorMap
-      // and push TransferElementAbstractor _elementsToRead
+
       _descriptorMap[id].attributeID.push_back(attrId);
+      if(callback) {
+        _descriptorMap[id].callbacks.push_back(callback.value());
+      }
     }
   }
 
@@ -64,6 +66,9 @@ namespace TangoAdapter {
       // FIXME: Ideally we would fill the Tango buffer for the attribute here, then attribute->read()
       // would just send it out to CORBA
       // FIXME: Also we would need to toggle the event here, once supported
+      for(auto& f : descriptor.callbacks) {
+        f();
+      }
 
       // Call preRead for all TEs for the updated ID
       for(const auto& elem : descriptor.additionalTransferElements) {

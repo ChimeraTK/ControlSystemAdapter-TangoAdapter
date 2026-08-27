@@ -49,7 +49,6 @@ A device class can have an optional `title` and `description`. Those override th
 
 It is also possible to map individual variables to attributes using the `<attribute>` tag. The `<attribute>` tag has a mandatory `source` attribute describing the path to the process variable. Using the optional `name` attribute, the attribute name can be specified.
 
-It is also possible to override the description and egu of the process variable using the `<description>` and `<egu>` child tags of `<attribute>`.
-
+One can also override the description and egu of the process variable using the `<description>` and `<egu>` child tags of `<attribute>`.
 
  */

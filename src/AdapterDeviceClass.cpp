@@ -141,7 +141,7 @@ namespace TangoAdapter {
 
       if(!deviceClass->hasDevice(deviceName) &&
           !deviceClass->hasDevice(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data())) {
-        std::cerr << "Device " << deviceName << "not known in attribute mapper. Skipping." << std::endl;
+        std::cerr << "Device " << deviceName << " not known in attribute mapper. Skipping." << std::endl;
         continue;
       }
 
@@ -150,7 +150,7 @@ namespace TangoAdapter {
       if(!deviceClass->hasDevice(deviceName) &&
           !deviceClass->hasDevice(TangoAdapter::PLAIN_IMPORT_DUMMY_DEVICE.data())) {
         // See if we have the "generic" device"
-        DEV_ERROR_STREAM(device) << "Device " << deviceName << "not known in attribute mapper. Expect issues"
+        DEV_ERROR_STREAM(device) << "Device " << deviceName << " not known in attribute mapper. Expect issues"
                                  << std::endl;
         device->set_state(Tango::FAULT);
         device->set_status("Device was not found in mapping file, no variables could be mapped.");

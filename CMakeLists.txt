@@ -44,12 +44,12 @@ add_library(${PROJECT_NAME} SHARED ${library_sources} ${headers})
 
 # exported includes are all under ${CMAKE_INSTALL_PREFIX}/include
 target_include_directories(${PROJECT_NAME}
-                           INTERFACE "$<INSTALL_INTERFACE:include>")
+  INTERFACE "$<INSTALL_INTERFACE:include>")
 set_target_properties(
   ${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION}
-                             SOVERSION ${${PROJECT_NAME}_SOVERSION})
+  SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME}
-                      PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter)
+  PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter)
 target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::TANGO PkgConfig::XMLPP)
 
 # do not remove runtime paths of the library when installing (helps for unsually
@@ -66,6 +66,7 @@ if(BUILD_TESTS)
   add_library(TestLib STATIC ${testLibrarySources} ${testLibraryHeaders})
   target_link_libraries(TestLib PUBLIC ChimeraTK::ChimeraTK-ControlSystemAdapter PkgConfig::TANGO PkgConfig::XMLPP)
   target_include_directories(TestLib PUBLIC ${CMAKE_SOURCE_DIR}/tests/include_lib)
+
   # loop over all sources files in execultables_src directory
   aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src testExecutables)
 
@@ -76,16 +77,17 @@ if(BUILD_TESTS)
     # each test includes a DOOCS server
     add_executable(${executableName} ${testExecutableSrcFile})
     target_include_directories(${executableName}
-                               PRIVATE ${CMAKE_SOURCE_DIR}/tests/include)
+      PRIVATE ${CMAKE_SOURCE_DIR}/tests/include)
 
     # need to force no-as-needed otherwise the class_factory function from the
     # adapter will be discarded and the tango server will not start
     target_link_options(${executableName} PUBLIC "-Wl,--no-as-needed")
     target_link_libraries(${executableName} PUBLIC ${PROJECT_NAME}
-                                                   TestLib
-                                                   PkgConfig::TANGO PkgConfig::XMLPP)
-    if (NOT "${executableName}" STREQUAL "testTangoServer")
-        add_test(${executableName} ${executableName})
+      TestLib
+      PkgConfig::TANGO PkgConfig::XMLPP)
+
+    if(NOT "${executableName}" STREQUAL "testTangoServer")
+      add_test(${executableName} ${executableName})
     endif()
   endforeach(testExecutableSrcFile)
 
@@ -93,12 +95,14 @@ if(BUILD_TESTS)
   set_tests_properties(testTangoServerPersistSpectrum PROPERTIES FIXTURES_SETUP SpectrumPersistDb)
   set_tests_properties(testTangoServerPersistSpectrumRead PROPERTIES FIXTURES_REQUIRED SpectrumPersistDb)
 
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testServerStatusState_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testPersistSpectrumDatabase_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testFilterAttributes_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testMapTwice_template.db DESTINATION ${CMAKE_BINARY_DIR})
 
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestFilterAttributes_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestMapTwice_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestStatusState_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
 
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/devices.dmap DESTINATION ${CMAKE_BINARY_DIR})
 endif()
@@ -118,5 +122,5 @@ set(PROVIDES_EXPORTED_TARGETS 1)
 # we need the public dependencies so create_cmake_config_files can find them as
 # implicit dependencies
 list(APPEND ${PROJECT_NAME}_PUBLIC_DEPENDENCIES
-     "ChimeraTK-ControlSystemAdapter")
+  "ChimeraTK-ControlSystemAdapter")
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)

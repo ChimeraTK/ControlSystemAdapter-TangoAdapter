@@ -300,6 +300,19 @@ namespace TangoAdapter {
 
     auto device = deviceClass->getDevice(attribute->get_value());
     TANGO_LOG_DEBUG << "Creating new Instance with name " << device->name << std::endl;
+
+    attribute = element->get_attribute("statusSource");
+    if(attribute != nullptr) {
+      device->statusSource = attribute->get_value();
+      TANGO_LOG_DEBUG << std::format("Device status is fed from {}", attribute->get_value().c_str()) << std::endl;
+    }
+
+    attribute = element->get_attribute("stateSource");
+    if(attribute != nullptr) {
+      device->stateSource = attribute->get_value();
+      TANGO_LOG_DEBUG << std::format("Device state is fed from {}", attribute->get_value().c_str()) << std::endl;
+    }
+
     util::iterateChildrenFiltered(instanceNode, [this, device](auto* node) {
       if(node->get_name() == "attribute") {
         processAttributeNode(device, node);
