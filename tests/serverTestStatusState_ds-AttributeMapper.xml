@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer>
+    <deviceClass name="serverTestStatusState">
+        <deviceInstance name="tango/test/serverteststatusstate" stateSource="INT/FROM_DEVICE_SCALAR" statusSource="STRING/FROM_DEVICE_SCALAR">
+            <attribute name="INT_TO_DEVICE_SCALAR" source="INT/TO_DEVICE_SCALAR" />
+            <attribute name="STRING_TO_DEVICE_SCALAR" source="STRING/TO_DEVICE_SCALAR" />
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

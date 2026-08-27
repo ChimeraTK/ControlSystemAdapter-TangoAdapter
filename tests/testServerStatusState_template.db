@@ -1,0 +1,28 @@
+#
+# Resource backup , created Wed Apr 10 13:29:45 UTC 2024
+#
+
+#---------------------------------------------------------
+# SERVER serverTestStatusState_ds/TestserverTestStatusState
+#---------------------------------------------------------
+
+serverTestStatusState_ds/TestserverTestStatusState/DEVICE/serverTestStatusState: "tango/test/serverteststatusstate"
+
+
+# --- test/reference/server properties
+
+tango/test/serverteststatusstate->AttributeList: "INT_TO_DEVICE_SCALAR;INT/TO_DEVICE_SCALAR;SCALAR;DevLong;;",\
+                                                  "INT_FROM_DEVICE_SCALAR;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;;",\
+                                                  "INT_TO_DEVICE_ARRAY;INT/TO_DEVICE_ARRAY;SPECTRUM;DevLong;Wrong Array size;10",\
+                                                  "INT_FROM_DEVICE_ARRAY;INT/FROM_DEVICE_ARRAY;SPECTRUM;DevLong;;"
+
+#---------------------------------------------------------
+# CLASS serverTestStatusState_ds properties
+#---------------------------------------------------------
+
+CLASS/serverTestStatusState_ds->Description: "ChimeraTK-based DeviceServer"
+CLASS/serverTestStatusState_ds->InheritedFrom: TANGO_BASE_CLASS
+CLASS/serverTestStatusState_ds->ProjectTitle: serverTestStatusState_ds
+
+# CLASS serverTestStatusState_ds attribute properties
+

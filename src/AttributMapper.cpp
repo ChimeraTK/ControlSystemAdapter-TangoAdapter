@@ -300,6 +300,19 @@ namespace TangoAdapter {
 
     auto device = deviceClass->getDevice(attribute->get_value());
     TANGO_LOG_DEBUG << "Creating new Instance with name " << device->name << std::endl;
+
+    attribute = element->get_attribute("statusSource");
+    if(attribute != nullptr) {
+      device->statusSource = attribute->get_value();
+      TANGO_LOG_DEBUG << std::format("Device status is fed from {}", attribute->get_value().c_str()) << std::endl;
+    }
+
+    attribute = element->get_attribute("stateSource");
+    if(attribute != nullptr) {
+      device->stateSource = attribute->get_value();
+      TANGO_LOG_DEBUG << std::format("Device state is fed from {}", attribute->get_value().c_str()) << std::endl;
+    }
+
     util::iterateChildrenFiltered(instanceNode, [this, device](auto* node) {
       if(node->get_name() == "attribute") {
         processAttributeNode(device, node);
@@ -457,8 +470,20 @@ namespace TangoAdapter {
     std::set<std::string> unused;
     auto all = getCsVariableNames();
 
-    std::set_difference(all.begin(), all.end(), _usedInputVariables.begin(), _usedInputVariables.end(),
-        std::inserter(unused, unused.begin()));
+    // The state and status sources are not mapped as ordinary Tango attributes, but the application still publishes
+    // them, so they must not be handed to optimiseUnmappedVariables() as unused.
+    auto used = _usedInputVariables;
+    for(auto& [className, deviceClass] : _classes) {
+      for(auto& [deviceName, device] : deviceClass->devicesInDeviceClass) {
+        for(const auto& source : {device->stateSource, device->statusSource}) {
+          if(source) {
+            used.insert(source.value());
+          }
+        }
+      }
+    }
+
+    std::set_difference(all.begin(), all.end(), used.begin(), used.end(), std::inserter(unused, unused.begin()));
 
     return unused;
   }

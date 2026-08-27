@@ -43,6 +43,9 @@ namespace TangoAdapter {
    private:
     std::map<std::string, ChimeraTK::TransferElementAbstractor> _attributeToPvMap;
     void restoreMemoriedSpectra(const std::list<AttributeProperty>&);
+    void addMonitoredDeviceProperty(const std::optional<std::string>& source, const std::string& purpose,
+        const std::string& updaterName, const std::function<bool(const std::type_info&)>& isSupportedType,
+        std::function<void(ChimeraTK::TransferElementAbstractor&)> map);
   };
 } // namespace TangoAdapter
   // NOLINTEND(readability-identifier-naming)
