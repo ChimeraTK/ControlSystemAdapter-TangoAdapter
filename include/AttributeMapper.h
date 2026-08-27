@@ -20,6 +20,8 @@ namespace TangoAdapter {
     struct DeviceInstance {
       DeviceInstance(std::string ourName, DeviceClass* parent) : name(std::move(ourName)), ourClass(parent) {}
       std::string name;
+      std::optional<std::string> statusSource;
+      std::optional<std::string> stateSource;
       std::map<std::string, std::string> attributeToSource;
       DeviceClass* ourClass;
     };

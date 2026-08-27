@@ -12,7 +12,7 @@
     <deviceClass name="MD22Controller">
         <title>MD22 Controller</title>
         <description>DFMC-MD22 stepper controller</description>
-        <deviceInstance name="test/md22/controller">
+        <deviceInstance name="test/md22/controller" stateSource="/Motors/state" statusSource="/Motors/status">
             <attribute name="numberOfMotors" source="/Motors/nMotors">
                 <description>The number of motors in this device server</description>
                 <egu>n/a</egu>

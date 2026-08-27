@@ -20,6 +20,11 @@
       <xs:element name="import" type="xs:string" maxOccurs="unbounded" />
     </xs:choice>
     <xs:attribute name="name" type="xs:string" use="required" />
+    <!-- Optional process variable mapped to the Tango device state. It has to be an integral process
+         variable, typically a ChimeraTK::StatusAccessor. -->
+    <xs:attribute name="stateSource" type="xs:string" use="optional" />
+    <!-- Optional string process variable mapped to the Tango device status. -->
+    <xs:attribute name="statusSource" type="xs:string" use="optional" />
   </xs:complexType>
 
   <!-- Define reusable complex type for 'deviceClass' -->

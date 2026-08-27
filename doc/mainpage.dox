@@ -49,7 +49,23 @@ A device class can have an optional `title` and `description`. Those override th
 
 It is also possible to map individual variables to attributes using the `<attribute>` tag. The `<attribute>` tag has a mandatory `source` attribute describing the path to the process variable. Using the optional `name` attribute, the attribute name can be specified.
 
-It is also possible to override the description and egu of the process variable using the `<description>` and `<egu>` child tags of `<attribute>`.
+One can also override the description and egu of the process variable using the `<description>` and `<egu>` child tags of `<attribute>`.
 
+\subsubsection device_state_and_status Setting the Tango device state and status
+
+By default a device starts up in state ON and with the status "Application is running.". An application can take
+control of both by naming a readable process variable in the optional `stateSource` and `statusSource` attributes of
+the `deviceInstance` tag.
+
+`stateSource` has to be an integral process variable, typically a `ChimeraTK::StatusAccessor`. Its value is mapped to
+the Tango device state: 0 becomes ON, 1 becomes FAULT, 2 becomes OFF and 3 becomes ALARM. Any other value results in
+state UNKNOWN and a warning is logged.
+
+`statusSource` has to be a string process variable. Its value is used as the status of the device.
+
+State and status are updated whenever the application publishes a new value. This includes the value which is already
+available when the device is created, so a device starts up in the state and with the status published by the
+application instead of the defaults above. A source which is not in the variable household of the application, or
+which is not readable, makes the start-up fail.
 
  */
