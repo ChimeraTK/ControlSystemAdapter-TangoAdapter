@@ -17,6 +17,11 @@
                 <description>The number of motors in this device server</description>
                 <egu>n/a</egu>
             </attribute>
+            <attribute name="motorSpeed" source="/Motors/speed">
+                <description>Current speed of the motor</description>
+                <egu>rpm</egu>
+                <eventingType>data</eventingType>
+            </attribute>
         </deviceInstance>
     </deviceClass>
 </deviceServer>

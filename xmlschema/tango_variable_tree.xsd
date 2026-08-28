@@ -1,11 +1,21 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
 
+  <!-- Enumerated type for the attribute eventing configuration -->
+  <xs:simpleType name="EventingType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="none" />
+      <xs:enumeration value="data-ready" />
+      <xs:enumeration value="data" />
+    </xs:restriction>
+  </xs:simpleType>
+
   <!-- Define reusable complex type for 'attribute' -->
   <xs:complexType name="AttributeType">
     <xs:sequence>
       <xs:element name="description" type="xs:string" minOccurs="0" />
       <xs:element name="egu" type="xs:string" minOccurs="0" />
+      <xs:element name="eventingType" type="EventingType" minOccurs="0" />
     </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="optional" />
     <xs:attribute name="source" type="xs:string" use="required" />

@@ -4,19 +4,21 @@
 
 #include "AdapterDeviceImpl.h"
 #include "AttributeProperty.h"
+#include "ChangeEventSource.h"
 #include "TangoPropertyHelper.h"
 
 #include <ChimeraTK/NDRegisterAccessor.h>
 
 namespace TangoAdapter {
   template<typename TangoType, typename AdapterType, typename TangoWriteType = TangoType>
-  class SpectrumAttribTempl : public Tango::SpectrumAttr {
+  class SpectrumAttribTempl : public Tango::SpectrumAttr, public ChangeEventSource {
    public:
     explicit SpectrumAttribTempl(AttributeProperty& attProperty);
     ~SpectrumAttribTempl() override = default;
 
     void read(Tango::DeviceImpl* dev, Tango::Attribute& att) override;
     void write(Tango::DeviceImpl* dev, Tango::WAttribute& att) override;
+    void pushChangeEvent(Tango::DeviceImpl* dev, ChimeraTK::TransferElementAbstractor pv) override;
     bool is_allowed([[maybe_unused]] Tango::DeviceImpl* dev, [[maybe_unused]] Tango::AttReqType ty) override {
       return true;
     }
@@ -26,6 +28,10 @@ namespace TangoAdapter {
    private:
     using GenericAccessor = ChimeraTK::NDRegisterAccessor<AdapterType>;
     using BooleanAccessor = ChimeraTK::NDRegisterAccessor<ChimeraTK::Boolean>;
+
+    /// Prepare the current PV content as a Tango-typed array buffer. Returns nullptr on type mismatch.
+    std::unique_ptr<TangoType[]> prepareData(
+        ChimeraTK::TransferElementAbstractor pv, size_t& length, Tango::AttrQuality& quality);
   };
 
   /********************************************************************************************************************/
@@ -62,30 +68,22 @@ namespace TangoAdapter {
   /********************************************************************************************************************/
 
   template<typename TangoType, typename AdapterType, typename TangoWriteType>
-  void SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::read(
-      Tango::DeviceImpl* dev, Tango::Attribute& att) {
-    auto* adapterDevice = dynamic_cast<TangoAdapter::AdapterDeviceImpl*>(dev);
-    assert(adapterDevice != nullptr);
-
-    auto pv = adapterDevice->getPvForAttribute(att.get_name());
-    assert(pv.getValueType() == typeid(AdapterType));
-
+  std::unique_ptr<TangoType[]> SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::prepareData(
+      ChimeraTK::TransferElementAbstractor pv, size_t& length, Tango::AttrQuality& quality) {
     auto processSpectrum = boost::reinterpret_pointer_cast<GenericAccessor>(pv.getHighLevelImplElement());
 
     if(!processSpectrum) {
-      DEV_WARN_STREAM(dev) << "pv type mismatch (expected: " << boost::core::demangle(pv.getValueType().name())
-                           << ", got :" << boost::core::demangle(typeid(AdapterType()).name()) << ")" << std::endl;
-
-      att.set_quality(Tango::AttrQuality::ATTR_INVALID);
-      return;
+      length = 0;
+      quality = Tango::AttrQuality::ATTR_INVALID;
+      return nullptr;
     }
 
-    auto length = processSpectrum->getNumberOfSamples();
+    length = processSpectrum->getNumberOfSamples();
     // NO, lint. Tango need a runtime-length C-Style array here, cannot use std::array.
     // NOLINTNEXTLINE(modernize-avoid-c-arrays)
     auto data = std::make_unique<TangoType[]>(length);
 
-    for(unsigned int i = 0; i < length; i++) {
+    for(size_t i = 0; i < length; i++) {
       if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
         data.get()[i] = Tango::string_dup(processSpectrum->accessData(i).c_str());
       }
@@ -99,14 +97,51 @@ namespace TangoAdapter {
         data.get()[i] = processSpectrum->accessData(i);
       }
     }
-    att.set_value(data.release(), length, 0, true);
 
-    if(processSpectrum->dataValidity() != ChimeraTK::DataValidity::ok) {
+    quality = processSpectrum->dataValidity() == ChimeraTK::DataValidity::ok ? Tango::AttrQuality::ATTR_VALID :
+                                                                               Tango::AttrQuality::ATTR_INVALID;
+    return data;
+  }
+
+  /********************************************************************************************************************/
+
+  template<typename TangoType, typename AdapterType, typename TangoWriteType>
+  void SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::read(
+      Tango::DeviceImpl* dev, Tango::Attribute& att) {
+    auto* adapterDevice = dynamic_cast<TangoAdapter::AdapterDeviceImpl*>(dev);
+    assert(adapterDevice != nullptr);
+
+    auto pv = adapterDevice->getPvForAttribute(att.get_name());
+    assert(pv.getValueType() == typeid(AdapterType));
+
+    size_t length;
+    Tango::AttrQuality quality;
+    auto data = prepareData(pv, length, quality);
+    if(!data) {
+      DEV_WARN_STREAM(dev) << "pv type mismatch (expected: " << boost::core::demangle(pv.getValueType().name())
+                           << ", got :" << boost::core::demangle(typeid(AdapterType()).name()) << ")" << std::endl;
+
       att.set_quality(Tango::AttrQuality::ATTR_INVALID);
+      return;
     }
-    else {
-      att.set_quality(Tango::AttrQuality::ATTR_VALID);
+
+    att.set_value(data.release(), static_cast<long>(length), 0, true);
+    att.set_quality(quality);
+  }
+
+  /********************************************************************************************************************/
+
+  template<typename TangoType, typename AdapterType, typename TangoWriteType>
+  void SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::pushChangeEvent(
+      Tango::DeviceImpl* dev, ChimeraTK::TransferElementAbstractor pv) {
+    size_t length;
+    Tango::AttrQuality quality;
+    auto data = prepareData(pv, length, quality);
+    if(!data) {
+      return;
     }
+    // release=true -> the buffer is handed over to Tango which frees it after serialization
+    dev->push_change_event(get_name(), data.release(), static_cast<long>(length), 0, true);
   }
 
   /********************************************************************************************************************/

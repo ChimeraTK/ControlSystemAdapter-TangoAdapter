@@ -246,9 +246,29 @@ namespace TangoAdapter {
           // data_ready event (Tango throws API_AttributeNotDataReadyEnabled on subscription).
           set_data_ready_event(attr.description.name, true);
         }
+        else if(attr.description.attributeEventing == AttributeEventing::DATA) {
+          // Resolve the change-event-capable attribute descriptor once during setup. The descriptors live in
+          // the class attribute list (created by attribute_factory) and are the *AttribTempl objects.
+          auto& tangoAttrs = get_device_class()->get_class_attr()->get_attr_list();
+          for(auto* tangoAttr : tangoAttrs) {
+            if(tangoAttr->get_name() == attr.description.name) {
+              auto* evSource = dynamic_cast<ChangeEventSource*>(tangoAttr);
+              assert(evSource != nullptr);
+              _changeEventSources[attr.description.name] = evSource;
+              break;
+            }
+          }
+        }
         updater.addVariable(pv, get_name() + "/" + attr.description.name, [this, description = attr.description]() {
           if(description.attributeEventing == AttributeEventing::DATA_READY) {
             this->push_data_ready_event(description.name);
+          }
+          else if(description.attributeEventing == AttributeEventing::DATA) {
+            auto it = this->_changeEventSources.find(description.name);
+            assert(it != this->_changeEventSources.end());
+            if(it != this->_changeEventSources.end()) {
+              it->second->pushChangeEvent(this, this->getPvForAttribute(description.name));
+            }
           }
         });
       }

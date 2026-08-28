@@ -51,4 +51,20 @@ It is also possible to map individual variables to attributes using the `<attrib
 
 One can also override the description and egu of the process variable using the `<description>` and `<egu>` child tags of `<attribute>`.
 
+It is also possible to control how the attribute notifies clients about new data using the optional `<eventingType>` child tag of `<attribute>`. The following values are supported:
+
+\li `none` (default): The attribute is updated on the normal Tango polling/read cycle. No event is pushed on update.
+\li `data-ready`: A Tango `data_ready` event is pushed whenever the underlying process variable is updated. The event only signals that new data is available; clients have to read the attribute to obtain the new value.
+\li `data`: A Tango change event is pushed together with the updated value of the process variable whenever it changes.
+
+For example:
+
+\verbatim
+<attribute name="temperature" source="/Heater/Temperature">
+    <description>Current temperature</description>
+    <egu>degC</egu>
+    <eventingType>data</eventingType>
+</attribute>
+\endverbatim
+
  */

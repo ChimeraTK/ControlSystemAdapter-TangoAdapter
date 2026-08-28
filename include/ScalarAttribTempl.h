@@ -4,18 +4,20 @@
 
 #include "AdapterDeviceImpl.h"
 #include "AttributeProperty.h"
+#include "ChangeEventSource.h"
 
 #include <ChimeraTK/NDRegisterAccessor.h>
 
 namespace TangoAdapter {
   template<typename TangoType, typename AdapterType>
-  class ScalarAttribTempl : public Tango::Attr {
+  class ScalarAttribTempl : public Tango::Attr, public ChangeEventSource {
    public:
     explicit ScalarAttribTempl(AttributeProperty& attProperty);
     ~ScalarAttribTempl() override = default;
 
     void read(Tango::DeviceImpl* dev, Tango::Attribute& att) override;
     void write(Tango::DeviceImpl* dev, Tango::WAttribute& att) override;
+    void pushChangeEvent(Tango::DeviceImpl* dev, ChimeraTK::TransferElementAbstractor pv) override;
     bool is_allowed([[maybe_unused]] Tango::DeviceImpl* dev, [[maybe_unused]] Tango::AttReqType ty) override {
       return true;
     }
@@ -23,6 +25,9 @@ namespace TangoAdapter {
    private:
     using GenericAccessor = ChimeraTK::NDRegisterAccessor<AdapterType>;
     using BooleanAccessor = ChimeraTK::NDRegisterAccessor<ChimeraTK::Boolean>;
+
+    /// Prepare the current PV content as a Tango-typed buffer. Returns nullptr on type mismatch.
+    std::unique_ptr<TangoType> prepareData(ChimeraTK::TransferElementAbstractor pv, Tango::AttrQuality& quality);
   };
 
   /********************************************************************************************************************/
@@ -61,6 +66,42 @@ namespace TangoAdapter {
   /********************************************************************************************************************/
 
   template<typename TangoType, typename AdapterType>
+  std::unique_ptr<TangoType> ScalarAttribTempl<TangoType, AdapterType>::prepareData(
+      ChimeraTK::TransferElementAbstractor pv, Tango::AttrQuality& quality) {
+    auto processScalar = boost::reinterpret_pointer_cast<GenericAccessor>(pv.getHighLevelImplElement());
+
+    if(!processScalar) {
+      quality = Tango::AttrQuality::ATTR_INVALID;
+      return nullptr;
+    }
+
+    auto value = std::make_unique<TangoType>();
+    if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
+      *(value.get()) = Tango::string_dup(processScalar->accessData(0).c_str());
+    }
+    else if constexpr(std::is_same_v<TangoType, Tango::DevBoolean>) {
+      auto pvAsBool = boost::reinterpret_pointer_cast<BooleanAccessor>(processScalar);
+      assert(pvAsBool != nullptr);
+
+      if constexpr(std::is_same_v<AdapterType, ChimeraTK::Void>) {
+        *(value.get()) = true;
+      }
+      else {
+        *(value.get()) = pvAsBool->accessData(0);
+      }
+    }
+    else {
+      *(value.get()) = processScalar->accessData(0);
+    }
+
+    quality = processScalar->dataValidity() == ChimeraTK::DataValidity::ok ? Tango::AttrQuality::ATTR_VALID :
+                                                                             Tango::AttrQuality::ATTR_INVALID;
+    return value;
+  }
+
+  /********************************************************************************************************************/
+
+  template<typename TangoType, typename AdapterType>
   void ScalarAttribTempl<TangoType, AdapterType>::read(Tango::DeviceImpl* dev, Tango::Attribute& att) {
     auto* adapterDevice = dynamic_cast<TangoAdapter::AdapterDeviceImpl*>(dev);
     assert(adapterDevice != nullptr);
@@ -68,49 +109,31 @@ namespace TangoAdapter {
     auto pv = adapterDevice->getPvForAttribute(att.get_name());
     assert(pv.getValueType() == typeid(AdapterType));
 
-    auto processScalar = boost::reinterpret_pointer_cast<GenericAccessor>(pv.getHighLevelImplElement());
-
-    if(!processScalar) {
+    Tango::AttrQuality quality;
+    auto value = prepareData(pv, quality);
+    if(!value) {
       DEV_WARN_STREAM(dev) << "pv type mismatch (expected: " << boost::core::demangle(pv.getValueType().name())
                            << ", got :" << boost::core::demangle(typeid(AdapterType).name()) << ")" << std::endl;
       att.set_quality(Tango::AttrQuality::ATTR_INVALID);
       return;
     }
 
-    if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
-      auto value = std::make_unique<Tango::DevString>();
-      *(value.get()) = Tango::string_dup(processScalar->accessData(0).c_str());
-      att.set_value(value.release(), 1, 0, true);
-    }
-    else if constexpr(std::is_same_v<TangoType, Tango::DevBoolean>) {
-      auto pvAsBool = boost::reinterpret_pointer_cast<BooleanAccessor>(processScalar);
-      assert(pvAsBool != nullptr);
+    att.set_value(value.release(), 1, 0, true);
+    att.set_quality(quality);
+  }
 
-      auto value = std::make_unique<Tango::DevBoolean>();
-      if constexpr(std::is_same_v<AdapterType, ChimeraTK::Void>) {
-        *(value.get()) = true;
-      }
-      else {
-        *(value.get()) = pvAsBool->accessData(0);
-      }
-      att.set_value(value.release(), 1, 0, true);
-    }
-    else {
-      // Lint: Not even sure why this triggers here.
-      // NOLINTNEXTLINE(modernize-avoid-c-arrays)
-      auto value = std::make_unique<TangoType>(processScalar->accessData(0));
-      // Lint: for the signed char adapter type we need to assign it to short, since Tango does not
-      // have a signed char type. Silence the warning, we are not dealing with characters here
-      // NOLINTNEXTLINE(bugprone-signed-char-misue)
-      att.set_value(value.release(), 1, 0, true);
-    }
+  /********************************************************************************************************************/
 
-    if(processScalar->dataValidity() != ChimeraTK::DataValidity::ok) {
-      att.set_quality(Tango::AttrQuality::ATTR_INVALID);
+  template<typename TangoType, typename AdapterType>
+  void ScalarAttribTempl<TangoType, AdapterType>::pushChangeEvent(
+      Tango::DeviceImpl* dev, ChimeraTK::TransferElementAbstractor pv) {
+    Tango::AttrQuality quality;
+    auto value = prepareData(pv, quality);
+    if(!value) {
+      return;
     }
-    else {
-      att.set_quality(Tango::AttrQuality::ATTR_VALID);
-    }
+    // release=true -> the buffer is handed over to Tango which frees it after serialization
+    dev->push_change_event(get_name(), value.release(), 1, 0, true);
   }
 
   /********************************************************************************************************************/
