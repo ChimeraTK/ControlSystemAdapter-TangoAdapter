@@ -8,6 +8,9 @@
 
 #include <ChimeraTK/NDRegisterAccessor.h>
 
+#include <mutex>
+#include <vector>
+
 namespace TangoAdapter {
   template<typename TangoType, typename AdapterType>
   class ScalarAttribTempl : public Tango::Attr, public ChangeEventSource {
@@ -17,17 +20,23 @@ namespace TangoAdapter {
 
     void read(Tango::DeviceImpl* dev, Tango::Attribute& att) override;
     void write(Tango::DeviceImpl* dev, Tango::WAttribute& att) override;
-    void pushChangeEvent(Tango::DeviceImpl* dev, ChimeraTK::TransferElementAbstractor pv) override;
+    void updateFromPv(ChimeraTK::TransferElementAbstractor pv) override;
+    void pushChangeEvent(Tango::DeviceImpl* dev) override;
     bool is_allowed([[maybe_unused]] Tango::DeviceImpl* dev, [[maybe_unused]] Tango::AttReqType ty) override {
       return true;
     }
 
    private:
     using GenericAccessor = ChimeraTK::NDRegisterAccessor<AdapterType>;
-    using BooleanAccessor = ChimeraTK::NDRegisterAccessor<ChimeraTK::Boolean>;
 
-    /// Prepare the current PV content as a Tango-typed buffer. Returns nullptr on type mismatch.
-    std::unique_ptr<TangoType> prepareData(ChimeraTK::TransferElementAbstractor pv, Tango::AttrQuality& quality);
+    /// Produce a Tango-owned buffer from the cached value (adapter domain). Locks the attribute mutex.
+    std::unique_ptr<TangoType> makeTangoValue(Tango::AttrQuality& quality);
+
+    // Per-attribute cache. Protected by _mutex. The only thread that touches the live ChimeraTK accessor
+    // data is the updater thread (via updateFromPv); read()/pushChangeEvent()/write() serve from here.
+    mutable std::mutex _mutex;
+    std::vector<AdapterType> _cachedValue{1};
+    Tango::AttrQuality _cachedQuality{Tango::AttrQuality::ATTR_INVALID};
   };
 
   /********************************************************************************************************************/
@@ -66,57 +75,53 @@ namespace TangoAdapter {
   /********************************************************************************************************************/
 
   template<typename TangoType, typename AdapterType>
-  std::unique_ptr<TangoType> ScalarAttribTempl<TangoType, AdapterType>::prepareData(
-      ChimeraTK::TransferElementAbstractor pv, Tango::AttrQuality& quality) {
+  void ScalarAttribTempl<TangoType, AdapterType>::updateFromPv(ChimeraTK::TransferElementAbstractor pv) {
     auto processScalar = boost::reinterpret_pointer_cast<GenericAccessor>(pv.getHighLevelImplElement());
 
+    std::lock_guard<std::mutex> lock(_mutex);
     if(!processScalar) {
-      quality = Tango::AttrQuality::ATTR_INVALID;
-      return nullptr;
+      _cachedQuality = Tango::AttrQuality::ATTR_INVALID;
+      return;
     }
+
+    if constexpr(!std::is_same_v<AdapterType, ChimeraTK::Void>) {
+      _cachedValue[0] = processScalar->accessData(0);
+    }
+    _cachedQuality = processScalar->dataValidity() == ChimeraTK::DataValidity::ok ? Tango::AttrQuality::ATTR_VALID :
+                                                                                    Tango::AttrQuality::ATTR_INVALID;
+  }
+
+  /********************************************************************************************************************/
+
+  template<typename TangoType, typename AdapterType>
+  std::unique_ptr<TangoType> ScalarAttribTempl<TangoType, AdapterType>::makeTangoValue(Tango::AttrQuality& quality) {
+    std::lock_guard<std::mutex> lock(_mutex);
+    quality = _cachedQuality;
 
     auto value = std::make_unique<TangoType>();
     if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
-      *(value.get()) = Tango::string_dup(processScalar->accessData(0).c_str());
+      *(value.get()) = Tango::string_dup(_cachedValue[0].c_str());
     }
     else if constexpr(std::is_same_v<TangoType, Tango::DevBoolean>) {
-      auto pvAsBool = boost::reinterpret_pointer_cast<BooleanAccessor>(processScalar);
-      assert(pvAsBool != nullptr);
-
       if constexpr(std::is_same_v<AdapterType, ChimeraTK::Void>) {
         *(value.get()) = true;
       }
       else {
-        *(value.get()) = pvAsBool->accessData(0);
+        *(value.get()) = static_cast<Tango::DevBoolean>(_cachedValue[0]);
       }
     }
     else {
-      *(value.get()) = processScalar->accessData(0);
+      *(value.get()) = static_cast<TangoType>(_cachedValue[0]);
     }
-
-    quality = processScalar->dataValidity() == ChimeraTK::DataValidity::ok ? Tango::AttrQuality::ATTR_VALID :
-                                                                             Tango::AttrQuality::ATTR_INVALID;
     return value;
   }
 
   /********************************************************************************************************************/
 
   template<typename TangoType, typename AdapterType>
-  void ScalarAttribTempl<TangoType, AdapterType>::read(Tango::DeviceImpl* dev, Tango::Attribute& att) {
-    auto* adapterDevice = dynamic_cast<TangoAdapter::AdapterDeviceImpl*>(dev);
-    assert(adapterDevice != nullptr);
-
-    auto pv = adapterDevice->getPvForAttribute(att.get_name());
-    assert(pv.getValueType() == typeid(AdapterType));
-
+  void ScalarAttribTempl<TangoType, AdapterType>::read([[maybe_unused]] Tango::DeviceImpl* dev, Tango::Attribute& att) {
     Tango::AttrQuality quality;
-    auto value = prepareData(pv, quality);
-    if(!value) {
-      DEV_WARN_STREAM(dev) << "pv type mismatch (expected: " << boost::core::demangle(pv.getValueType().name())
-                           << ", got :" << boost::core::demangle(typeid(AdapterType).name()) << ")" << std::endl;
-      att.set_quality(Tango::AttrQuality::ATTR_INVALID);
-      return;
-    }
+    auto value = makeTangoValue(quality);
 
     att.set_value(value.release(), 1, 0, true);
     att.set_quality(quality);
@@ -125,13 +130,9 @@ namespace TangoAdapter {
   /********************************************************************************************************************/
 
   template<typename TangoType, typename AdapterType>
-  void ScalarAttribTempl<TangoType, AdapterType>::pushChangeEvent(
-      Tango::DeviceImpl* dev, ChimeraTK::TransferElementAbstractor pv) {
+  void ScalarAttribTempl<TangoType, AdapterType>::pushChangeEvent(Tango::DeviceImpl* dev) {
     Tango::AttrQuality quality;
-    auto value = prepareData(pv, quality);
-    if(!value) {
-      return;
-    }
+    auto value = makeTangoValue(quality);
     // release=true -> the buffer is handed over to Tango which frees it after serialization
     dev->push_change_event(get_name(), value.release(), 1, 0, true);
   }
@@ -155,16 +156,20 @@ namespace TangoAdapter {
       return;
     }
 
+    // Keep the read cache coherent with the value just written, without reading back the accessor (which the
+    // updater thread may be accessing concurrently for read-back PVs).
+    AdapterType writtenValue{};
     if constexpr(std::is_same_v<AdapterType, std::string>) {
       Tango::DevString st_value;
       att.get_write_value(st_value);
       processScalar->accessData(0) = std::string(st_value);
+      writtenValue = std::string(st_value);
     }
     else if constexpr(std::is_same_v<AdapterType, ChimeraTK::Boolean>) {
-      auto pvAsBool = boost::reinterpret_pointer_cast<BooleanAccessor>(processScalar);
       Tango::DevBoolean b_value;
       att.get_write_value(b_value);
-      pvAsBool->accessData(0) = b_value;
+      processScalar->accessData(0) = static_cast<ChimeraTK::Boolean>(b_value);
+      writtenValue = static_cast<ChimeraTK::Boolean>(b_value);
     }
     else if constexpr(std::is_same_v<AdapterType, ChimeraTK::Void>) {
       // do nothing with the data, just write the accessor
@@ -172,7 +177,8 @@ namespace TangoAdapter {
     else {
       TangoType value;
       att.get_write_value(value);
-      processScalar->accessData(0) = value;
+      processScalar->accessData(0) = static_cast<AdapterType>(value);
+      writtenValue = static_cast<AdapterType>(value);
     }
 
     if(att.get_quality() == Tango::AttrQuality::ATTR_INVALID) {
@@ -182,6 +188,15 @@ namespace TangoAdapter {
       processScalar->setDataValidity(ChimeraTK::DataValidity::ok);
     }
     processScalar->write();
+
+    {
+      std::lock_guard<std::mutex> lock(_mutex);
+      if constexpr(!std::is_same_v<AdapterType, ChimeraTK::Void>) {
+        _cachedValue[0] = writtenValue;
+      }
+      _cachedQuality = att.get_quality() == Tango::AttrQuality::ATTR_INVALID ? Tango::AttrQuality::ATTR_INVALID :
+                                                                               Tango::AttrQuality::ATTR_VALID;
+    }
   }
 
 } // namespace TangoAdapter

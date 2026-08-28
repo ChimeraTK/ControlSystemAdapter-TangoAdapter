@@ -34,9 +34,9 @@ namespace TangoAdapter {
     Tango::CmdArgType dataType{Tango::DATA_TYPE_UNKNOWN};
     Tango::AttrWriteType writeType{Tango::AttrWriteType::WT_UNKNOWN};
 
-    /// For attributes mapped with eventingType="data": the Tango::Attr that owns the pushing logic
-    /// (the concrete *AttribTempl is both a Tango::Attr and a ChangeEventSource). Set once during
-    /// AttachToClassAttributes(); owned by Tango, so never freed here.
+    /// Pointer to the concrete *AttribTempl for this attribute, used by the updater callback to refresh the
+    /// attribute's value cache (the *AttribTempl is both a Tango::Attr and a ChangeEventSource). Set once
+    /// during attribute_factory(); owned by Tango, so never freed here.
     ChangeEventSource* changeEventSource{nullptr};
   };
 } // namespace TangoAdapter

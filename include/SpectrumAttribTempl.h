@@ -9,6 +9,9 @@
 
 #include <ChimeraTK/NDRegisterAccessor.h>
 
+#include <mutex>
+#include <vector>
+
 namespace TangoAdapter {
   template<typename TangoType, typename AdapterType, typename TangoWriteType = TangoType>
   class SpectrumAttribTempl : public Tango::SpectrumAttr, public ChangeEventSource {
@@ -18,7 +21,8 @@ namespace TangoAdapter {
 
     void read(Tango::DeviceImpl* dev, Tango::Attribute& att) override;
     void write(Tango::DeviceImpl* dev, Tango::WAttribute& att) override;
-    void pushChangeEvent(Tango::DeviceImpl* dev, ChimeraTK::TransferElementAbstractor pv) override;
+    void updateFromPv(ChimeraTK::TransferElementAbstractor pv) override;
+    void pushChangeEvent(Tango::DeviceImpl* dev) override;
     bool is_allowed([[maybe_unused]] Tango::DeviceImpl* dev, [[maybe_unused]] Tango::AttReqType ty) override {
       return true;
     }
@@ -27,11 +31,15 @@ namespace TangoAdapter {
 
    private:
     using GenericAccessor = ChimeraTK::NDRegisterAccessor<AdapterType>;
-    using BooleanAccessor = ChimeraTK::NDRegisterAccessor<ChimeraTK::Boolean>;
 
-    /// Prepare the current PV content as a Tango-typed array buffer. Returns nullptr on type mismatch.
-    std::unique_ptr<TangoType[]> prepareData(
-        ChimeraTK::TransferElementAbstractor pv, size_t& length, Tango::AttrQuality& quality);
+    /// Produce a Tango-owned array buffer from the cached value (adapter domain). Locks the attribute mutex.
+    std::unique_ptr<TangoType[]> makeTangoValue(size_t& length, Tango::AttrQuality& quality);
+
+    // Per-attribute cache. Protected by _mutex. The only thread that touches the live ChimeraTK accessor
+    // data is the updater thread (via updateFromPv); read()/pushChangeEvent()/write() serve from here.
+    mutable std::mutex _mutex;
+    std::vector<AdapterType> _cachedValue;
+    Tango::AttrQuality _cachedQuality{Tango::AttrQuality::ATTR_INVALID};
   };
 
   /********************************************************************************************************************/
@@ -68,38 +76,52 @@ namespace TangoAdapter {
   /********************************************************************************************************************/
 
   template<typename TangoType, typename AdapterType, typename TangoWriteType>
-  std::unique_ptr<TangoType[]> SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::prepareData(
-      ChimeraTK::TransferElementAbstractor pv, size_t& length, Tango::AttrQuality& quality) {
+  void SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::updateFromPv(
+      ChimeraTK::TransferElementAbstractor pv) {
     auto processSpectrum = boost::reinterpret_pointer_cast<GenericAccessor>(pv.getHighLevelImplElement());
 
+    std::lock_guard<std::mutex> lock(_mutex);
     if(!processSpectrum) {
-      length = 0;
-      quality = Tango::AttrQuality::ATTR_INVALID;
-      return nullptr;
+      _cachedQuality = Tango::AttrQuality::ATTR_INVALID;
+      return;
     }
 
-    length = processSpectrum->getNumberOfSamples();
+    auto length = processSpectrum->getNumberOfSamples();
+    _cachedValue.resize(length);
+    for(size_t i = 0; i < length; i++) {
+      _cachedValue[i] = processSpectrum->accessData(i);
+    }
+    _cachedQuality = processSpectrum->dataValidity() == ChimeraTK::DataValidity::ok ? Tango::AttrQuality::ATTR_VALID :
+                                                                                      Tango::AttrQuality::ATTR_INVALID;
+  }
+
+  /********************************************************************************************************************/
+
+  template<typename TangoType, typename AdapterType, typename TangoWriteType>
+  std::unique_ptr<TangoType[]> SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::makeTangoValue(
+      size_t& length, Tango::AttrQuality& quality) {
+    std::lock_guard<std::mutex> lock(_mutex);
+    length = _cachedValue.size();
+    quality = _cachedQuality;
+
     // NO, lint. Tango need a runtime-length C-Style array here, cannot use std::array.
     // NOLINTNEXTLINE(modernize-avoid-c-arrays)
     auto data = std::make_unique<TangoType[]>(length);
 
     for(size_t i = 0; i < length; i++) {
       if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
-        data.get()[i] = Tango::string_dup(processSpectrum->accessData(i).c_str());
+        data.get()[i] = Tango::string_dup(_cachedValue[i].c_str());
       }
       else if constexpr(std::is_same_v<AdapterType, int8_t>) {
         // Lint: We need to use Short as transport for int8_t here as Tango does not support this type,
         // there are no chars involved.
         // NOLINTNEXTLINE(bugprone-signed-char-misuse)
-        data.get()[i] = Tango::DevShort(processSpectrum->accessData(i));
+        data.get()[i] = Tango::DevShort(_cachedValue[i]);
       }
       else {
-        data.get()[i] = processSpectrum->accessData(i);
+        data.get()[i] = static_cast<TangoType>(_cachedValue[i]);
       }
     }
-
-    quality = processSpectrum->dataValidity() == ChimeraTK::DataValidity::ok ? Tango::AttrQuality::ATTR_VALID :
-                                                                               Tango::AttrQuality::ATTR_INVALID;
     return data;
   }
 
@@ -107,23 +129,10 @@ namespace TangoAdapter {
 
   template<typename TangoType, typename AdapterType, typename TangoWriteType>
   void SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::read(
-      Tango::DeviceImpl* dev, Tango::Attribute& att) {
-    auto* adapterDevice = dynamic_cast<TangoAdapter::AdapterDeviceImpl*>(dev);
-    assert(adapterDevice != nullptr);
-
-    auto pv = adapterDevice->getPvForAttribute(att.get_name());
-    assert(pv.getValueType() == typeid(AdapterType));
-
+      [[maybe_unused]] Tango::DeviceImpl* dev, Tango::Attribute& att) {
     size_t length;
     Tango::AttrQuality quality;
-    auto data = prepareData(pv, length, quality);
-    if(!data) {
-      DEV_WARN_STREAM(dev) << "pv type mismatch (expected: " << boost::core::demangle(pv.getValueType().name())
-                           << ", got :" << boost::core::demangle(typeid(AdapterType()).name()) << ")" << std::endl;
-
-      att.set_quality(Tango::AttrQuality::ATTR_INVALID);
-      return;
-    }
+    auto data = makeTangoValue(length, quality);
 
     att.set_value(data.release(), static_cast<long>(length), 0, true);
     att.set_quality(quality);
@@ -132,14 +141,10 @@ namespace TangoAdapter {
   /********************************************************************************************************************/
 
   template<typename TangoType, typename AdapterType, typename TangoWriteType>
-  void SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::pushChangeEvent(
-      Tango::DeviceImpl* dev, ChimeraTK::TransferElementAbstractor pv) {
+  void SpectrumAttribTempl<TangoType, AdapterType, TangoWriteType>::pushChangeEvent(Tango::DeviceImpl* dev) {
     size_t length;
     Tango::AttrQuality quality;
-    auto data = prepareData(pv, length, quality);
-    if(!data) {
-      return;
-    }
+    auto data = makeTangoValue(length, quality);
     // release=true -> the buffer is handed over to Tango which frees it after serialization
     dev->push_change_event(get_name(), data.release(), static_cast<long>(length), 0, true);
   }
@@ -247,6 +252,19 @@ namespace TangoAdapter {
     }
 
     processSpectrum->write();
+
+    // Keep the read cache coherent with the value just written, without reading back the accessor (which the
+    // updater thread may be accessing concurrently for read-back PVs).
+    {
+      std::lock_guard<std::mutex> lock(_mutex);
+      if(data != nullptr) {
+        _cachedValue.assign(data, data + arraySize);
+      }
+      _cachedQuality = (att.get_quality() == Tango::AttrQuality::ATTR_INVALID || data == nullptr) ?
+          Tango::AttrQuality::ATTR_INVALID :
+          Tango::AttrQuality::ATTR_VALID;
+    }
+
     if(att.get_user_set_write_value()) {
       // if user writing, set read value
       att.set_rvalue();

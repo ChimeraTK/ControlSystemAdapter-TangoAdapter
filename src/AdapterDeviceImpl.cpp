@@ -243,6 +243,7 @@ namespace TangoAdapter {
         updater.addVariable(pv, updaterName, std::move(*callback));
       }
       else {
+        // Fallback for (future) eventing types without a callback -- register without one.
         updater.addVariable(pv, updaterName);
       }
 
@@ -317,27 +318,38 @@ namespace TangoAdapter {
 
   std::optional<std::function<void()>> AdapterDeviceImpl::buildEventingCallback(const AttributeProperty& attr) {
     using enum AttributeEventing;
+    // The ChangeEventSource is populated in AdapterDeviceClass::attribute_factory(); guaranteed non-null.
+    assert(attr.changeEventSource != nullptr);
+    auto evSource = attr.changeEventSource;
+    auto name = attr.description.name;
+
+    // All eventing types refresh the per-attribute cache from the just-updated accessor. This is the ONLY
+    // place the accessor's data buffer is read (updater thread), decoupling Tango's read()/event push from it.
+    auto refresh = [this, evSource, name]() { evSource->updateFromPv(this->getPvForAttribute(name)); };
+
     switch(attr.description.attributeEventing) {
       case NONE:
-        // No eventing: the PV is registered without an update callback.
-        return std::nullopt;
+        // No event: only keep the cache coherent so read() serves the latest value.
+        return refresh;
       case DATA_READY:
         // Mark the attribute as data-ready event enabled, otherwise clients cannot subscribe to the
         // data_ready event (Tango throws API_AttributeNotDataReadyEnabled on subscription).
-        set_data_ready_event(attr.description.name, true);
-        return [this, name = attr.description.name]() { this->push_data_ready_event(name); };
+        set_data_ready_event(name, true);
+        return [this, refresh = std::move(refresh), name]() {
+          refresh();
+          this->push_data_ready_event(name);
+        };
       case DATA:
         // Enable change events on this attribute. detect=false because events are pushed manually from the
         // updater. Without this, clients cannot subscribe to the change event (Tango throws
         // API_AttributePollingNotStarted on subscription).
-        set_change_event(attr.description.name, true, false);
-        // The ChangeEventSource is populated in AdapterDeviceClass::attribute_factory(); guaranteed non-null.
-        assert(attr.changeEventSource != nullptr);
-        return [this, name = attr.description.name, evSource = attr.changeEventSource]() {
-          // This runs in the updater thread. Take the device lock so the read of the shared accessor is
-          // serialized with Tango's polling-thread read() (which also runs under the device monitor).
+        set_change_event(name, true, false);
+        return [this, evSource, refresh = std::move(refresh)]() {
+          refresh();
+          // Runs in the updater thread. Take the device lock so the change-event push is serialized with
+          // Tango's polling-thread read() (both run under the device monitor).
           Tango::AutoTangoMonitor sync(this);
-          evSource->pushChangeEvent(this, this->getPvForAttribute(name));
+          evSource->pushChangeEvent(this);
         };
     }
     // Keep the compiler happy for enums added in the future.

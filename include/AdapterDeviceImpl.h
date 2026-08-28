@@ -45,10 +45,11 @@ namespace TangoAdapter {
 
    private:
     std::map<std::string, ChimeraTK::TransferElementAbstractor> _attributeToPvMap;
-    /// Build the updater callback for an eventing attribute (DATA_READY / DATA), or nullopt for NONE.
-    /// Also enables the corresponding Tango event subscription (set_data_ready_event / set_change_event)
-    /// so clients can actually subscribe. For DATA the ChangeEventSource must already have been populated
-    /// in AdapterDeviceClass::attribute_factory().
+    /// Build the updater callback for an attribute (any eventingType). The callback refreshes this attribute's
+    /// internal value cache from the just-updated PV (the only thread that reads the accessor data buffer), and
+    /// -- for DATA_READY / DATA -- pushes the corresponding Tango event. Returns nullopt for (future) eventing
+    /// types that need no callback. The ChangeEventSource must already have been populated in
+    /// AdapterDeviceClass::attribute_factory().
     std::optional<std::function<void()>> buildEventingCallback(const AttributeProperty& attr);
 
     /// Resolve a readable source PV (device state/status), register it with the updater under
