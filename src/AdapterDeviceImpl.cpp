@@ -238,31 +238,12 @@ namespace TangoAdapter {
       _attributeToPvMap[attr.description.name] = pv;
 
       // Properly namespace the pv in the updater so we can distinguish per device
-      if(attr.description.attributeEventing == AttributeEventing::NONE) {
-        updater.addVariable(pv, get_name() + "/" + attr.description.name);
+      std::string updaterName = get_name() + "/" + attr.description.name;
+      if(auto callback = buildEventingCallback(attr)) {
+        updater.addVariable(pv, updaterName, std::move(*callback));
       }
       else {
-        if(attr.description.attributeEventing == AttributeEventing::DATA_READY) {
-          // Mark the attribute as data-ready event enabled, otherwise clients cannot subscribe to the
-          // data_ready event (Tango throws API_AttributeNotDataReadyEnabled on subscription).
-          set_data_ready_event(attr.description.name, true);
-        }
-        else if(attr.description.attributeEventing == AttributeEventing::DATA) {
-          set_change_event(attr.description.name, true, false);
-          // attr.changeEventSource was already populated in AdapterDeviceClass::attribute_factory().
-          assert(attr.changeEventSource != nullptr);
-        }
-        updater.addVariable(pv, get_name() + "/" + attr.description.name,
-            [this, description = attr.description, evSource = attr.changeEventSource]() {
-              if(description.attributeEventing == AttributeEventing::DATA_READY) {
-                this->push_data_ready_event(description.name);
-              }
-              else if(description.attributeEventing == AttributeEventing::DATA) {
-                // Guaranteed non-null for DATA attributes (set in attribute_factory()).
-                assert(evSource != nullptr);
-                evSource->pushChangeEvent(this, this->getPvForAttribute(description.name));
-              }
-            });
+        updater.addVariable(pv, updaterName);
       }
 
       if(attr.description.dataLayout == AttributeDataLayout::SPECTRUM &&
@@ -373,6 +354,34 @@ namespace TangoAdapter {
         });
       });
     }
+  }
+
+  /********************************************************************************************************************/
+
+  std::optional<std::function<void()>> AdapterDeviceImpl::buildEventingCallback(const AttributeProperty& attr) {
+    using enum AttributeEventing;
+    switch(attr.description.attributeEventing) {
+      case NONE:
+        // No eventing: the PV is registered without an update callback.
+        return std::nullopt;
+      case DATA_READY:
+        // Mark the attribute as data-ready event enabled, otherwise clients cannot subscribe to the
+        // data_ready event (Tango throws API_AttributeNotDataReadyEnabled on subscription).
+        set_data_ready_event(attr.description.name, true);
+        return [this, name = attr.description.name]() { this->push_data_ready_event(name); };
+      case DATA:
+        // Enable change events on this attribute. detect=false because events are pushed manually from the
+        // updater. Without this, clients cannot subscribe to the change event (Tango throws
+        // API_AttributePollingNotStarted on subscription).
+        set_change_event(attr.description.name, true, false);
+        // The ChangeEventSource is populated in AdapterDeviceClass::attribute_factory(); guaranteed non-null.
+        assert(attr.changeEventSource != nullptr);
+        return [this, name = attr.description.name, evSource = attr.changeEventSource]() {
+          evSource->pushChangeEvent(this, this->getPvForAttribute(name));
+        };
+    }
+    // Keep the compiler happy for enums added in the future.
+    return std::nullopt;
   }
 
   /********************************************************************************************************************/
