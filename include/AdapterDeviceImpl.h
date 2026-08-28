@@ -50,6 +50,13 @@ namespace TangoAdapter {
     /// so clients can actually subscribe. For DATA the ChangeEventSource must already have been populated
     /// in AdapterDeviceClass::attribute_factory().
     std::optional<std::function<void()>> buildEventingCallback(const AttributeProperty& attr);
+
+    /// Resolve a readable source PV (device state/status), register it with the updater under
+    /// `updaterName` and run `map` on every update except the first, and only when the PV is
+    /// initialised, taking the device monitor lock around it. Throws logic_error if `source` is
+    /// not readable. Does nothing if `source` is not set.
+    void addMonitoredDeviceProperty(const std::optional<std::string>& source, const std::string& purpose,
+        const std::string& updaterName, std::function<void(ChimeraTK::TransferElementAbstractor&)> map);
     void restoreMemoriedSpectra(const std::list<AttributeProperty>&);
   };
 } // namespace TangoAdapter

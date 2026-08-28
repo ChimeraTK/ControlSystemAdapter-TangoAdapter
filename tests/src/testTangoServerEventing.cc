@@ -65,12 +65,6 @@ class DataReadyReceiver : public Tango::CallBack {
     return _cv.wait_for(lock, timeout, [this, n] { return _count >= n; });
   }
 
-  /// Verify no event arrives within the given (bounded) observation window.
-  bool expectNoEvent(std::chrono::milliseconds observation = std::chrono::seconds(1)) {
-    std::unique_lock<std::mutex> lock(_mtx);
-    return !_cv.wait_for(lock, observation, [this] { return _count > 0; });
-  }
-
   std::string attrName() {
     std::lock_guard<std::mutex> lock(_mtx);
     return _attrName;

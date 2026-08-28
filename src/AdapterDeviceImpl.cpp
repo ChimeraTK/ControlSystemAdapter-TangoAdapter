@@ -260,100 +260,57 @@ namespace TangoAdapter {
       restoreMemoriedSpectra(writeableSpectrums);
     }
 
-    if(device->stateSource) {
-      auto processVariable = csPvManager->getProcessVariable(device->stateSource.value());
-      if(!processVariable->isReadable()) {
-        throw ChimeraTK::logic_error(
-            std::format("{} to be used as device state, but is not readable", device->stateSource.value()));
-      }
-      auto pv = ChimeraTK::TransferElementAbstractor(processVariable);
-      updater.addVariable(pv, "__ChimeraTK_toTangoState", [this, pv]() mutable {
-        static bool firstRun = true;
-        if(firstRun) {
-          std::cerr << "Skipping first run of state update" << std::endl;
-          firstRun = false;
-          return;
-        }
-
-        if(!pv.isInitialised()) {
-          return;
-        }
-        // Since this is sent from the updater thread, we need to take the lock on the device before setting
-        // the state
-        Tango::AutoTangoMonitor sync(this);
-        ChimeraTK::callForTypeNoVoid(pv.getValueType(), [this, &pv](auto t) {
-          if constexpr(std::is_integral_v<decltype(t)>) {
-            auto typedPv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<decltype(t)>>(
-                pv.getHighLevelImplElement());
-            if(!typedPv) {
-              return;
-            }
-            // As per contract, this should be a StatusAccessor, so only 0, 1, 2 and 3 are supported and mapped
-            // properly. Everything else will be "UNKNOWN" and a message will be logged
-            switch(typedPv->accessData(0)) {
-              case 0:
-                set_state(Tango::DevState::ON);
-                break;
-              case 1:
-                set_state(Tango::DevState::FAULT);
-                break;
-              case 2:
-                set_state(Tango::DevState::OFF);
-                break;
-              case 3:
-                set_state(Tango::DevState::ALARM);
-                break;
-              default:
-                set_state(Tango::DevState::UNKNOWN);
-                TANGO_LOG_WARN << std::format(
-                    "Trying to map {} to a TANGO state is not supported", typedPv->accessData(0));
-                break;
-            }
+    addMonitoredDeviceProperty(device->stateSource, "state", "__ChimeraTK_toTangoState", [this](auto& pv) {
+      ChimeraTK::callForTypeNoVoid(pv.getValueType(), [this, &pv](auto t) {
+        if constexpr(std::is_integral_v<decltype(t)>) {
+          auto typedPv =
+              boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<decltype(t)>>(pv.getHighLevelImplElement());
+          if(!typedPv) {
+            return;
           }
-          else {
-            throw ChimeraTK::logic_error("Unsupported type for state accessor");
+          // As per contract, this should be a StatusAccessor, so only 0, 1, 2 and 3 are supported and mapped
+          // properly. Everything else will be "UNKNOWN" and a message will be logged
+          switch(typedPv->accessData(0)) {
+            case 0:
+              set_state(Tango::DevState::ON);
+              break;
+            case 1:
+              set_state(Tango::DevState::FAULT);
+              break;
+            case 2:
+              set_state(Tango::DevState::OFF);
+              break;
+            case 3:
+              set_state(Tango::DevState::ALARM);
+              break;
+            default:
+              set_state(Tango::DevState::UNKNOWN);
+              TANGO_LOG_WARN << std::format(
+                  "Trying to map {} to a TANGO state is not supported", typedPv->accessData(0));
+              break;
           }
-        });
+        }
+        else {
+          throw ChimeraTK::logic_error("Unsupported type for state accessor");
+        }
       });
-    }
+    });
 
-    if(device->statusSource) {
-      auto processVariable = csPvManager->getProcessVariable(device->statusSource.value());
-      if(!processVariable->isReadable()) {
-        throw ChimeraTK::logic_error(
-            std::format("{} to be used as device status, but is not readable", device->statusSource.value()));
-      }
-      auto pv = ChimeraTK::TransferElementAbstractor(processVariable);
-      updater.addVariable(pv, "__ChimeraTK_toTangoStatus", [this, pv]() mutable {
-        static bool firstRun = true;
-        if(firstRun) {
-          std::cerr << "Skipping first run of status update" << std::endl;
-          firstRun = false;
-          return;
-        }
-
-        if(!pv.isInitialised()) {
-          return;
-        }
-
-        // Since this is sent from the updater thread, we need to take the lock on the device before setting
-        // the status
-        Tango::AutoTangoMonitor sync(this);
-        ChimeraTK::callForTypeNoVoid(pv.getValueType(), [this, &pv](auto t) {
-          if constexpr(std::is_same_v<decltype(t), std::string>) {
-            auto typedPv = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<decltype(t)>>(
-                pv.getHighLevelImplElement());
-            if(!typedPv) {
-              return;
-            }
-            set_status(typedPv->accessData(0));
+    addMonitoredDeviceProperty(device->statusSource, "status", "__ChimeraTK_toTangoStatus", [this](auto& pv) {
+      ChimeraTK::callForTypeNoVoid(pv.getValueType(), [this, &pv](auto t) {
+        if constexpr(std::is_same_v<decltype(t), std::string>) {
+          auto typedPv =
+              boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<decltype(t)>>(pv.getHighLevelImplElement());
+          if(!typedPv) {
+            return;
           }
-          else {
-            throw ChimeraTK::logic_error("Unsupported type for status accessor");
-          }
-        });
+          set_status(typedPv->accessData(0));
+        }
+        else {
+          throw ChimeraTK::logic_error("Unsupported type for status accessor");
+        }
       });
-    }
+    });
   }
 
   /********************************************************************************************************************/
@@ -382,6 +339,43 @@ namespace TangoAdapter {
     }
     // Keep the compiler happy for enums added in the future.
     return std::nullopt;
+  }
+
+  /********************************************************************************************************************/
+
+  void AdapterDeviceImpl::addMonitoredDeviceProperty(const std::optional<std::string>& source,
+      const std::string& purpose, const std::string& updaterName,
+      std::function<void(ChimeraTK::TransferElementAbstractor&)> map) {
+    if(!source) {
+      return;
+    }
+
+    auto& adapter = TangoAdapter::getInstance();
+    auto processVariable = adapter.getCsPvManager()->getProcessVariable(source.value());
+    if(!processVariable->isReadable()) {
+      throw ChimeraTK::logic_error(
+          std::format("{} to be used as device {}, but is not readable", source.value(), purpose));
+    }
+    auto pv = ChimeraTK::TransferElementAbstractor(processVariable);
+
+    // firstRun is captured by value (per closure) and mutated via `mutable`, so it is scoped to this
+    // device
+    bool firstRun = true;
+    adapter.getUpdater().addVariable(pv, updaterName, [this, pv, purpose, map = std::move(map), firstRun]() mutable {
+      if(firstRun) {
+        TANGO_LOG_DEBUG << "Skipping first run of " << purpose << " update";
+        firstRun = false;
+        return;
+      }
+
+      if(!pv.isInitialised()) {
+        return;
+      }
+      // Since this is sent from the updater thread, we need to take the lock on the device before
+      // setting the state or status
+      Tango::AutoTangoMonitor sync(this);
+      map(pv);
+    });
   }
 
   /********************************************************************************************************************/
