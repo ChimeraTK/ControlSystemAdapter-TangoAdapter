@@ -6,6 +6,7 @@
 #include "AdapterDeviceClass.h"
 #include "AttributeProperty.h"
 #include "TangoAdapter.h"
+#include "TangoLogCompat.h"
 #include "TangoPropertyHelper.h"
 
 #include <ChimeraTK/Utilities.h>
@@ -236,7 +237,17 @@ namespace TangoAdapter {
       _attributeToPvMap[attr.description.name] = pv;
 
       // Properly namespace the pv in the updater so we can distinguish per device
-      updater.addVariable(pv, get_name() + "/" + attr.description.name);
+      if(attr.description.attributeEventing == AttributeEventing::NONE) {
+        updater.addVariable(pv, get_name() + "/" + attr.description.name);
+      }
+      else {
+        updater.addVariable(pv, get_name() + "/" + attr.description.name, [this, description = attr.description]() {
+          if(description.attributeEventing == AttributeEventing::DATA_READY) {
+            Tango::AutoTangoMonitor lock(this);
+            this->push_data_ready_event(description.name);
+          }
+        });
+      }
 
       if(attr.description.dataLayout == AttributeDataLayout::SPECTRUM &&
           (attr.writeType == Tango::WRITE || attr.writeType == Tango::READ_WRITE)) {
