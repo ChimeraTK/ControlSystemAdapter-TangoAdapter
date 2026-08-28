@@ -247,6 +247,9 @@ namespace TangoAdapter {
           set_data_ready_event(attr.description.name, true);
         }
         else if(attr.description.attributeEventing == AttributeEventing::DATA) {
+          // Mark the attribute as change-event enabled, otherwise clients cannot subscribe to the change
+          // event (Tango throws API_AttributePollingNotStarted on subscription).
+          set_change_event(attr.description.name, true, false);
           // Resolve the change-event-capable attribute descriptor once during setup. The descriptors live in
           // the class attribute list (created by attribute_factory) and are the *AttribTempl objects.
           auto& tangoAttrs = get_device_class()->get_class_attr()->get_attr_list();

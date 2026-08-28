@@ -99,10 +99,12 @@ if(BUILD_TESTS)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testPersistSpectrumDatabase_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testFilterAttributes_template.db DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testMapTwice_template.db DESTINATION ${CMAKE_BINARY_DIR})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/testEventing_template.db DESTINATION ${CMAKE_BINARY_DIR})
 
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestFilterAttributes_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestMapTwice_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestStatusState_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestEventing_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
 
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/devices.dmap DESTINATION ${CMAKE_BINARY_DIR})
 endif()

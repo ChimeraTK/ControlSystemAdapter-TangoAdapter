@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer>
+    <deviceClass name="serverTestEventing">
+        <deviceInstance name="tango/test/servertesteventing">
+            <!-- DATA_READY events -->
+            <attribute name="DR_SCALAR" source="INT/FROM_DEVICE_SCALAR">
+                <eventingType>data-ready</eventingType>
+            </attribute>
+            <attribute name="DR_SPECTRUM" source="INT/FROM_DEVICE_ARRAY">
+                <eventingType>data-ready</eventingType>
+            </attribute>
+            <!-- DATA (change) events -->
+            <attribute name="DATA_SCALAR" source="INT/FROM_DEVICE_SCALAR">
+                <eventingType>data</eventingType>
+            </attribute>
+            <attribute name="DATA_SPECTRUM" source="INT/FROM_DEVICE_ARRAY">
+                <eventingType>data</eventingType>
+            </attribute>
+            <!-- regression: no events -->
+            <attribute name="NONE_SCALAR" source="INT/FROM_DEVICE_SCALAR">
+                <eventingType>none</eventingType>
+            </attribute>
+            <!-- writable attributes to drive the FROM_DEVICE process variables -->
+            <attribute name="INT_TO_DEVICE_SCALAR" source="INT/TO_DEVICE_SCALAR" />
+            <attribute name="INT_TO_DEVICE_ARRAY" source="INT/TO_DEVICE_ARRAY" />
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

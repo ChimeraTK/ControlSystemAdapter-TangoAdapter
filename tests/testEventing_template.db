@@ -1,0 +1,30 @@
+#
+# Resource backup for the eventing test server
+#
+
+#---------------------------------------------------------
+# SERVER serverTestEventing_ds/TestserverTestEventing device declaration
+#---------------------------------------------------------
+
+serverTestEventing_ds/TestserverTestEventing/DEVICE/serverTestEventing: "tango/test/servertesteventing"
+
+
+# --- test/reference/server properties
+
+tango/test/servertesteventing->AttributeList: "DR_SCALAR;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;;",\
+                                              "DR_SPECTRUM;INT/FROM_DEVICE_ARRAY;SPECTRUM;DevLong;;",\
+                                              "DATA_SCALAR;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;;",\
+                                              "DATA_SPECTRUM;INT/FROM_DEVICE_ARRAY;SPECTRUM;DevLong;;",\
+                                              "NONE_SCALAR;INT/FROM_DEVICE_SCALAR;SCALAR;DevLong;;",\
+                                              "INT_TO_DEVICE_SCALAR;INT/TO_DEVICE_SCALAR;SCALAR;DevLong;;",\
+                                              "INT_TO_DEVICE_ARRAY;INT/TO_DEVICE_ARRAY;SPECTRUM;DevLong;;"
+
+#---------------------------------------------------------
+# CLASS serverTestEventing_ds properties
+#---------------------------------------------------------
+
+CLASS/serverTestEventing_ds->Description: "ChimeraTK-based DeviceServer"
+CLASS/serverTestEventing_ds->InheritedFrom: TANGO_BASE_CLASS
+CLASS/serverTestEventing_ds->ProjectTitle: serverTestEventing_ds
+
+# CLASS serverTestEventing_ds attribute properties
