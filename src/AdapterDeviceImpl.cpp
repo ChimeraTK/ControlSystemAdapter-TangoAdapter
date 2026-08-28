@@ -241,9 +241,13 @@ namespace TangoAdapter {
         updater.addVariable(pv, get_name() + "/" + attr.description.name);
       }
       else {
+        if(attr.description.attributeEventing == AttributeEventing::DATA_READY) {
+          // Mark the attribute as data-ready event enabled, otherwise clients cannot subscribe to the
+          // data_ready event (Tango throws API_AttributeNotDataReadyEnabled on subscription).
+          set_data_ready_event(attr.description.name, true);
+        }
         updater.addVariable(pv, get_name() + "/" + attr.description.name, [this, description = attr.description]() {
           if(description.attributeEventing == AttributeEventing::DATA_READY) {
-            Tango::AutoTangoMonitor lock(this);
             this->push_data_ready_event(description.name);
           }
         });
