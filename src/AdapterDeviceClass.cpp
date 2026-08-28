@@ -4,6 +4,7 @@
 #include "AdapterDeviceClass.h"
 
 #include "AdapterDeviceImpl.h"
+#include "ChangeEventSource.h"
 #include "TangoAdapter.h"
 #include "TangoLogCompat.h"
 
@@ -198,7 +199,12 @@ namespace TangoAdapter {
     auto deviceClass = mapper.getClass(get_name());
 
     for(auto& attDesc : deviceClass->attributes) {
-      att_list.push_back(attDesc.toTangoAttribute().release());
+      auto* tangoAttr = attDesc.toTangoAttribute().release();
+      // For eventingType="data" the Tango Attr is also a ChangeEventSource (the *AttribTempl derives
+      // from both). Store the pointer on the AttributeProperty here at creation time so the device
+      // does not have to re-look it up later.
+      attDesc.changeEventSource = dynamic_cast<ChangeEventSource*>(tangoAttr);
+      att_list.push_back(tangoAttr);
     }
 
     //	Create a list of static attributes

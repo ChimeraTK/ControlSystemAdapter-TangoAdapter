@@ -5,6 +5,7 @@
 
 #include "AdapterDeviceClass.h"
 #include "AttributeProperty.h"
+#include "ChangeEventSource.h"
 #include "TangoAdapter.h"
 #include "TangoLogCompat.h"
 #include "TangoPropertyHelper.h"
@@ -247,33 +248,21 @@ namespace TangoAdapter {
           set_data_ready_event(attr.description.name, true);
         }
         else if(attr.description.attributeEventing == AttributeEventing::DATA) {
-          // Mark the attribute as change-event enabled, otherwise clients cannot subscribe to the change
-          // event (Tango throws API_AttributePollingNotStarted on subscription).
           set_change_event(attr.description.name, true, false);
-          // Resolve the change-event-capable attribute descriptor once during setup. The descriptors live in
-          // the class attribute list (created by attribute_factory) and are the *AttribTempl objects.
-          auto& tangoAttrs = get_device_class()->get_class_attr()->get_attr_list();
-          for(auto* tangoAttr : tangoAttrs) {
-            if(tangoAttr->get_name() == attr.description.name) {
-              auto* evSource = dynamic_cast<ChangeEventSource*>(tangoAttr);
-              assert(evSource != nullptr);
-              _changeEventSources[attr.description.name] = evSource;
-              break;
-            }
-          }
+          // attr.changeEventSource was already populated in AdapterDeviceClass::attribute_factory().
+          assert(attr.changeEventSource != nullptr);
         }
-        updater.addVariable(pv, get_name() + "/" + attr.description.name, [this, description = attr.description]() {
-          if(description.attributeEventing == AttributeEventing::DATA_READY) {
-            this->push_data_ready_event(description.name);
-          }
-          else if(description.attributeEventing == AttributeEventing::DATA) {
-            auto it = this->_changeEventSources.find(description.name);
-            assert(it != this->_changeEventSources.end());
-            if(it != this->_changeEventSources.end()) {
-              it->second->pushChangeEvent(this, this->getPvForAttribute(description.name));
-            }
-          }
-        });
+        updater.addVariable(pv, get_name() + "/" + attr.description.name,
+            [this, description = attr.description, evSource = attr.changeEventSource]() {
+              if(description.attributeEventing == AttributeEventing::DATA_READY) {
+                this->push_data_ready_event(description.name);
+              }
+              else if(description.attributeEventing == AttributeEventing::DATA) {
+                // Guaranteed non-null for DATA attributes (set in attribute_factory()).
+                assert(evSource != nullptr);
+                evSource->pushChangeEvent(this, this->getPvForAttribute(description.name));
+              }
+            });
       }
 
       if(attr.description.dataLayout == AttributeDataLayout::SPECTRUM &&

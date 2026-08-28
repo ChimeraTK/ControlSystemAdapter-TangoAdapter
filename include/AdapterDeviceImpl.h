@@ -4,7 +4,6 @@
 
 #include "AttributeMapper.h"
 #include "AttributeProperty.h"
-#include "ChangeEventSource.h"
 #include "ChimeraTK/TransferElementAbstractor.h"
 
 #include <tango/tango.h>
@@ -43,8 +42,6 @@ namespace TangoAdapter {
 
    private:
     std::map<std::string, ChimeraTK::TransferElementAbstractor> _attributeToPvMap;
-    // Change-event capable attributes, keyed by attribute name. Lifetimes are owned by Tango.
-    std::map<std::string, ChangeEventSource*> _changeEventSources;
     void restoreMemoriedSpectra(const std::list<AttributeProperty>&);
   };
 } // namespace TangoAdapter
