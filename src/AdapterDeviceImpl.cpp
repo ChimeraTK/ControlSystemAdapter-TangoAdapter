@@ -334,6 +334,9 @@ namespace TangoAdapter {
         // The ChangeEventSource is populated in AdapterDeviceClass::attribute_factory(); guaranteed non-null.
         assert(attr.changeEventSource != nullptr);
         return [this, name = attr.description.name, evSource = attr.changeEventSource]() {
+          // This runs in the updater thread. Take the device lock so the read of the shared accessor is
+          // serialized with Tango's polling-thread read() (which also runs under the device monitor).
+          Tango::AutoTangoMonitor sync(this);
           evSource->pushChangeEvent(this, this->getPvForAttribute(name));
         };
     }
