@@ -16,6 +16,22 @@
             <attribute name="numberOfMotors" source="/Motors/nMotors">
                 <description>The number of motors in this device server</description>
                 <egu>n/a</egu>
+                <eventing>off</eventing>
+            </attribute>
+            <attribute name="position" source="/Motors/position">
+                <description>The current position of the motor</description>
+                <egu>mm</egu>
+                <eventing>change</eventing>
+            </attribute>
+            <attribute name="statusWord" source="/Motors/statusWord">
+                <description>The status word of the controller</description>
+                <egu>n/a</egu>
+                <eventing>dataReady</eventing>
+            </attribute>
+            <attribute name="newDataTrigger" source="/Motors/newDataTrigger">
+                <description>A Void register announcing that new data is available</description>
+                <egu>n/a</egu>
+                <eventing>change</eventing>
             </attribute>
         </deviceInstance>
     </deviceClass>

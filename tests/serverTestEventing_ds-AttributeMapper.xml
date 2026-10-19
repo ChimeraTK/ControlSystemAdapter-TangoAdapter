@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer>
+    <deviceClass name="serverTestEventing">
+        <deviceInstance name="tango/test/serverTestEventing">
+            <attribute name="INT_FROM_DEVICE_SCALAR" source="INT/FROM_DEVICE_SCALAR">
+                <eventing>change</eventing>
+            </attribute>
+            <attribute name="SHORT_FROM_DEVICE_SCALAR" source="SHORT/FROM_DEVICE_SCALAR">
+                <eventing>dataReady</eventing>
+            </attribute>
+            <attribute name="FLOAT_FROM_DEVICE_SCALAR" source="FLOAT/FROM_DEVICE_SCALAR">
+                <eventing>change</eventing>
+            </attribute>
+            <attribute name="VOID_FROM_DEVICE_SCALAR" source="VOID/FROM_DEVICE_SCALAR">
+                <eventing>dataReady</eventing>
+            </attribute>
+            <attribute name="VOID_FROM_DEVICE_SCALAR_CHANGE" source="VOID/FROM_DEVICE_SCALAR">
+                <eventing>change</eventing>
+            </attribute>
+            <attribute name="INT_FROM_DEVICE_ARRAY" source="INT/FROM_DEVICE_ARRAY">
+                <eventing>change</eventing>
+            </attribute>
+            <attribute name="SHORT_FROM_DEVICE_ARRAY" source="SHORT/FROM_DEVICE_ARRAY">
+                <eventing>dataReady</eventing>
+            </attribute>
+            <attribute name="DOUBLE_FROM_DEVICE_SCALAR" source="DOUBLE/FROM_DEVICE_SCALAR">
+                <eventing>off</eventing>
+            </attribute>
+            <attribute name="INT_TO_DEVICE_SCALAR" source="INT/TO_DEVICE_SCALAR" />
+            <attribute name="SHORT_TO_DEVICE_SCALAR" source="SHORT/TO_DEVICE_SCALAR" />
+            <attribute name="FLOAT_TO_DEVICE_SCALAR" source="FLOAT/TO_DEVICE_SCALAR" />
+            <attribute name="VOID_TO_DEVICE_SCALAR" source="VOID/TO_DEVICE_SCALAR" />
+            <attribute name="INT_TO_DEVICE_ARRAY" source="INT/TO_DEVICE_ARRAY" />
+            <attribute name="SHORT_TO_DEVICE_ARRAY" source="SHORT/TO_DEVICE_ARRAY" />
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

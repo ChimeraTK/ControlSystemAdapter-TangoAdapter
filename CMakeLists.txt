@@ -103,6 +103,7 @@ if(BUILD_TESTS)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestFilterAttributes_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestMapTwice_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestStatusState_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestEventing_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
 
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/devices.dmap DESTINATION ${CMAKE_BINARY_DIR})
 endif()

@@ -196,7 +196,7 @@ namespace TangoAdapter {
 
   void AttributeMapper::addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
       const std::string& processVariableName, std::optional<std::string> unit,
-      const std::optional<std::string>& description) {
+      const std::optional<std::string>& description, EventingMode eventing) {
     if(attrName == "Status" || attrName == "State") {
       throw ChimeraTK::logic_error("Reserved attribute name \"" + attrName + "\", derived from " + processVariableName +
           ". Modify your mapping");
@@ -229,6 +229,17 @@ namespace TangoAdapter {
       dataFormat = AttrDataFormat::SPECTRUM;
     }
 
+    if(eventing != EventingMode::Off) {
+      if(!processVariable->isReadable()) {
+        throw ChimeraTK::logic_error("Eventing requested for attribute \"" + attrName +
+            "\", but the process variable " + processVariableName + " is not readable");
+      }
+      if(dataFormat == AttrDataFormat::IMAGE) {
+        throw ChimeraTK::logic_error(
+            "Eventing requested for attribute \"" + attrName + "\", but image attributes do not support eventing");
+      }
+    }
+
     // creating attribute property
     device->attributeToSource[attrName] = processVariableName;
 
@@ -236,6 +247,7 @@ namespace TangoAdapter {
         description.value_or(processVariable->getDescription()), unit.value_or(processVariable->getUnit()));
 
     auto& attr = device->ourClass->attributes.back();
+    attr.eventing = eventing;
     TANGO_LOG_DEBUG << "Adding attribute to class: " << attr << std::endl;
 
     if(processVariable->isWriteable() && processVariable->isReadable()) {
@@ -278,7 +290,26 @@ namespace TangoAdapter {
 
     auto description = util::childContentAsOptional(node, "description");
     auto unit = util::childContentAsOptional(node, "egu");
-    addAttribute(device, name, source->get_value(), unit, description);
+
+    auto eventing = EventingMode::Off;
+    if(auto eventingText = util::childContentAsOptional(node, "eventing")) {
+      if(*eventingText == "dataReady") {
+        eventing = EventingMode::DataReady;
+      }
+      else if(*eventingText == "change") {
+        eventing = EventingMode::Change;
+      }
+      else if(*eventingText == "off") {
+        eventing = EventingMode::Off;
+      }
+      else {
+        throw ChimeraTK::logic_error("Unknown eventing value \"" + *eventingText + "\" for attribute \"" + name +
+            "\" in line " + std::to_string(element->get_line()) +
+            R"(. Valid values are "dataReady", "change" and "off")");
+      }
+    }
+
+    addAttribute(device, name, source->get_value(), unit, description, eventing);
   }
 
   /********************************************************************************************************************/
