@@ -13,6 +13,8 @@ namespace TangoAdapter {
 
   enum class AttrDataFormat { SCALAR, SPECTRUM, IMAGE };
 
+  enum class EventingMode { Off, DataReady, Change };
+
   struct AttributeProperty {
     // Speed;Board/Reg;SCALAR;DEVShort
     AttributeProperty(std::string attributeName, AttrDataFormat dataFormat, Tango::CmdArgType attrDataType,
@@ -35,6 +37,7 @@ namespace TangoAdapter {
     AttrDataFormat attrDataFormat{};
     Tango::CmdArgType dataType{Tango::DATA_TYPE_UNKNOWN};
     Tango::AttrWriteType writeType{Tango::AttrWriteType::WT_UNKNOWN};
+    EventingMode eventing{EventingMode::Off};
   };
 } // namespace TangoAdapter
 
@@ -72,7 +75,8 @@ namespace std {
        << "   length: " << prop.length << "\n"
        << "   format: " << prop.attrDataFormat << "\n"
        << "   type: " << prop.dataType << "\n"
-       << "   writeType: " << prop.writeType << std::endl;
+       << "   writeType: " << prop.writeType << "\n"
+       << "   eventing: " << static_cast<int>(prop.eventing) << std::endl;
 
     return os;
   }

@@ -103,6 +103,11 @@ if(BUILD_TESTS)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestFilterAttributes_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestMapTwice_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestStatusState_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/serverTestEventing_ds-AttributeMapper.xml DESTINATION ${CMAKE_BINARY_DIR})
+
+  # Mapper files that must make the server fail at mapper read time, each in its own working directory
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/rejectInvalidEventingValue DESTINATION ${CMAKE_BINARY_DIR})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/rejectWriteOnlyEventing DESTINATION ${CMAKE_BINARY_DIR})
 
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/devices.dmap DESTINATION ${CMAKE_BINARY_DIR})
 endif()

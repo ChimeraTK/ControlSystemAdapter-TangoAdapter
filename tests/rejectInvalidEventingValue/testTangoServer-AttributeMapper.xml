@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer>
+    <deviceClass name="testTangoServer">
+        <deviceInstance name="tango/test/testtangoserverinvalideventing">
+            <attribute name="INT_FROM_DEVICE_SCALAR" source="INT/FROM_DEVICE_SCALAR">
+                <eventing>invalidValue</eventing>
+            </attribute>
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

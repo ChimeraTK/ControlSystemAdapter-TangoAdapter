@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer>
+    <deviceClass name="testTangoServer">
+        <deviceInstance name="tango/test/testtangoserverwriteonlyeventing">
+            <attribute name="INT_TO_DEVICE_SCALAR" source="INT/TO_DEVICE_SCALAR">
+                <eventing>change</eventing>
+            </attribute>
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

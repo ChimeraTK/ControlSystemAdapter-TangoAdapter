@@ -4,6 +4,7 @@
 
 #include "AdapterDeviceImpl.h"
 #include "AttributeProperty.h"
+#include "TangoPropertyHelper.h"
 
 #include <ChimeraTK/NDRegisterAccessor.h>
 
@@ -36,6 +37,13 @@ namespace TangoAdapter {
     if(attProperty.writeType == Tango::READ_WRITE || attProperty.writeType == Tango::WRITE) {
       set_memorized();
       set_memorized_init(true);
+    }
+
+    if(attProperty.eventing == EventingMode::Change) {
+      set_change_event(true, false);
+    }
+    else if(attProperty.eventing == EventingMode::DataReady) {
+      set_data_ready_event(true);
     }
 
     Tango::UserDefaultAttrProp att_prop;
@@ -79,7 +87,7 @@ namespace TangoAdapter {
 
     if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
       auto value = std::make_unique<Tango::DevString>();
-      *(value.get()) = Tango::string_dup(processScalar->accessData(0).c_str());
+      *(value.get()) = convertToTangoType<TangoType, AdapterType>(processScalar->accessData(0));
       att.set_value(value.release(), 1, 0, true);
     }
     else if constexpr(std::is_same_v<TangoType, Tango::DevBoolean>) {
@@ -98,10 +106,8 @@ namespace TangoAdapter {
     else {
       // Lint: Not even sure why this triggers here.
       // NOLINTNEXTLINE(modernize-avoid-c-arrays)
-      auto value = std::make_unique<TangoType>(processScalar->accessData(0));
-      // Lint: for the signed char adapter type we need to assign it to short, since Tango does not
-      // have a signed char type. Silence the warning, we are not dealing with characters here
-      // NOLINTNEXTLINE(bugprone-signed-char-misue)
+      auto value =
+          std::make_unique<TangoType>(convertToTangoType<TangoType, AdapterType>(processScalar->accessData(0)));
       att.set_value(value.release(), 1, 0, true);
     }
 

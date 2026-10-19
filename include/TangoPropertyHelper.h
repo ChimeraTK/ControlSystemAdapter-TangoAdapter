@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
+#include <ChimeraTK/SupportedUserTypes.h>
+
 #include <tango/tango.h>
 
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <type_traits>
 
 namespace TangoAdapter {
   constexpr char SEPERATOR = ';';
@@ -141,6 +144,32 @@ namespace TangoAdapter {
     }
 
     return os.str();
+  }
+
+  /********************************************************************************************************************/
+
+  /**
+   * @brief Convert one sample of an AdapterType to the TangoType that carries it.
+   *
+   * Tango has no signed char type, so an int8_t sample travels as DevShort. A std::string sample is copied into a
+   * newly allocated DevString, because Tango takes ownership of the pushed buffer. Every other sample is converted as
+   * is. Shared by the read path of ScalarAttribTempl/SpectrumAttribTempl and the CHANGE-event push of
+   * AdapterDeviceImpl, so both convert identically.
+   */
+  template<typename TangoType, typename AdapterType>
+  TangoType convertToTangoType(const AdapterType& value) {
+    if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
+      return Tango::string_dup(value.c_str());
+    }
+    else if constexpr(std::is_same_v<AdapterType, int8_t>) {
+      // Tango has no signed char, so an int8_t value travels as DevShort; there are no characters involved.
+      // NOLINTNEXTLINE(bugprone-signed-char-misuse)
+      const auto widened = static_cast<TangoType>(value);
+      return widened;
+    }
+    else {
+      return static_cast<TangoType>(value);
+    }
   }
 
 } // namespace TangoAdapter

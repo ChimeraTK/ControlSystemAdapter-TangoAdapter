@@ -16,6 +16,7 @@
             <attribute name="numberOfMotors" source="/Motors/nMotors">
                 <description>The number of motors in this device server</description>
                 <egu>n/a</egu>
+                <eventing>change</eventing>
             </attribute>
         </deviceInstance>
     </deviceClass>
