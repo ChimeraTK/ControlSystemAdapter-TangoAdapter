@@ -240,8 +240,8 @@ namespace TangoAdapter {
       }
       if(eventing == EventingMode::Change && valueType == typeid(ChimeraTK::Void)) {
         throw ChimeraTK::logic_error("Change eventing requested for attribute \"" + attrName +
-            "\", but the process variable " + processVariableName +
-            " carries no value to compare. A Void attribute supports \"dataReady\" and \"off\" only");
+            R"(", but the process variable )" + processVariableName +
+            R"( carries no value to compare. A Void attribute supports "dataReady" and "off" only)");
       }
     }
 

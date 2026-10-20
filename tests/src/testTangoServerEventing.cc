@@ -94,12 +94,6 @@ class EventCollector : public Tango::CallBack {
     return _dataReadyCounters.back();
   }
 
-  /// Number of change events received so far.
-  [[nodiscard]] size_t changeEventCount() {
-    std::lock_guard<std::mutex> lg(_mutex);
-    return _changeEvents.size();
-  }
-
   /// Number of data ready events received so far.
   [[nodiscard]] size_t dataReadyEventCount() {
     std::lock_guard<std::mutex> lg(_mutex);

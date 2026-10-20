@@ -47,52 +47,50 @@ BOOST_AUTO_TEST_CASE(testPropertyMapping) {
 
 /**********************************************************************************************************************/
 
-namespace {
-  constexpr std::string_view className = "serverTestImportAll";
-  constexpr std::string_view deviceName = "tango/test/serverTestimportall";
+constexpr std::string_view className = "serverTestImportAll";
+constexpr std::string_view deviceName = "tango/test/serverTestimportall";
 
-  /// A single `<attribute>` element with the given children (empty for none).
-  std::string attribute(const std::string& name, const std::string& source, const std::string& children = {}) {
-    return "            <attribute name=\"" + name + "\" source=\"" + source + "\">\n" + children +
-        "            </attribute>\n";
-  }
+/// A single `<attribute>` element with the given children (empty for none).
+static std::string attribute(const std::string& name, const std::string& source, const std::string& children = {}) {
+  return "            <attribute name=\"" + name + "\" source=\"" + source + "\">\n" + children +
+      "            </attribute>\n";
+}
 
-  /// An `<attribute>` element with an `<eventing>` element carrying the given text (empty for an absent element).
-  std::string attributeWithEventing(
-      const std::string& name, const std::string& source, const std::string& eventingText) {
-    const auto eventing =
-        eventingText.empty() ? std::string{} : "                <eventing>" + eventingText + "</eventing>\n";
-    return attribute(name, source, eventing);
-  }
+/// An `<attribute>` element with an `<eventing>` element carrying the given text (empty for an absent element).
+static std::string attributeWithEventing(
+    const std::string& name, const std::string& source, const std::string& eventingText) {
+  const auto eventing =
+      eventingText.empty() ? std::string{} : "                <eventing>" + eventingText + "</eventing>\n";
+  return attribute(name, source, eventing);
+}
 
-  /// Build a mapper that reads the mapper file written for the given attribute XML.
-  void readMapperFor(
-      const std::string& caseName, const std::string& attributesXml, TangoAdapter::AttributeMapper& mapper) {
-    // The process variable manager is the running server's control-system manager, since the application only
-    // exposes a DevicePVManager.
-    mapper.setCSPVManager(TangoAdapter::TangoAdapter::getInstance().getCsPvManager());
-    withMapperFileInCaseDirectory(caseName, std::string(className), std::string(deviceName), attributesXml,
-        [&mapper] { mapper.readMapperFile(); });
-  }
+/// Build a mapper that reads the mapper file written for the given attribute XML.
+static void readMapperFor(
+    const std::string& caseName, const std::string& attributesXml, TangoAdapter::AttributeMapper& mapper) {
+  // The process variable manager is the running server's control-system manager, since the application only
+  // exposes a DevicePVManager.
+  mapper.setCSPVManager(TangoAdapter::TangoAdapter::getInstance().getCsPvManager());
+  withMapperFileInCaseDirectory(
+      caseName, std::string(className), std::string(deviceName), attributesXml, [&mapper] { mapper.readMapperFile(); });
+}
 
-  /// The attributes the mapper parsed from the mapper file written for the given attribute XML.
-  std::list<TangoAdapter::AttributeProperty> parseAttributesOf(
-      const std::string& caseName, const std::string& attributesXml) {
-    TangoAdapter::AttributeMapper mapper;
-    readMapperFor(caseName, attributesXml, mapper);
+/// The attributes the mapper parsed from the mapper file written for the given attribute XML.
+static std::list<TangoAdapter::AttributeProperty> parseAttributesOf(
+    const std::string& caseName, const std::string& attributesXml) {
+  TangoAdapter::AttributeMapper mapper;
+  readMapperFor(caseName, attributesXml, mapper);
 
-    std::string name = std::string(className);
-    const auto deviceClass = mapper.getClass(name);
-    BOOST_REQUIRE(deviceClass != nullptr);
-    return deviceClass->attributes;
-  }
+  std::string name = std::string(className);
+  const auto deviceClass = mapper.getClass(name);
+  BOOST_REQUIRE(deviceClass != nullptr);
+  return deviceClass->attributes;
+}
 
-  /// Assert that the mapper file written for the given attribute XML is rejected with a logic_error.
-  void expectMapperRejects(const std::string& caseName, const std::string& attributesXml) {
-    TangoAdapter::AttributeMapper mapper;
-    BOOST_CHECK_THROW(readMapperFor(caseName, attributesXml, mapper), ChimeraTK::logic_error);
-  }
-} // namespace
+/// Assert that the mapper file written for the given attribute XML is rejected with a logic_error.
+static void expectMapperRejects(const std::string& caseName, const std::string& attributesXml) {
+  TangoAdapter::AttributeMapper mapper;
+  BOOST_CHECK_THROW(readMapperFor(caseName, attributesXml, mapper), ChimeraTK::logic_error);
+}
 
 /**********************************************************************************************************************/
 
