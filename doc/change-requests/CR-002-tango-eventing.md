@@ -5,7 +5,7 @@ Support DATA_READY and CHANGE events; the default stays off.
 
 Depends on: CR-001
 
-Status: READY TO TEST (from DONE)
+Status: TESTS PASSED (from DONE)
 
 ## Requirements
 
