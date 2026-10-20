@@ -85,12 +85,7 @@ namespace TangoAdapter {
       return;
     }
 
-    if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
-      auto value = std::make_unique<Tango::DevString>();
-      *(value.get()) = convertToTangoType<TangoType, AdapterType>(processScalar->accessData(0));
-      att.set_value(value.release(), 1, 0, true);
-    }
-    else if constexpr(std::is_same_v<TangoType, Tango::DevBoolean>) {
+    if constexpr(std::is_same_v<TangoType, Tango::DevBoolean>) {
       auto pvAsBool = boost::reinterpret_pointer_cast<BooleanAccessor>(processScalar);
       assert(pvAsBool != nullptr);
 
