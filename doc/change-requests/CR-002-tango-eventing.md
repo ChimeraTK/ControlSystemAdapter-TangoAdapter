@@ -150,6 +150,11 @@ write produces exactly one event: the helper writes the process variable once,
 then repeats only a main loop iteration plus the condition check until the
 event arrives. It never repeats the write, so an event cannot be paired with an
 earlier write.
+- The nested source location reaches the mapper and the event machinery: this is
+proven by the CHANGE event carrying the value written to the mapped process
+variable. The attribute name is not read back, because Tango sets
+`DeviceAttribute::name` to the requested name, so such a read cannot fail and
+verifies nothing.
 - The attribute mapper is tested directly, without a server and without a
 subprocess: build an `AttributeMapper` and give it the control-system process
 variable manager of the running in-process server
@@ -171,8 +176,11 @@ The rejection cases are: an unknown `<eventing>` value, an empty
 Void attribute, each expected to throw `ChimeraTK::logic_error`. The
 acceptance cases are the parsed mode for `dataReady`, `change`, `off` and an
 absent `<eventing>` element (the last two both `Off`), `dataReady` on a Void
-attribute, and a scalar, a spectrum and a write-only attribute without
-`<eventing>`.
+attribute, and the data-mapping cases: a scalar with
+`<eventing>change</eventing>`, a spectrum with `<eventing>dataReady</eventing>`,
+and a write-only attribute without `<eventing>`. Every case names the eventing
+mode it carries in its doc comment, and compares the parsed mode with
+`BOOST_TEST`, so a failure prints both values.
 - The `runTestTangoServer` helper and the asset directories
 `tests/rejectInvalidEventingValue` and `tests/rejectWriteOnlyEventing` are
 removed, together with their CMake copies; the rejection cases are covered by
@@ -207,3 +215,6 @@ data validity arrives with quality `ATTR_INVALID`.
 - DI-17 [DONE] clang-tidy-22 reports `modernize-raw-string-literal` at src/AttributMapper.cpp:244 (line added by this change request). That changed message carries escaped quotes and should use a raw string literal, as the neighbouring error message added in the same function at src/AttributMapper.cpp:313 already does. The warning appears despite `clang-format-19 --dry-run -Werror` passing, so it cannot be auto-applied.
 - DI-18 [DONE] clang-tidy-22 reports `llvm-prefer-static-over-anonymous-namespace` for all five helpers in the anonymous namespace at tests/src/testTangoAttributeMapper.cc:50-95 (`attribute`, `attributeWithEventing`, `readMapperFor`, `parseAttributesOf`, `expectMapperRejects`). This namespace is newly added and is the only anonymous namespace in `src/`, `include/`, `tests/` and `examples/`; the project declares test helpers as `static` free functions (e.g. tests/src/testTangoServerEventin...
 - DI-19 [DONE] `EventCollector::changeEventCount` (tests/src/testTangoServerEventing.cc:98) is never called anywhere in the new test file, so it is dead code introduced by this change request. `clang-tidy-22` cannot detect an unused public member function; the unused helper should be removed.
+- DI-20 [NEW] tests/src/testTangoAttributeMapper.cc:128 - Doxygen comment contradicts the test: it says 'A scalar attribute without an ` <eventing>` element carries the mapped values, with eventing off.' but testMapperMapsScalarAttributeWithEventing passes `<eventing>change</eventing>` and asserts EventingMode::Change. It also deviates from the Test plan (doc/change-requests/CR-002-tango-eventing.md:172-175), which lists the scalar and spectrum data-mapping cases as *without* `<eventing>`. Fix the comment and align plan vs test (either restore the without-`<eventing>` scalar/spectrum data-mapping cases per the plan, or update the plan).
+- DI-21 [NEW] tests/src/testTangoServerEventing.cc:145 - `BOOST_TEST(proxy.read_attribute(location).name == location)` is vacuous. Tango sets DeviceAttribute::name to the requested name, so the assertion holds for any name the read returns; it cannot fail for a successful read and does not verify the comment's claim ('a nested variable name has to reach the mapper and the event machinery'). The name used is the source path `INT/FROM_DEVICE_SCALAR`, which is not a Tango attribute of the device (the mapper names attributes with underscores, e.g. `INT_FROM_DEVICE_SCALAR`), yet the recorded build log shows the case passing - i.e. the check tests nothing. Remove the line, or assert something meaningful; the nested source is already proven by the change event carrying the written value.
+- DI-22 [NEW] Minor: the new eventing-mode comparisons use BOOST_CHECK (tests/src/testTangoAttributeMapper.cc:111,123,143,163,179) where cpp-testing prefers BOOST_TEST (BOOST_CHECK prints no values on failure).
