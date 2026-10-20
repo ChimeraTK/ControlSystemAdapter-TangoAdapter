@@ -5,7 +5,7 @@ Support DATA_READY and CHANGE events; the default stays off.
 
 Depends on: CR-001
 
-Status: READY TO IMPLEMENT (from DONE)
+Status: IMPLEMENTED (from DONE)
 
 ## Requirements
 
@@ -224,4 +224,4 @@ data validity arrives with quality `ATTR_INVALID`.
 - DI-23 [DONE] include/AttributeProperty.h:101 (line added by this change request): the AttributeProperty dumper prints the eventing mode with `static_cast<int>(prop.eventing)`, bypassing the `operator<<` that this same change request adds for EventingMode three lines above (include/AttributeProperty.h:71-89). `TANGO_LOG_DEBUG << attr` therefore shows a bare number while the new printer exists; a probe compiled with the project's own flags confirms that `os << prop.eventing` is found and ...
 - DI-24 [DONE] tests/src/testTangoAttributeMapper.cc (14 sites, lines 53, 59, 67, 77, 89, 97, 117, 128, 148, 168, 184, 192, 200, 207) and tests/src/testTangoServerEventing.cc (5 sites, lines 31, 70, 78, 90, 97) document functions, members and test cases with `///` single-line comments. These are the only `///` comments in the whole project; the convention (cpp-documentation: "Use multi-line comments (`/** */`)", cpp-style chrome bar / `/**` rules) is `/** ... */` with `@brief`, as used by...
 - DI-25 [DONE] tests/src/testTangoServerEventing.cc:125 calls the static member `ExtendedReferenceTestApplication::runMainLoopOnce()` through the instance `app`; clang-tidy-22 reports readability-static-accessed-through-instance on this line, which was added by this change request. The `app` parameter of `writeOnceAndRunMainLoopUntil` is used for nothing else, so it becomes unused once the call is qualified: call `ExtendedReferenceTestApplication::runMainLoopOnce()` and drop the parameter...
-- DI-26 [NEW] tests/src/testTangoServerEventing.cc:14 includes <filesystem> (and line 18 <string>), neither of which is used anywhere in that file. clang-tidy-22 reports `misc-include-cleaner` (included header filesystem is not used directly) on this line, which was added by this change request; the project's no-warnings policy forbids linter findings, and clang-format-19 --dry-run passes, so the dead include cannot be removed automatically. <filesystem> is needed by tests/include_lib/TangoTestServer.h, not by the test file itself.
+- DI-26 [IMPLEMENTED] tests/src/testTangoServerEventing.cc:14 includes <filesystem> (and line 18 <string>), neither of which is used anywhere in that file. clang-tidy-22 reports `misc-include-cleaner` (included header filesystem is not used directly) on this line, which was added by this change request; the project's no-warnings policy forbids linter findings, and clang-format-19 --dry-run passes, so the dead include cannot be removed automatically. <filesystem> is needed by tests/include_lib/TangoTestS...
