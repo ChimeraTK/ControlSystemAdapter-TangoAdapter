@@ -151,12 +151,17 @@ then repeats only a main loop iteration plus the condition check until the
 event arrives. It never repeats the write, so an event cannot be paired with an
 earlier write.
 - The attribute mapper is tested directly, without a server and without a
-subprocess: build an `AttributeMapper`, give it the test application's process
-variable manager with `setCSPVManager`, and read a mapper file in each case.
-Because `readMapperFile` derives the file name from the executable name of
-`Tango::Util::instance()`, the test runs in the in-process fixture and changes
-into a per-case directory which holds a mapper file carrying that name. The
-cases are: an invalid `<eventing>` value, eventing on a write-only attribute,
+subprocess: build an `AttributeMapper` and give it the control-system process
+variable manager of the running in-process server
+(`TangoAdapter::TangoAdapter::getInstance().getCsPvManager()`) with
+`setCSPVManager`, because the application itself exposes only a
+`DevicePVManager` (`ApplicationBase::getPVManager`), and read a mapper file in
+each case. Because `readMapperFile` derives the file name from the executable
+name of `Tango::Util::instance()`, the test runs in the in-process fixture and
+changes into a per-case directory which holds a mapper file carrying that name.
+The per-case mapper files are new test assets; `CMakeLists.txt` copies them
+into the build directory under the server executable name. The cases are: an
+invalid `<eventing>` value, eventing on a write-only attribute,
 and `change` on a Void attribute, each expected to throw
 `ChimeraTK::logic_error`. Further cases assert the parsed mode for `dataReady`,
 `change`, `off` and an absent `<eventing>` element (the last two both `Off`).
@@ -165,10 +170,11 @@ and `change` on a Void attribute, each expected to throw
 removed, together with their CMake copies; the rejection cases are covered by
 the mapper test bullet.
 - The mapper also carries a readable `ChimeraTK::Void` attribute with
-`dataReady`; write it through the proxy, run one application main loop
-iteration and assert a DATA_READY event with an increasing counter arrives.
-`change` on a Void attribute is asserted to be rejected, in the mapper test
-bullet.
+`dataReady`; write the matching to-device `ChimeraTK::Void` process variable
+through the proxy and use the helper of the bullet above (one main loop
+iteration plus the condition check, repeated until the event arrives), then
+assert a DATA_READY event with an increasing counter arrives. `change` on a
+Void attribute is asserted to be rejected, in the mapper test bullet.
 - Assert a CHANGE event of an attribute whose process variable carries faulty
 data validity arrives with quality `ATTR_INVALID`.
 
@@ -188,3 +194,5 @@ data validity arrives with quality `ATTR_INVALID`.
 - DI-12 [FOLDED-IN] Removing `testOffAttributeProducesNoEvent` (DI-5) leaves the default (`off` and absent `<eventing>`) unasserted; the mapper test must also cover the parsed mode for `dataReady`, `change`, `off` and an absent element.
 - DI-13 [FOLDED-IN] Removing the two subprocess rejection tests (DI-7/DI-8) leaves `runTestTangoServer` (tests/src/testTangoServerEventing.cc:142) and the asset directories `tests/rejectInvalidEventingValue` and `tests/rejectWriteOnlyEventing` dead; the plan must state that they are removed (including their CMake copies).
 - DI-14 [FOLDED-IN] Removing the Void CHANGE test (DI-6) leaves Void eventing untested although DI-1 allows `dataReady` for a Void attribute; the plan needs a Void DATA_READY case in the test plan.
+- DI-15 [NEW] DI-11 is not fully folded: the test plan still does not say how the mapper test obtains the process variable manager it passes to setCSPVManager. The application only exposes a DevicePVManager (ApplicationBase::getPVManager), not the ControlSystemPVManager that setCSPVManager takes; the reachable control-system manager is the running in-process server's, TangoAdapter::TangoAdapter::getInstance().getCsPvManager() (include/TangoAdapter.h:29). The plan also does not say where the per-case mapper files come from (new test assets with CMake copies, or written by the test), unlike its own DI-13 statement about the removed assets.
+- DI-16 [NEW] DI-14 is not fully folded: the Void DATA_READY bullet says to 'write it through the proxy' although the mapped Void attribute is read-based (VOID/FROM_DEVICE_SCALAR is not writeable), and it says to 'run one application main loop iteration' instead of the helper idiom the DI-4 correction introduced (one main loop iteration plus the condition check, repeated until the event arrives), which makes the assertion timing-dependent.
