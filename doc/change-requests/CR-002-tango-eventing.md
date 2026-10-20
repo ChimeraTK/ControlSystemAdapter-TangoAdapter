@@ -22,6 +22,9 @@ current behaviour.
 fails to start.
 - Eventing applies to readable scalar and spectrum attributes.
 - Eventing on a write-only attribute is rejected when the mapper file is read.
+- `change` on a readable `ChimeraTK::Void` process variable is rejected when the
+mapper file is read, because a Void carries no value to compare. Void
+attributes accept `dataReady` and `off` only.
 - Image attributes are not implemented and stay unsupported by this change.
 - Image attributes cannot occur today: the ControlSystemAdapter delivers
 single-channel process arrays, so a mapped attribute is always scalar or
@@ -37,8 +40,9 @@ spectrum.
 and maps it to the enum. An unknown or empty value throws
 `ChimeraTK::logic_error` naming the attribute and the offending value.
 - `AttributeMapper::addAttribute` rejects `DataReady`/`Change` when the process
-variable is not readable, or when the data format is image. The image check
-stays as a defensive guard: it cannot trigger today, because the
+variable is not readable, rejects `Change` when its value type is
+`ChimeraTK::Void`, and rejects both when the data format is image. The image
+check stays as a defensive guard: it cannot trigger today, because the
 ControlSystemAdapter delivers single-channel process arrays, so the data format
 is never image.
 - `AttributeMapper::processAttributeNode` passes the parsed eventing mode to
@@ -67,17 +71,16 @@ The switch keeps `DEV_ENUM` and `DEV_VOID` distinct from `DEV_SHORT` and
 - Each branch builds the Tango-typed buffer the matching `push_change_event`
 overload expects, mirroring the read path of
 `ScalarAttribTempl`/`SpectrumAttribTempl`.
-- `DEV_VOID` (a readable asynchronous `ChimeraTK::Void` register) has its own
-case in this switch and a separate helper, which pushes a single constant
-`Tango::DevBoolean true` with the accessor's data validity as quality and never
-reads a value, as `ScalarAttribTempl::read` does. The generic branch cannot
-handle it: a `ChimeraTK::Void` register carries no data to convert. The
-matching comment in `src/AdapterDeviceImpl.cpp` should say the same instead of
-referring to `ChimeraTK::callForTypeNoVoid`.
+- The change switch has no `DEV_VOID` case: `Change` is rejected for a Void
+process variable, so the generic branch and the `default:` error branch cover
+every reachable type. `pushVoidChangeEvent` and its comment in
+`src/AdapterDeviceImpl.cpp` are deleted.
 - Every other `dataType` case instantiates the same Tango/AdapterType pair as
 `util::toScalarTangoAttribute`/`util::toSpectrumTangoAttribute` and casts the
 accessor with `reinterpret_pointer_cast`. No runtime `callForTypeNoVoid` is
 used, because `push_change_event` needs the type at compile time.
+`AttributeProperty::getDataType` is not used, as it collapses `DEV_ENUM` to
+`DEV_SHORT`.
 - The elements are converted individually instead of reinterpreted: `int8_t` to
 `Tango::DevShort`, `std::string` to `Tango::DevString` through
 `Tango::string_dup`, and every other type copied as is.
@@ -99,18 +102,28 @@ DATA_READY events carry no quality.
 - `DataReady` pushes with `DeviceImpl::push_data_ready_event(attrName,
 counter)`.
 - Each attribute carries its own DATA_READY counter in `AdapterDeviceImpl`,
-incremented on every push and starting at 1.
+starting at 1. The counter advances only when the process variable's version
+number differs from the version number of the last push for that attribute; a
+push for a version number already pushed carries the same counter.
+`ChimeraTK::VersionNumber` exposes no numeric value, so `AdapterDeviceImpl`
+remembers the last version number pushed per attribute.
 - The `Change` callback depends on the attribute's data format: it pushes a
 scalar value as one element and a spectrum value as an array of the
-attribute's length. The `DataReady` callback still works on the attribute
-name only, so a future image attribute implementation needs only a DATA_READY
-counter and the same callback registration to support DATA_READY events.
+attribute's length. The `DataReady` callback takes the attribute name, looks
+the process variable up with `AdapterDeviceImpl::getPvForAttribute` to obtain
+its version number, and needs no data-format knowledge, so a future image
+attribute implementation needs only a DATA_READY counter and the same callback
+registration to support DATA_READY events.
 - `xmlschema/tango_variable_tree.xsd` gets the `<eventing>` element and
-`doc/example-AttributeMapper.xml` shows one. `doc/mainpage.dox` describes the
-keyword, the three values, the rejection of an unknown value and of a
-write-only attribute, and that image attributes are not implemented. It must
-not claim that an image attribute is rejected when the mapper file is read,
-because that case cannot occur.
+`doc/example-AttributeMapper.xml` shows one, on an attribute whose value
+changes (for example a position source from `/Motors/position`), because
+`numberOfMotors` never changes; the `numberOfMotors` attribute shows
+`<eventing>off</eventing>` (or no `<eventing>` element).
+- `doc/mainpage.dox` describes the keyword, the three values, the rejection of
+an unknown value, of a write-only attribute and of `change` on a Void process
+variable, and that image attributes are not implemented. It must not claim
+that an image attribute is rejected when the mapper file is read, because that
+case cannot occur.
 
 ### Alternatives considered
 
@@ -132,23 +145,30 @@ all elements of the written array. For the spectrum `dataReady` attribute,
 write a second array and assert the second DATA_READY counter is strictly
 larger than the first, mirroring the scalar case in the bullet below.
 - Write the process variables from the test application; assert CHANGE events
-carry the written value and DATA_READY events an increasing counter.
-- Assert an `off` attribute produces no event.
-- Assert an invalid `<eventing>` value and eventing on a write-only attribute
-both fail at mapper read time. Assert each rejection with its own mapper file,
-because the first error aborts the start-up: one mapper with an invalid
-`<eventing>` value and one with `<eventing>` on a write-only attribute. Spawn
-the `testTangoServer` executable as a subprocess with the server arguments the
-in-process fixture uses (an instance name as `argv[1]`, `-nodb`, `-dlist
-<device>` and an ORB end point), with the offending mapper file placed as
-`testTangoServer-AttributeMapper.xml` in the subprocess working directory, and
-assert a non-zero exit. Without the instance name `Tango::Util::init` aborts
-before `readMapperFile`, so the assertion would not prove the rejection. The
-mapper error escapes `TangoAdapter::run` uncaught, so an in-process server would
-abort the test binary itself.
-- The mapper also carries a readable `ChimeraTK::Void` attribute with `change`;
-write it through the proxy, run one application main loop and assert the CHANGE
-event arrives with the constant `true` and quality `ATTR_VALID`.
+carry the written value and DATA_READY events an increasing counter. Every
+write produces exactly one event: the helper writes the process variable once,
+then repeats only a main loop iteration plus the condition check until the
+event arrives. It never repeats the write, so an event cannot be paired with an
+earlier write.
+- The attribute mapper is tested directly, without a server and without a
+subprocess: build an `AttributeMapper`, give it the test application's process
+variable manager with `setCSPVManager`, and read a mapper file in each case.
+Because `readMapperFile` derives the file name from the executable name of
+`Tango::Util::instance()`, the test runs in the in-process fixture and changes
+into a per-case directory which holds a mapper file carrying that name. The
+cases are: an invalid `<eventing>` value, eventing on a write-only attribute,
+and `change` on a Void attribute, each expected to throw
+`ChimeraTK::logic_error`. Further cases assert the parsed mode for `dataReady`,
+`change`, `off` and an absent `<eventing>` element (the last two both `Off`).
+- The `runTestTangoServer` helper and the asset directories
+`tests/rejectInvalidEventingValue` and `tests/rejectWriteOnlyEventing` are
+removed, together with their CMake copies; the rejection cases are covered by
+the mapper test bullet.
+- The mapper also carries a readable `ChimeraTK::Void` attribute with
+`dataReady`; write it through the proxy, run one application main loop
+iteration and assert a DATA_READY event with an increasing counter arrives.
+`change` on a Void attribute is asserted to be rejected, in the mapper test
+bullet.
 - Assert a CHANGE event of an attribute whose process variable carries faulty
 data validity arrives with quality `ATTR_INVALID`.
 
@@ -163,3 +183,8 @@ data validity arrives with quality `ATTR_INVALID`.
 - DI-7 [NEW] `testInvalidEventingValueRejectedAtMapperRead` (tests/src/testTangoServerEventing.cc:330) is a full end-to-end subprocess test; the rejection of an invalid `<eventing>` value must be a unit test of the attribute mapper.
 - DI-8 [NEW] `testWriteOnlyEventingRejectedAtMapperRead` (tests/src/testTangoServerEventing.cc:339) is a full end-to-end subprocess test; the rejection of eventing on a write-only attribute must be a unit test of the attribute mapper.
 - DI-9 [NEW] `doc/example-AttributeMapper.xml:19` uses `numberOfMotors` for `change`, a really bad example for a changing value; the example must use a value that changes.
+- DI-10 [NEW] The plan leaves the behaviour of `<eventing>change</eventing>` on a readable `ChimeraTK::Void` process variable undefined, although DI-1/DI-2 forbid a CHANGE event for Void; the `addAttribute` rejection currently only covers unreadable and image (src/AttributMapper.cpp:232). User decision taken in this phase: reject `change` for a Void process variable when the mapper file is read.
+- DI-11 [NEW] DI-7/DI-8 as worded are not implementable as a plain mapper unit test: `AttributeMapper` has no public entry point other than `readMapperFile` (include/AttributeMapper.h:65), which derives its file name from `Tango::Util::instance()->get_ds_exec_name()` (src/AttributMapper.cpp:394-397) and needs a `ControlSystemPVManager` (setCSPVManager). The plan must say how the mapper test reaches its offending mapper file and the process variable manager without starting a server.
+- DI-12 [NEW] Removing `testOffAttributeProducesNoEvent` (DI-5) leaves the default (`off` and absent `<eventing>`) unasserted; the mapper test must also cover the parsed mode for `dataReady`, `change`, `off` and an absent element.
+- DI-13 [NEW] Removing the two subprocess rejection tests (DI-7/DI-8) leaves `runTestTangoServer` (tests/src/testTangoServerEventing.cc:142) and the asset directories `tests/rejectInvalidEventingValue` and `tests/rejectWriteOnlyEventing` dead; the plan must state that they are removed (including their CMake copies).
+- DI-14 [NEW] Removing the Void CHANGE test (DI-6) leaves Void eventing untested although DI-1 allows `dataReady` for a Void attribute; the plan needs a Void DATA_READY case in the test plan.
