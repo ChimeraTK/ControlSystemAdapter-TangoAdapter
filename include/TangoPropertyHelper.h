@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include <ChimeraTK/SupportedUserTypes.h>
-
 #include <tango/tango.h>
 
 #include <iostream>
