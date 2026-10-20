@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(testMapperParsesEventing) {
         attributeWithEventing("INT_FROM_DEVICE_SCALAR", "INT/FROM_DEVICE_SCALAR", text));
 
     BOOST_REQUIRE_EQUAL(attributes.size(), 1U);
-    BOOST_CHECK(attributes.front().eventing == expected);
+    BOOST_TEST(attributes.front().eventing == expected);
   }
 }
 
@@ -120,12 +120,12 @@ BOOST_AUTO_TEST_CASE(testMapperParsesDataReadyForVoid) {
       "voidDataReady", attributeWithEventing("VOID_FROM_DEVICE_SCALAR", "VOID/FROM_DEVICE_SCALAR", "dataReady"));
 
   BOOST_REQUIRE_EQUAL(attributes.size(), 1U);
-  BOOST_CHECK(attributes.front().eventing == TangoAdapter::EventingMode::DataReady);
+  BOOST_TEST(attributes.front().eventing == TangoAdapter::EventingMode::DataReady);
 }
 
 /**********************************************************************************************************************/
 
-/// A scalar attribute without an `<eventing>` element carries the mapped values, with eventing off.
+/// A scalar attribute with `<eventing>change</eventing>` carries the mapped values, with eventing on.
 BOOST_AUTO_TEST_CASE(testMapperMapsScalarAttributeWithEventing) {
   const auto attributes = parseAttributesOf("scalarMapping",
       attribute("INT_FROM_DEVICE_SCALAR", "INT/FROM_DEVICE_SCALAR",
@@ -140,12 +140,12 @@ BOOST_AUTO_TEST_CASE(testMapperMapsScalarAttributeWithEventing) {
   BOOST_TEST(property.attrDataFormat == TangoAdapter::AttrDataFormat::SCALAR);
   BOOST_TEST(property.dataType == Tango::DEV_LONG);
   BOOST_TEST(property.writeType == Tango::AttrWriteType::READ);
-  BOOST_CHECK(property.eventing == TangoAdapter::EventingMode::Change);
+  BOOST_TEST(property.eventing == TangoAdapter::EventingMode::Change);
 }
 
 /**********************************************************************************************************************/
 
-/// A spectrum attribute with an `<eventing>` element carries the mapped values, with eventing on.
+/// A spectrum attribute with `<eventing>dataReady</eventing>` carries the mapped values, with eventing on.
 BOOST_AUTO_TEST_CASE(testMapperMapsSpectrumAttributeWithEventing) {
   const auto attributes = parseAttributesOf("spectrumMapping",
       attribute("INT_FROM_DEVICE_ARRAY", "INT/FROM_DEVICE_ARRAY",
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE(testMapperMapsSpectrumAttributeWithEventing) {
   BOOST_TEST(property.attrDataFormat == TangoAdapter::AttrDataFormat::SPECTRUM);
   BOOST_TEST(property.dataType == Tango::DEV_LONG);
   BOOST_TEST(property.writeType == Tango::AttrWriteType::READ);
-  BOOST_CHECK(property.eventing == TangoAdapter::EventingMode::DataReady);
+  BOOST_TEST(property.eventing == TangoAdapter::EventingMode::DataReady);
 }
 
 /**********************************************************************************************************************/
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(testMapperMapsWriteOnlyAttributeWithoutEventing) {
   BOOST_TEST(property.attrDataFormat == TangoAdapter::AttrDataFormat::SCALAR);
   BOOST_TEST(property.dataType == Tango::DEV_LONG);
   BOOST_TEST(property.writeType == Tango::AttrWriteType::WRITE);
-  BOOST_CHECK(property.eventing == TangoAdapter::EventingMode::Off);
+  BOOST_TEST(property.eventing == TangoAdapter::EventingMode::Off);
 }
 
 /**********************************************************************************************************************/

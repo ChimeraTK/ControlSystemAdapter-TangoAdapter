@@ -5,7 +5,7 @@ Support DATA_READY and CHANGE events; the default stays off.
 
 Depends on: CR-001
 
-Status: IMPLEMENTED (from DONE)
+Status: READY TO TEST (from DONE)
 
 ## Requirements
 
@@ -36,6 +36,9 @@ spectrum.
 
 - `AttributeProperty` gains an `EventingMode` enum with values `Off`,
 `DataReady` and `Change`, stored in a new member defaulting to `Off`.
+- `EventingMode` gets an `operator<<` next to the existing `AttrDataFormat`
+printer in `AttributeProperty.h`, so the mapper tests can compare the parsed
+mode with `BOOST_TEST` and print both values on failure.
 - `AttributeMapper::processAttributeNode` reads the `<eventing>` child content
 and maps it to the enum. An unknown or empty value throws
 `ChimeraTK::logic_error` naming the attribute and the offending value.
@@ -215,6 +218,6 @@ data validity arrives with quality `ATTR_INVALID`.
 - DI-17 [DONE] clang-tidy-22 reports `modernize-raw-string-literal` at src/AttributMapper.cpp:244 (line added by this change request). That changed message carries escaped quotes and should use a raw string literal, as the neighbouring error message added in the same function at src/AttributMapper.cpp:313 already does. The warning appears despite `clang-format-19 --dry-run -Werror` passing, so it cannot be auto-applied.
 - DI-18 [DONE] clang-tidy-22 reports `llvm-prefer-static-over-anonymous-namespace` for all five helpers in the anonymous namespace at tests/src/testTangoAttributeMapper.cc:50-95 (`attribute`, `attributeWithEventing`, `readMapperFor`, `parseAttributesOf`, `expectMapperRejects`). This namespace is newly added and is the only anonymous namespace in `src/`, `include/`, `tests/` and `examples/`; the project declares test helpers as `static` free functions (e.g. tests/src/testTangoServerEventin...
 - DI-19 [DONE] `EventCollector::changeEventCount` (tests/src/testTangoServerEventing.cc:98) is never called anywhere in the new test file, so it is dead code introduced by this change request. `clang-tidy-22` cannot detect an unused public member function; the unused helper should be removed.
-- DI-20 [FOLDED-IN] tests/src/testTangoAttributeMapper.cc:128 - Doxygen comment contradicts the test: it says 'A scalar attribute without an ` <eventing>` element carries the mapped values, with eventing off.' but testMapperMapsScalarAttributeWithEventing passes `<eventing>change</eventing>` and asserts EventingMode::Change. It also deviates from the Test plan (doc/change-requests/CR-002-tango-eventing.md:172-175), which lists the scalar and spectrum data-mapping cases as *without* `<eventing>`. Fix t...
-- DI-21 [FOLDED-IN] tests/src/testTangoServerEventing.cc:145 - `BOOST_TEST(proxy.read_attribute(location).name == location)` is vacuous. Tango sets DeviceAttribute::name to the requested name, so the assertion holds for any name the read returns; it cannot fail for a successful read and does not verify the comment's claim ('a nested variable name has to reach the mapper and the event machinery'). The name used is the source path `INT/FROM_DEVICE_SCALAR`, which is not a Tango attribute of the device (t...
-- DI-22 [FOLDED-IN] Minor: the new eventing-mode comparisons use BOOST_CHECK (tests/src/testTangoAttributeMapper.cc:111,123,143,163,179) where cpp-testing prefers BOOST_TEST (BOOST_CHECK prints no values on failure).
+- DI-20 [IMPLEMENTED] tests/src/testTangoAttributeMapper.cc:128 - Doxygen comment contradicts the test: it says 'A scalar attribute without an ` <eventing>` element carries the mapped values, with eventing off.' but testMapperMapsScalarAttributeWithEventing passes `<eventing>change</eventing>` and asserts EventingMode::Change. It also deviates from the Test plan (doc/change-requests/CR-002-tango-eventing.md:172-175), which lists the scalar and spectrum data-mapping cases as *without* `<eventing>`....
+- DI-21 [IMPLEMENTED] tests/src/testTangoServerEventing.cc:145 - `BOOST_TEST(proxy.read_attribute(location).name == location)` is vacuous. Tango sets DeviceAttribute::name to the requested name, so the assertion holds for any name the read returns; it cannot fail for a successful read and does not verify the comment's claim ('a nested variable name has to reach the mapper and the event machinery'). The name used is the source path `INT/FROM_DEVICE_SCALAR`, which is not a Tango attribute of the dev...
+- DI-22 [IMPLEMENTED] Minor: the new eventing-mode comparisons use BOOST_CHECK (tests/src/testTangoAttributeMapper.cc:111,123,143,163,179) where cpp-testing prefers BOOST_TEST (BOOST_CHECK prints no values on failure).

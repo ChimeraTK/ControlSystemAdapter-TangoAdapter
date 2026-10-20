@@ -139,12 +139,11 @@ BOOST_AUTO_TEST_CASE(testChangeEventCarriesWrittenValue) {
   EventCollector collector;
   const auto eventId = proxy.subscribe_event("INT_FROM_DEVICE_SCALAR", Tango::CHANGE_EVENT, &collector);
 
-  // The process variables are written from a location hierarchy, so a nested variable name has to reach the mapper
-  // and the event machinery.
-  const std::string location{"INT/FROM_DEVICE_SCALAR"};
-  BOOST_TEST(proxy.read_attribute(location).name == location);
-
+  // The mapper is driven by the source location, and the nested variable name reaches the event machinery: this is
+  // proven by the CHANGE event below carrying the value written to the mapped process variable. The attribute name is
+  // not read back, because Tango sets DeviceAttribute::name to the requested name, so such a read cannot fail.
   app.dataValidity = ChimeraTK::DataValidity::ok;
+
   const auto hasWrittenValue = [&collector] {
     return collector.hasChangeEvent([](Tango::DeviceAttribute& attr) {
       Tango::DevLong value = 0;

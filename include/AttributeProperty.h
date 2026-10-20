@@ -68,6 +68,28 @@ namespace std {
 
   /********************************************************************************************************************/
 
+  inline std::ostream& operator<<(std::ostream& os, const TangoAdapter::EventingMode& e) {
+    switch(e) {
+      case TangoAdapter::EventingMode::Off:
+        os << "Off";
+        break;
+      case TangoAdapter::EventingMode::DataReady:
+        os << "DataReady";
+        break;
+      case TangoAdapter::EventingMode::Change:
+        os << "Change";
+        break;
+      default:
+        os << "UNKNOWN";
+        assert(false);
+        break;
+    }
+
+    return os;
+  }
+
+  /********************************************************************************************************************/
+
   inline std::ostream& operator<<(std::ostream& os, const TangoAdapter::AttributeProperty& prop) {
     os << "Dumping AttributeProperty " << prop.name << std::endl;
     os << "   unit: " << prop.unit << "\n"
