@@ -145,6 +145,11 @@ BOOST_AUTO_TEST_CASE(testChangeEventCarriesWrittenValue) {
   EventCollector collector;
   const auto eventId = proxy.subscribe_event("INT_FROM_DEVICE_SCALAR", Tango::CHANGE_EVENT, &collector);
 
+  // The process variables are written from a location hierarchy, so a nested variable name has to reach the mapper
+  // and the event machinery.
+  const std::string location{"INT/FROM_DEVICE_SCALAR"};
+  BOOST_TEST(proxy.read_attribute(location).name == location);
+
   app.dataValidity = ChimeraTK::DataValidity::ok;
   const auto hasWrittenValue = [&collector] {
     return collector.hasChangeEvent([](Tango::DeviceAttribute& attr) {
@@ -257,6 +262,9 @@ BOOST_AUTO_TEST_CASE(testVoidDataReadyEventCounterIncreases) {
 
   EventCollector collector;
   const auto eventId = proxy.subscribe_event("VOID_FROM_DEVICE_SCALAR", Tango::DATA_READY_EVENT, &collector);
+
+  // A Void attribute only ever carries a DATA_READY event, so subscribing to a CHANGE event must be rejected.
+  BOOST_CHECK_THROW(proxy.subscribe_event("VOID_FROM_DEVICE_SCALAR", Tango::CHANGE_EVENT, nullptr), Tango::DevFailed);
 
   const auto hasFirstEvent = [&collector] { return collector.dataReadyEventCount() >= 1; };
   BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(

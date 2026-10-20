@@ -6,6 +6,7 @@
 
 #include <ChimeraTK/ControlSystemAdapter/ApplicationFactory.h>
 #include <ChimeraTK/ControlSystemAdapter/Testing/ReferenceTestApplication.h>
+#include <ChimeraTK/cppext/finally.hpp>
 
 #include <tango/tango.h>
 
@@ -13,6 +14,9 @@
 #include <boost/mpl/map.hpp>
 #include <boost/test/unit_test.hpp>
 
+#include <filesystem>
+#include <fstream>
+#include <string>
 #include <thread>
 
 /**********************************************************************************************************************/
@@ -181,6 +185,45 @@ struct TangoTestFixtureImpl {
     return {fixture, app, proxy};
   }
 };
+
+/**********************************************************************************************************************/
+
+/**
+ * @brief A mapper file with the given `<attribute>` children, written under the executable name of the running server.
+ */
+inline std::string mapperFile(
+    const std::string& className, const std::string& deviceName, const std::string& attributesXml) {
+  return "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<deviceServer>\n    <deviceClass name=\"" + className +
+      "\">\n        <deviceInstance name=\"" + deviceName + "\">\n" + attributesXml +
+      "        </deviceInstance>\n    </deviceClass>\n</deviceServer>\n";
+}
+
+/**********************************************************************************************************************/
+
+/**
+ * @brief Run the given action with the current directory set to a per-case directory holding the given mapper file.
+ *
+ * The mapper derives the file name it reads from the executable name of the running in-process server, so the file
+ * carries exactly that name. The directory lives inside the working directory of the test executable, which is
+ * created fresh by the build system and hence exists in any checkout.
+ */
+template<typename Action>
+void withMapperFileInCaseDirectory(const std::string& caseName, const std::string& className,
+    const std::string& deviceName, const std::string& attributesXml, Action action) {
+  const auto previousDirectory = std::filesystem::current_path();
+  const auto caseDirectory = previousDirectory / ("mapperCase_" + caseName);
+  std::filesystem::create_directories(caseDirectory);
+
+  {
+    std::ofstream out(
+        caseDirectory / (std::string(Tango::Util::instance()->get_ds_exec_name()) + "-AttributeMapper.xml"));
+    out << mapperFile(className, deviceName, attributesXml);
+  }
+
+  const auto guard = cppext::finally([&previousDirectory] { std::filesystem::current_path(previousDirectory); });
+  std::filesystem::current_path(caseDirectory);
+  action();
+}
 
 /**********************************************************************************************************************/
 

@@ -5,7 +5,7 @@ Support DATA_READY and CHANGE events; the default stays off.
 
 Depends on: CR-001
 
-Status: IMPLEMENTED (from DONE)
+Status: READY TO TEST (from DONE)
 
 ## Requirements
 
@@ -159,12 +159,20 @@ variable manager of the running in-process server
 each case. Because `readMapperFile` derives the file name from the executable
 name of `Tango::Util::instance()`, the test runs in the in-process fixture and
 changes into a per-case directory which holds a mapper file carrying that name.
-The per-case mapper files are new test assets; `CMakeLists.txt` copies them
-into the build directory under the server executable name. The cases are: an
-invalid `<eventing>` value, eventing on a write-only attribute,
-and `change` on a Void attribute, each expected to throw
-`ChimeraTK::logic_error`. Further cases assert the parsed mode for `dataReady`,
-`change`, `off` and an absent `<eventing>` element (the last two both `Off`).
+The per-case mapper files are written by the test code with the shared helper
+`withMapperFileInCaseDirectory` of `TangoTestServer.h`, into a directory below
+the working directory of the test executable, which the build system creates
+fresh and which is therefore present in any checkout. Each case carries one
+`<attribute>` element, written with the shared `attribute`/
+`attributeWithEventing` helpers, so the test covers the attribute data
+(description, egu, data format, data type, write type) together with the mode.
+The rejection cases are: an unknown `<eventing>` value, an empty
+`<eventing>` element, eventing on a write-only attribute, and `change` on a
+Void attribute, each expected to throw `ChimeraTK::logic_error`. The
+acceptance cases are the parsed mode for `dataReady`, `change`, `off` and an
+absent `<eventing>` element (the last two both `Off`), `dataReady` on a Void
+attribute, and a scalar, a spectrum and a write-only attribute without
+`<eventing>`.
 - The `runTestTangoServer` helper and the asset directories
 `tests/rejectInvalidEventingValue` and `tests/rejectWriteOnlyEventing` are
 removed, together with their CMake copies; the rejection cases are covered by
