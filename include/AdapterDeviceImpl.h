@@ -44,6 +44,7 @@ namespace TangoAdapter {
     std::map<std::string, ChimeraTK::TransferElementAbstractor> _attributeToPvMap;
     std::map<std::string, AttributeProperty> _attributeProperties;
     std::map<std::string, Tango::DevLong> _dataReadyCounters;
+    std::map<std::string, ChimeraTK::VersionNumber> _lastDataReadyVersions;
     void pushChangeEvent(const std::string& attrName);
     void pushDataReadyEvent(const std::string& attrName);
     void restoreMemoriedSpectra(const std::list<AttributeProperty>&);

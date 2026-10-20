@@ -88,25 +88,6 @@ namespace detail {
       device->push_change_event(attrName, data.release(), timestamp, quality, 1, 0, true);
     }
   }
-
-  /********************************************************************************************************************/
-
-  // DEV_VOID carries no data, so the read path sends a constant true (see ScalarAttribTempl::read) and there is no
-  // accessor data to read. Handled separately because a ChimeraTK::Void register carries no data to convert.
-  void pushVoidChangeEvent(
-      Tango::DeviceImpl* device, const std::string& attrName, ChimeraTK::TransferElementAbstractor& pv) {
-    auto quality = Tango::AttrQuality::ATTR_VALID;
-    if(auto accessor = boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<ChimeraTK::Void>>(
-           pv.getHighLevelImplElement())) {
-      if(accessor->dataValidity() != ChimeraTK::DataValidity::ok) {
-        quality = Tango::AttrQuality::ATTR_INVALID;
-      }
-    }
-
-    auto data = std::make_unique<Tango::DevBoolean>(true);
-    device->push_change_event(
-        attrName, data.release(), Tango::TangoTimestamp(std::chrono::system_clock::now()), quality, 1, 0, true);
-  }
 } // namespace detail
 
 /**********************************************************************************************************************/
@@ -452,8 +433,9 @@ namespace TangoAdapter {
     }
     const auto& property = propertyIt->second;
 
-    // Dispatch on the raw Tango type: push_change_event is a type template, and only DEV_VOID needs the special path
-    // because a ChimeraTK::Void register carries no data to convert.
+    // Dispatch on the raw Tango type because push_change_event is a type template while this function is not. A
+    // ChimeraTK::Void process variable is rejected when the mapper file is read, so DEV_VOID is unreachable here and
+    // the default branch covers it.
     switch(property.dataType) {
       case Tango::DEV_UCHAR:
         detail::pushChangeEventForAttribute<Tango::DevUChar, uint8_t>(this, attrName, property, pv);
@@ -491,9 +473,6 @@ namespace TangoAdapter {
       case Tango::DEV_BOOLEAN:
         detail::pushChangeEventForAttribute<Tango::DevBoolean, ChimeraTK::Boolean>(this, attrName, property, pv);
         break;
-      case Tango::DEV_VOID:
-        detail::pushVoidChangeEvent(this, attrName, pv);
-        break;
       default:
         DEV_ERROR_STREAM(this) << "Unsupported data type for change event on attribute " << attrName << std::endl;
         break;
@@ -503,6 +482,19 @@ namespace TangoAdapter {
   /********************************************************************************************************************/
 
   void AdapterDeviceImpl::pushDataReadyEvent(const std::string& attrName) {
+    auto pv = getPvForAttribute(attrName);
+    if(!pv.isInitialised()) {
+      return;
+    }
+
+    // The counter only advances with a new version of the process variable, so repeats of the same version (which can
+    // happen when the same update is picked up more than once) carry the same counter.
+    auto& lastPushed = _lastDataReadyVersions[attrName];
+    if(lastPushed == pv.getVersionNumber()) {
+      return;
+    }
+    lastPushed = pv.getVersionNumber();
+
     auto& counter = _dataReadyCounters[attrName];
     if(counter == 0) {
       counter = 1;

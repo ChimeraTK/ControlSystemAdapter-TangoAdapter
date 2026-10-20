@@ -12,7 +12,7 @@
                 <eventing>change</eventing>
             </attribute>
             <attribute name="VOID_FROM_DEVICE_SCALAR" source="VOID/FROM_DEVICE_SCALAR">
-                <eventing>change</eventing>
+                <eventing>dataReady</eventing>
             </attribute>
             <attribute name="INT_FROM_DEVICE_ARRAY" source="INT/FROM_DEVICE_ARRAY">
                 <eventing>change</eventing>
