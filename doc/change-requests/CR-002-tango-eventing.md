@@ -5,7 +5,7 @@ Support DATA_READY and CHANGE events; the default stays off.
 
 Depends on: CR-001
 
-Status: TESTS PASSED (from DONE)
+Status: READY TO IMPLEMENT (from DONE)
 
 ## Requirements
 
@@ -226,3 +226,4 @@ data validity arrives with quality `ATTR_INVALID`.
 - DI-25 [DONE] tests/src/testTangoServerEventing.cc:125 calls the static member `ExtendedReferenceTestApplication::runMainLoopOnce()` through the instance `app`; clang-tidy-22 reports readability-static-accessed-through-instance on this line, which was added by this change request. The `app` parameter of `writeOnceAndRunMainLoopUntil` is used for nothing else, so it becomes unused once the call is qualified: call `ExtendedReferenceTestApplication::runMainLoopOnce()` and drop the parameter...
 - DI-26 [DONE] tests/src/testTangoServerEventing.cc:14 includes <filesystem> (and line 18 <string>), neither of which is used anywhere in that file. clang-tidy-22 reports `misc-include-cleaner` (included header filesystem is not used directly) on this line, which was added by this change request; the project's no-warnings policy forbids linter findings, and clang-format-19 --dry-run passes, so the dead include cannot be removed automatically. <filesystem> is needed by tests/include_lib/Ta...
 - DI-27 [DONE] include/ScalarAttribTempl.h:88-92 keeps a `std::is_same_v<TangoType, Tango::DevString>` branch in `ScalarAttribTempl<TangoType, AdapterType>::read` that is now equivalent to the generic branch below it (include/ScalarAttribTempl.h:106-112): both allocate one element with `std::make_unique<TangoType>`, fill it from `convertToTangoType<TangoType, AdapterType>(processScalar->accessData(0))` and call `att.set_value(value.release(), 1, 0, true)`. Because this change moved the st...
+- DI-28 [NEW] include/TangoPropertyHelper.h:5 - clang-tidy-22 reports misc-include-cleaner: the header <ChimeraTK/SupportedUserTypes.h> is included but not used directly. This include line was added by this change request (git log -S and the diff against the merge-base confirm it as an added line). No symbol from SupportedUserTypes.h (no ChimeraTK:: or SupportedUserTypes usage) appears anywhere in the file; only int8_t and std::is_same_v are used, which are covered by <type_traits>. Fix: remove the include. Not auto-applied by clang-format-19 (dry-run exit 0).
