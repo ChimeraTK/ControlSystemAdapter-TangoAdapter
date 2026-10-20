@@ -5,7 +5,7 @@ Support DATA_READY and CHANGE events; the default stays off.
 
 Depends on: CR-001
 
-Status: STYLE REVIEWED (from DONE)
+Status: IMPLEMENTATION REVIEWED (from DONE)
 
 ## Requirements
 
