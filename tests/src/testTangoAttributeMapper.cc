@@ -50,13 +50,17 @@ BOOST_AUTO_TEST_CASE(testPropertyMapping) {
 constexpr std::string_view className = "serverTestImportAll";
 constexpr std::string_view deviceName = "tango/test/serverTestimportall";
 
-/// A single `<attribute>` element with the given children (empty for none).
+/**
+ * @brief A single `<attribute>` element with the given children (empty for none).
+ */
 static std::string attribute(const std::string& name, const std::string& source, const std::string& children = {}) {
   return "            <attribute name=\"" + name + "\" source=\"" + source + "\">\n" + children +
       "            </attribute>\n";
 }
 
-/// An `<attribute>` element with an `<eventing>` element carrying the given text (empty for an absent element).
+/**
+ * @brief An `<attribute>` element with an `<eventing>` element carrying the given text (empty for an absent element).
+ */
 static std::string attributeWithEventing(
     const std::string& name, const std::string& source, const std::string& eventingText) {
   const auto eventing =
@@ -64,7 +68,9 @@ static std::string attributeWithEventing(
   return attribute(name, source, eventing);
 }
 
-/// Build a mapper that reads the mapper file written for the given attribute XML.
+/**
+ * @brief Build a mapper that reads the mapper file written for the given attribute XML.
+ */
 static void readMapperFor(
     const std::string& caseName, const std::string& attributesXml, TangoAdapter::AttributeMapper& mapper) {
   // The process variable manager is the running server's control-system manager, since the application only
@@ -74,7 +80,9 @@ static void readMapperFor(
       caseName, std::string(className), std::string(deviceName), attributesXml, [&mapper] { mapper.readMapperFile(); });
 }
 
-/// The attributes the mapper parsed from the mapper file written for the given attribute XML.
+/**
+ * @brief The attributes the mapper parsed from the mapper file written for the given attribute XML.
+ */
 static std::list<TangoAdapter::AttributeProperty> parseAttributesOf(
     const std::string& caseName, const std::string& attributesXml) {
   TangoAdapter::AttributeMapper mapper;
@@ -86,7 +94,9 @@ static std::list<TangoAdapter::AttributeProperty> parseAttributesOf(
   return deviceClass->attributes;
 }
 
-/// Assert that the mapper file written for the given attribute XML is rejected with a logic_error.
+/**
+ * @brief Assert that the mapper file written for the given attribute XML is rejected with a logic_error.
+ */
 static void expectMapperRejects(const std::string& caseName, const std::string& attributesXml) {
   TangoAdapter::AttributeMapper mapper;
   BOOST_CHECK_THROW(readMapperFor(caseName, attributesXml, mapper), ChimeraTK::logic_error);
@@ -94,7 +104,9 @@ static void expectMapperRejects(const std::string& caseName, const std::string& 
 
 /**********************************************************************************************************************/
 
-/// The `<eventing>` text is mapped to the eventing mode, and an absent element means Off.
+/**
+ * @brief The `<eventing>` text is mapped to the eventing mode, and an absent element means Off.
+ */
 BOOST_AUTO_TEST_CASE(testMapperParsesEventing) {
   const std::vector<std::pair<std::string, TangoAdapter::EventingMode>> cases{
       {"dataReady", TangoAdapter::EventingMode::DataReady},
@@ -114,7 +126,9 @@ BOOST_AUTO_TEST_CASE(testMapperParsesEventing) {
 
 /**********************************************************************************************************************/
 
-/// DataReady is parsed for a Void source, which supports dataReady and off only.
+/**
+ * @brief DataReady is parsed for a Void source, which supports dataReady and off only.
+ */
 BOOST_AUTO_TEST_CASE(testMapperParsesDataReadyForVoid) {
   const auto attributes = parseAttributesOf(
       "voidDataReady", attributeWithEventing("VOID_FROM_DEVICE_SCALAR", "VOID/FROM_DEVICE_SCALAR", "dataReady"));
@@ -125,7 +139,9 @@ BOOST_AUTO_TEST_CASE(testMapperParsesDataReadyForVoid) {
 
 /**********************************************************************************************************************/
 
-/// A scalar attribute with `<eventing>change</eventing>` carries the mapped values, with eventing on.
+/**
+ * @brief A scalar attribute with `<eventing>change</eventing>` carries the mapped values, with eventing on.
+ */
 BOOST_AUTO_TEST_CASE(testMapperMapsScalarAttributeWithEventing) {
   const auto attributes = parseAttributesOf("scalarMapping",
       attribute("INT_FROM_DEVICE_SCALAR", "INT/FROM_DEVICE_SCALAR",
@@ -145,7 +161,9 @@ BOOST_AUTO_TEST_CASE(testMapperMapsScalarAttributeWithEventing) {
 
 /**********************************************************************************************************************/
 
-/// A spectrum attribute with `<eventing>dataReady</eventing>` carries the mapped values, with eventing on.
+/**
+ * @brief A spectrum attribute with `<eventing>dataReady</eventing>` carries the mapped values, with eventing on.
+ */
 BOOST_AUTO_TEST_CASE(testMapperMapsSpectrumAttributeWithEventing) {
   const auto attributes = parseAttributesOf("spectrumMapping",
       attribute("INT_FROM_DEVICE_ARRAY", "INT/FROM_DEVICE_ARRAY",
@@ -165,7 +183,9 @@ BOOST_AUTO_TEST_CASE(testMapperMapsSpectrumAttributeWithEventing) {
 
 /**********************************************************************************************************************/
 
-/// A write-only attribute without `<eventing>` carries the mapped values, with eventing off.
+/**
+ * @brief A write-only attribute without `<eventing>` carries the mapped values, with eventing off.
+ */
 BOOST_AUTO_TEST_CASE(testMapperMapsWriteOnlyAttributeWithoutEventing) {
   const auto attributes =
       parseAttributesOf("writeOnlyMapping", attribute("INT_TO_DEVICE_SCALAR", "INT/TO_DEVICE_SCALAR"));
@@ -181,7 +201,9 @@ BOOST_AUTO_TEST_CASE(testMapperMapsWriteOnlyAttributeWithoutEventing) {
 
 /**********************************************************************************************************************/
 
-/// An unknown `<eventing>` value is rejected when the mapper file is read.
+/**
+ * @brief An unknown `<eventing>` value is rejected when the mapper file is read.
+ */
 BOOST_AUTO_TEST_CASE(testInvalidEventingValueRejectedAtMapperRead) {
   expectMapperRejects(
       "invalidValue", attributeWithEventing("INT_FROM_DEVICE_SCALAR", "INT/FROM_DEVICE_SCALAR", "invalidValue"));
@@ -189,7 +211,9 @@ BOOST_AUTO_TEST_CASE(testInvalidEventingValueRejectedAtMapperRead) {
 
 /**********************************************************************************************************************/
 
-/// An empty `<eventing>` element is rejected when the mapper file is read.
+/**
+ * @brief An empty `<eventing>` element is rejected when the mapper file is read.
+ */
 BOOST_AUTO_TEST_CASE(testEmptyEventingValueRejectedAtMapperRead) {
   expectMapperRejects("emptyValue",
       attribute("INT_FROM_DEVICE_SCALAR", "INT/FROM_DEVICE_SCALAR", "                <eventing></eventing>\n"));
@@ -197,14 +221,18 @@ BOOST_AUTO_TEST_CASE(testEmptyEventingValueRejectedAtMapperRead) {
 
 /**********************************************************************************************************************/
 
-/// Eventing on a write-only attribute is rejected when the mapper file is read.
+/**
+ * @brief Eventing on a write-only attribute is rejected when the mapper file is read.
+ */
 BOOST_AUTO_TEST_CASE(testWriteOnlyEventingRejectedAtMapperRead) {
   expectMapperRejects("writeOnly", attributeWithEventing("INT_TO_DEVICE_SCALAR", "INT/TO_DEVICE_SCALAR", "change"));
 }
 
 /**********************************************************************************************************************/
 
-/// Change eventing on a Void process variable is rejected when the mapper file is read.
+/**
+ * @brief Change eventing on a Void process variable is rejected when the mapper file is read.
+ */
 BOOST_AUTO_TEST_CASE(testVoidChangeEventingRejectedAtMapperRead) {
   expectMapperRejects(
       "voidChange", attributeWithEventing("VOID_FROM_DEVICE_SCALAR", "VOID/FROM_DEVICE_SCALAR", "change"));

@@ -98,7 +98,7 @@ namespace std {
        << "   format: " << prop.attrDataFormat << "\n"
        << "   type: " << prop.dataType << "\n"
        << "   writeType: " << prop.writeType << "\n"
-       << "   eventing: " << static_cast<int>(prop.eventing) << std::endl;
+       << "   eventing: " << prop.eventing << std::endl;
 
     return os;
   }

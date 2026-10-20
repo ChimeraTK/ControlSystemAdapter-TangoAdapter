@@ -28,7 +28,9 @@ BOOST_GLOBAL_FIXTURE(Fixture_t);
 
 /**********************************************************************************************************************/
 
-/// Poll the given condition for up to the Tango event timeout.
+/**
+ * @brief Poll the given condition for up to the Tango event timeout.
+ */
 template<typename Predicate>
 static bool pollUntil(Predicate predicate, std::chrono::milliseconds timeout = std::chrono::seconds(5)) {
   using clock = std::chrono::steady_clock;
@@ -67,7 +69,9 @@ class EventCollector : public Tango::CallBack {
     _dataReadyCounters.push_back(dre->ctr);
   }
 
-  /// Whether a change event satisfying the predicate has been received so far.
+  /**
+   * @brief Whether a change event satisfying the predicate has been received so far.
+   */
   template<typename Predicate>
   bool hasChangeEvent(Predicate predicate) {
     std::lock_guard<std::mutex> lg(_mutex);
@@ -75,7 +79,9 @@ class EventCollector : public Tango::CallBack {
         [&predicate](Tango::DeviceAttribute& attr) { return predicate(attr); });
   }
 
-  /// The last change event satisfying the predicate, if any.
+  /**
+   * @brief The last change event satisfying the predicate, if any.
+   */
   template<typename Predicate>
   std::optional<Tango::DeviceAttribute> lastChangeEvent(Predicate predicate) {
     std::lock_guard<std::mutex> lg(_mutex);
@@ -87,14 +93,18 @@ class EventCollector : public Tango::CallBack {
     return std::nullopt;
   }
 
-  /// The last data ready counter received so far, if any.
+  /**
+   * @brief The last data ready counter received so far, if any.
+   */
   int lastDataReadyCounter() {
     std::lock_guard<std::mutex> lg(_mutex);
     assert(!_dataReadyCounters.empty());
     return _dataReadyCounters.back();
   }
 
-  /// Number of data ready events received so far.
+  /**
+   * @brief Number of data ready events received so far.
+   */
   [[nodiscard]] size_t dataReadyEventCount() {
     std::lock_guard<std::mutex> lg(_mutex);
     return _dataReadyCounters.size();
@@ -117,12 +127,11 @@ class EventCollector : public Tango::CallBack {
  * the main loop iteration (and the condition check) is repeated until the event arrives.
  */
 template<typename WriteFunction, typename Predicate>
-static bool writeOnceAndRunMainLoopUntil(
-    ExtendedReferenceTestApplication& app, WriteFunction write, Predicate condition) {
+static bool writeOnceAndRunMainLoopUntil(WriteFunction write, Predicate condition) {
   write();
   const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
   do {
-    app.runMainLoopOnce();
+    ExtendedReferenceTestApplication::runMainLoopOnce();
     if(pollUntil(condition, std::chrono::milliseconds(100))) {
       return true;
     }
@@ -151,8 +160,8 @@ BOOST_AUTO_TEST_CASE(testChangeEventCarriesWrittenValue) {
       return value == 42;
     });
   };
-  BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(
-      app, [&tf] { tf.write("INT_TO_DEVICE_SCALAR", Tango::DevLong(42)); }, hasWrittenValue));
+  BOOST_REQUIRE(
+      writeOnceAndRunMainLoopUntil([&tf] { tf.write("INT_TO_DEVICE_SCALAR", Tango::DevLong(42)); }, hasWrittenValue));
 
   auto event = collector.lastChangeEvent([](Tango::DeviceAttribute& attr) {
     Tango::DevLong value = 0;
@@ -184,8 +193,8 @@ BOOST_AUTO_TEST_CASE(testChangeEventOfSpectrumCarriesAllElements) {
       return read == written;
     });
   };
-  BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(
-      app, [&tf, &written] { tf.write("INT_TO_DEVICE_ARRAY", written); }, hasWrittenValues));
+  BOOST_REQUIRE(
+      writeOnceAndRunMainLoopUntil([&tf, &written] { tf.write("INT_TO_DEVICE_ARRAY", written); }, hasWrittenValues));
 
   auto event = collector.lastChangeEvent([](Tango::DeviceAttribute&) { return true; });
   BOOST_REQUIRE(event.has_value());
@@ -206,14 +215,14 @@ BOOST_AUTO_TEST_CASE(testDataReadyEventCounterIncreases) {
 
   app.dataValidity = ChimeraTK::DataValidity::ok;
   const auto hasFirstEvent = [&collector] { return collector.dataReadyEventCount() >= 1; };
-  BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(
-      app, [&tf] { tf.write("SHORT_TO_DEVICE_SCALAR", Tango::DevShort(1)); }, hasFirstEvent));
+  BOOST_REQUIRE(
+      writeOnceAndRunMainLoopUntil([&tf] { tf.write("SHORT_TO_DEVICE_SCALAR", Tango::DevShort(1)); }, hasFirstEvent));
   const auto firstCounter = collector.lastDataReadyCounter();
 
   // A new write must produce a further data ready event with a strictly larger counter.
   const auto hasLaterCounter = [&collector, firstCounter] { return collector.lastDataReadyCounter() > firstCounter; };
-  BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(
-      app, [&tf] { tf.write("SHORT_TO_DEVICE_SCALAR", Tango::DevShort(2)); }, hasLaterCounter));
+  BOOST_REQUIRE(
+      writeOnceAndRunMainLoopUntil([&tf] { tf.write("SHORT_TO_DEVICE_SCALAR", Tango::DevShort(2)); }, hasLaterCounter));
   const auto secondCounter = collector.lastDataReadyCounter();
 
   BOOST_TEST(secondCounter > firstCounter);
@@ -233,14 +242,14 @@ BOOST_AUTO_TEST_CASE(testDataReadyEventOfSpectrum) {
   const std::vector<Tango::DevShort> firstWritten{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   const auto hasFirstEvent = [&collector] { return collector.dataReadyEventCount() >= 1; };
   BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(
-      app, [&tf, &firstWritten] { tf.write("SHORT_TO_DEVICE_ARRAY", firstWritten); }, hasFirstEvent));
+      [&tf, &firstWritten] { tf.write("SHORT_TO_DEVICE_ARRAY", firstWritten); }, hasFirstEvent));
   const auto firstCounter = collector.lastDataReadyCounter();
 
   // A second write must produce a further data ready event with a strictly larger counter.
   const std::vector<Tango::DevShort> secondWritten{10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
   const auto hasLaterCounter = [&collector, firstCounter] { return collector.lastDataReadyCounter() > firstCounter; };
   BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(
-      app, [&tf, &secondWritten] { tf.write("SHORT_TO_DEVICE_ARRAY", secondWritten); }, hasLaterCounter));
+      [&tf, &secondWritten] { tf.write("SHORT_TO_DEVICE_ARRAY", secondWritten); }, hasLaterCounter));
   const auto secondCounter = collector.lastDataReadyCounter();
 
   BOOST_TEST(secondCounter > firstCounter);
@@ -261,13 +270,13 @@ BOOST_AUTO_TEST_CASE(testVoidDataReadyEventCounterIncreases) {
 
   const auto hasFirstEvent = [&collector] { return collector.dataReadyEventCount() >= 1; };
   BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(
-      app, [&tf] { tf.write("VOID_TO_DEVICE_SCALAR", Tango::DevBoolean(true)); }, hasFirstEvent));
+      [&tf] { tf.write("VOID_TO_DEVICE_SCALAR", Tango::DevBoolean(true)); }, hasFirstEvent));
   const auto firstCounter = collector.lastDataReadyCounter();
 
   // A second write must produce a further data ready event with a strictly larger counter.
   const auto hasLaterCounter = [&collector, firstCounter] { return collector.lastDataReadyCounter() > firstCounter; };
   BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(
-      app, [&tf] { tf.write("VOID_TO_DEVICE_SCALAR", Tango::DevBoolean(true)); }, hasLaterCounter));
+      [&tf] { tf.write("VOID_TO_DEVICE_SCALAR", Tango::DevBoolean(true)); }, hasLaterCounter));
   const auto secondCounter = collector.lastDataReadyCounter();
 
   BOOST_TEST(secondCounter > firstCounter);
@@ -289,7 +298,7 @@ BOOST_AUTO_TEST_CASE(testChangeEventCarriesInvalidQualityForFaultyData) {
         [](Tango::DeviceAttribute& attr) { return attr.get_quality() == Tango::AttrQuality::ATTR_INVALID; });
   };
   BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(
-      app, [&tf] { tf.write("FLOAT_TO_DEVICE_SCALAR", Tango::DevFloat(3.5F)); }, hasInvalidEvent));
+      [&tf] { tf.write("FLOAT_TO_DEVICE_SCALAR", Tango::DevFloat(3.5F)); }, hasInvalidEvent));
 
   auto event = collector.lastChangeEvent(
       [](Tango::DeviceAttribute& attr) { return attr.get_quality() == Tango::AttrQuality::ATTR_INVALID; });
