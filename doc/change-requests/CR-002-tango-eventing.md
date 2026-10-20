@@ -5,7 +5,7 @@ Support DATA_READY and CHANGE events; the default stays off.
 
 Depends on: CR-001
 
-Status: DONE
+Status: PLANNED (from DONE)
 
 ## Requirements
 
@@ -151,3 +151,15 @@ write it through the proxy, run one application main loop and assert the CHANGE
 event arrives with the constant `true` and quality `ATTR_VALID`.
 - Assert a CHANGE event of an attribute whose process variable carries faulty
 data validity arrives with quality `ATTR_INVALID`.
+
+## Deferred issue
+
+- DI-1 [NEW] Void must only emit DATA_READY events: the `DEV_VOID` branch and `pushVoidChangeEvent` (src/AdapterDeviceImpl.cpp:96) push a CHANGE event carrying a constant `true`, which does not make sense.
+- DI-2 [NEW] The specification gives `DEV_VOID` a case of its own in the CHANGE switch and a separate helper for it (doc/change-requests/CR-002-tango-eventing.md:70); Void must only be data_ready.
+- DI-3 [NEW] An event for the same version number must carry the same counter; the specification's rule that the counter is incremented on every push (doc/change-requests/CR-002-tango-eventing.md:102) is wrong.
+- DI-4 [NEW] `pumpUntilEvent` (tests/src/testTangoServerEventing.cc:126) repeats the write and one main loop iteration until any matching event arrives, so a random later write can be paired with a random earlier event. Every write must have exactly one event.
+- DI-5 [NEW] `testOffAttributeProducesNoEvent` (tests/src/testTangoServerEventing.cc:269) tests Tango core functionality and is unnecessary.
+- DI-6 [NEW] `testVoidChangeEventCarriesConstantTrue` (tests/src/testTangoServerEventing.cc:278) asserts a CHANGE event for a Void attribute; Void must only ever carry a DATA_READY event.
+- DI-7 [NEW] `testInvalidEventingValueRejectedAtMapperRead` (tests/src/testTangoServerEventing.cc:330) is a full end-to-end subprocess test; the rejection of an invalid `<eventing>` value must be a unit test of the attribute mapper.
+- DI-8 [NEW] `testWriteOnlyEventingRejectedAtMapperRead` (tests/src/testTangoServerEventing.cc:339) is a full end-to-end subprocess test; the rejection of eventing on a write-only attribute must be a unit test of the attribute mapper.
+- DI-9 [NEW] `doc/example-AttributeMapper.xml:19` uses `numberOfMotors` for `change`, a really bad example for a changing value; the example must use a value that changes.
