@@ -190,6 +190,9 @@ struct TangoTestFixtureImpl {
 
 /**
  * @brief The mapper XML text with the given `<attribute>` children.
+ *
+ * The text is returned, not written; `withMapperFileInCaseDirectory` writes it under the executable name of the running
+ * server.
  */
 inline std::string mapperFile(
     const std::string& className, const std::string& deviceName, const std::string& attributesXml) {
