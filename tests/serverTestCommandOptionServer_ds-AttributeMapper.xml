@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer autoMapCommandsFromVoid="true">
+    <deviceClass name="serverTestCommandOptionServer">
+        <deviceInstance name="tango/test/serverTestCommandOptionServer">
+            <!-- The import covers the whole household and its command name is derived from the full source path, so
+                 the write-only ChimeraTK::Void process variable VOID/TO_DEVICE_SCALAR becomes the argument-less
+                 command VOID_TO_DEVICE_SCALAR. A prefixed import such as <import>/VOID</import> would strip the VOID
+                 prefix and derive TO_DEVICE_SCALAR instead. The deviceServer root sets the option to true and neither
+                 the class nor the instance override it. -->
+            <import>/</import>
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

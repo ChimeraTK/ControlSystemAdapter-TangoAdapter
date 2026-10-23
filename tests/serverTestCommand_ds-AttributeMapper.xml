@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer>
+    <deviceClass name="serverTestCommand">
+        <deviceInstance name="tango/test/serverTestCommand">
+            <!-- Import everything, placed before the commands: every process variable of the household except the
+                 command sources becomes an attribute of this instance. VOID/TO_DEVICE_SCALAR stays unmapped even
+                 though the import covers it, because it is a command source of this file. -->
+            <import>/</import>
+            <!-- A command without a trigger: the argument write is the trigger. -->
+            <command name="ArgumentAndReturnValue" inputArgument="INT/TO_DEVICE_SCALAR"
+                     returnValue="INT/FROM_DEVICE_SCALAR">
+                <inputDescription>the argument</inputDescription>
+                <outputDescription>the answer</outputDescription>
+            </command>
+            <!-- A command with a void trigger and an argument. -->
+            <command name="TriggerAndArgument" trigger="VOID/TO_DEVICE_SCALAR"
+                     inputArgument="INT/TO_DEVICE_SCALAR" returnValue="INT/FROM_DEVICE_SCALAR" />
+            <!-- A command with a write-only void trigger only. -->
+            <command name="TriggerOnly" trigger="VOID/TO_DEVICE_SCALAR" />
+            <!-- An array argument and an array return value. -->
+            <command name="ArrayArgumentAndReturnValue" inputArgument="INT/TO_DEVICE_ARRAY"
+                     returnValue="INT/FROM_DEVICE_ARRAY" />
+            <!-- A Boolean array argument and return value. -->
+            <command name="BooleanArrayArgumentAndReturnValue" inputArgument="BOOLEAN/TO_DEVICE_ARRAY"
+                     returnValue="BOOLEAN/FROM_DEVICE_ARRAY" />
+            <!-- A command without a return value. -->
+            <command name="NoReturnValue" inputArgument="INT/TO_DEVICE_SCALAR" />
+            <!-- A command whose return value can be made faulty by the application. -->
+            <command name="InvalidReturnValue" inputArgument="INT/TO_DEVICE_SCALAR"
+                     returnValue="INT/FROM_DEVICE_SCALAR" />
+            <!-- A command with a described source and no description children: both descriptions default to the
+                 description of the process variable. It reuses one command source, so the command sources and the
+                 attribute count stay unchanged. -->
+            <command name="DescribedArgumentAndReturnValue" inputArgument="INT/DESCRIBED"
+                     returnValue="INT/DESCRIBED" />
+            <!-- Two commands without a name: the name defaults to the name derived from the trigger source, or from the
+                 inputArgument source when there is no trigger. Both reuse a command source of the file, so the command
+                 sources and the attribute count stay unchanged. -->
+            <command trigger="VOID/TO_DEVICE_SCALAR" />
+            <command inputArgument="INT/TO_DEVICE_SCALAR" />
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

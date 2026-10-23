@@ -1,0 +1,34 @@
+#
+# Resource backup
+#
+
+#---------------------------------------------------------
+# SERVER serverTestCommandOption_ds/TestserverTestCommandOption
+#---------------------------------------------------------
+
+serverTestCommandOption_ds/TestserverTestCommandOption/DEVICE/optionclass: "tango/test/servertestcommandoption"
+serverTestCommandOption_ds/TestserverTestCommandOption/DEVICE/otheroptionclass: "tango/test/servertestcommandoptionother"
+
+
+# --- test/reference/server properties
+
+# Both device instances map the write-only ChimeraTK::Void process variable with autoMapCommandsFromVoid="false",
+# so it stays the boolean attribute of today.
+tango/test/servertestcommandoption->AttributeList: "VOID_TO_DEVICE_SCALAR;VOID/TO_DEVICE_SCALAR;SCALAR;DevBoolean;;"
+tango/test/servertestcommandoptionother->AttributeList: "VOID_TO_DEVICE_SCALAR;VOID/TO_DEVICE_SCALAR;SCALAR;DevBoolean;;"
+
+#---------------------------------------------------------
+# CLASS optionclass properties
+#---------------------------------------------------------
+
+CLASS/optionclass->Description: "ChimeraTK-based DeviceServer"
+CLASS/optionclass->InheritedFrom: TANGO_BASE_CLASS
+CLASS/optionclass->ProjectTitle: serverTestCommandOption_ds
+
+#---------------------------------------------------------
+# CLASS otheroptionclass properties
+#---------------------------------------------------------
+
+CLASS/otheroptionclass->Description: "ChimeraTK-based DeviceServer"
+CLASS/otheroptionclass->InheritedFrom: TANGO_BASE_CLASS
+CLASS/otheroptionclass->ProjectTitle: serverTestCommandOption_ds
