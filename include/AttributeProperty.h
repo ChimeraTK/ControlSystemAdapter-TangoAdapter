@@ -13,6 +13,8 @@ namespace TangoAdapter {
 
   enum class AttrDataFormat { SCALAR, SPECTRUM, IMAGE };
 
+  enum class EventingMode { Off, DataReady, Change };
+
   struct AttributeProperty {
     // Speed;Board/Reg;SCALAR;DEVShort
     AttributeProperty(std::string attributeName, AttrDataFormat dataFormat, Tango::CmdArgType attrDataType,
@@ -35,6 +37,7 @@ namespace TangoAdapter {
     AttrDataFormat attrDataFormat{};
     Tango::CmdArgType dataType{Tango::DATA_TYPE_UNKNOWN};
     Tango::AttrWriteType writeType{Tango::AttrWriteType::WT_UNKNOWN};
+    EventingMode eventing{EventingMode::Off};
   };
 } // namespace TangoAdapter
 
@@ -65,6 +68,28 @@ namespace std {
 
   /********************************************************************************************************************/
 
+  inline std::ostream& operator<<(std::ostream& os, const TangoAdapter::EventingMode& e) {
+    switch(e) {
+      case TangoAdapter::EventingMode::Off:
+        os << "Off";
+        break;
+      case TangoAdapter::EventingMode::DataReady:
+        os << "DataReady";
+        break;
+      case TangoAdapter::EventingMode::Change:
+        os << "Change";
+        break;
+      default:
+        os << "UNKNOWN";
+        assert(false);
+        break;
+    }
+
+    return os;
+  }
+
+  /********************************************************************************************************************/
+
   inline std::ostream& operator<<(std::ostream& os, const TangoAdapter::AttributeProperty& prop) {
     os << "Dumping AttributeProperty " << prop.name << std::endl;
     os << "   unit: " << prop.unit << "\n"
@@ -72,7 +97,8 @@ namespace std {
        << "   length: " << prop.length << "\n"
        << "   format: " << prop.attrDataFormat << "\n"
        << "   type: " << prop.dataType << "\n"
-       << "   writeType: " << prop.writeType << std::endl;
+       << "   writeType: " << prop.writeType << "\n"
+       << "   eventing: " << prop.eventing << std::endl;
 
     return os;
   }

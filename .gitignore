@@ -31,3 +31,6 @@ compile_commands.json
 # If they are generally useful consider adding them to the 
 # project-template and the merge them in.
 ######################
+
+# ctest drops its temporary results here when run from the source directory
+Testing/

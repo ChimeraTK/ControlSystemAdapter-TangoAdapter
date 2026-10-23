@@ -40,6 +40,13 @@ namespace TangoAdapter {
       memoriedPropertyName = "__Memoried_" + attProperty.name;
     }
 
+    if(attProperty.eventing == EventingMode::Change) {
+      set_change_event(true, false);
+    }
+    else if(attProperty.eventing == EventingMode::DataReady) {
+      set_data_ready_event(true);
+    }
+
     Tango::UserDefaultAttrProp axis_prop;
     axis_prop.set_label(attProperty.name.c_str());
 
@@ -86,18 +93,7 @@ namespace TangoAdapter {
     auto data = std::make_unique<TangoType[]>(length);
 
     for(unsigned int i = 0; i < length; i++) {
-      if constexpr(std::is_same_v<TangoType, Tango::DevString>) {
-        data.get()[i] = Tango::string_dup(processSpectrum->accessData(i).c_str());
-      }
-      else if constexpr(std::is_same_v<AdapterType, int8_t>) {
-        // Lint: We need to use Short as transport for int8_t here as Tango does not support this type,
-        // there are no chars involved.
-        // NOLINTNEXTLINE(bugprone-signed-char-misuse)
-        data.get()[i] = Tango::DevShort(processSpectrum->accessData(i));
-      }
-      else {
-        data.get()[i] = processSpectrum->accessData(i);
-      }
+      data.get()[i] = convertToTangoType<TangoType, AdapterType>(processSpectrum->accessData(i));
     }
     att.set_value(data.release(), length, 0, true);
 

@@ -51,6 +51,53 @@ namespace detail {
 
     attr.write(device, writeAttribute);
   }
+
+  /********************************************************************************************************************/
+
+  // Pushes one scalar or a spectrum worth of samples with the given quality, mirroring the read path of the
+  // ScalarAttribTempl/SpectrumAttribTempl classes. Lives here because push_change_event is a type template while the
+  // updater callback is not.
+  template<typename TangoType, typename AdapterType>
+  void pushChangeEventForAttribute(Tango::DeviceImpl* device, const std::string& attrName,
+      const AttributeProperty& attr, ChimeraTK::TransferElementAbstractor& pv) {
+    auto accessor =
+        boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<AdapterType>>(pv.getHighLevelImplElement());
+    if(!accessor) {
+      DEV_WARN_STREAM(device) << "pv type mismatch for attribute " << attrName << std::endl;
+      return;
+    }
+
+    auto quality = accessor->dataValidity() == ChimeraTK::DataValidity::ok ? Tango::AttrQuality::ATTR_VALID :
+                                                                             Tango::AttrQuality::ATTR_INVALID;
+    // The version number of the transfer carries the time the data was produced, which is the time the event refers to.
+    auto timestamp = Tango::TangoTimestamp(pv.getVersionNumber().getTime());
+
+    if constexpr(std::is_same_v<AdapterType, ChimeraTK::Void>) {
+      // A Void register carries no sample, so a Void attribute is registered as DEV_BOOLEAN and its read path reports
+      // the constant true. The event carries that constant together with the quality and the time stamp, which is what
+      // makes it useful: a Tango DATA_READY event carries no time stamp at all.
+      static_assert(std::is_same_v<TangoType, Tango::DevBoolean>,
+          "A Void attribute is registered as Tango::DEV_BOOLEAN, so it pushes a Tango::DevBoolean");
+      auto data = std::make_unique<Tango::DevBoolean>(true);
+      device->push_change_event(attrName, data.release(), timestamp, quality, 1, 0, true);
+    }
+    else if(attr.attrDataFormat == AttrDataFormat::SPECTRUM) {
+      const auto length = accessor->getNumberOfSamples();
+      // Tango needs a runtime-length C-style array here, cannot use std::array.
+      // NOLINTNEXTLINE(modernize-avoid-c-arrays)
+      auto data = std::make_unique<TangoType[]>(length);
+      for(size_t i = 0; i < length; ++i) {
+        data.get()[i] = convertToTangoType<TangoType, AdapterType>(accessor->accessData(i));
+      }
+      // Lint: Disabling because this is Tango code (see AdapterDeviceImpl.h)
+      // NOLINTNEXTLINE(google-runtime-int)
+      device->push_change_event(attrName, data.release(), timestamp, quality, static_cast<long>(length), 0, true);
+    }
+    else {
+      auto data = std::make_unique<TangoType>(convertToTangoType<TangoType, AdapterType>(accessor->accessData(0)));
+      device->push_change_event(attrName, data.release(), timestamp, quality, 1, 0, true);
+    }
+  }
 } // namespace detail
 
 /**********************************************************************************************************************/
@@ -234,9 +281,22 @@ namespace TangoAdapter {
       auto processVariable = csPvManager->getProcessVariable(source);
       auto pv = ChimeraTK::TransferElementAbstractor(processVariable);
       _attributeToPvMap[attr.name] = pv;
+      // AttributeProperty is copy-constructible but not copy-assignable (operator= is deleted)
+      _attributeProperties.emplace(attr.name, attr);
 
       // Properly namespace the pv in the updater so we can distinguish per device
       updater.addVariable(pv, get_name() + "/" + attr.name);
+
+      if(attr.eventing != EventingMode::Off) {
+        if(attr.eventing == EventingMode::Change) {
+          updater.addVariable(pv, get_name() + "/" + attr.name + "/event",
+              [this, attrName = attr.name]() { pushChangeEvent(attrName); });
+        }
+        else {
+          updater.addVariable(pv, get_name() + "/" + attr.name + "/event",
+              [this, attrName = attr.name]() { pushDataReadyEvent(attrName); });
+        }
+      }
 
       if(attr.attrDataFormat == AttrDataFormat::SPECTRUM &&
           (attr.writeType == Tango::WRITE || attr.writeType == Tango::READ_WRITE)) {
@@ -367,5 +427,88 @@ namespace TangoAdapter {
     catch(std::out_of_range&) {
       return {};
     }
+  }
+
+  /********************************************************************************************************************/
+
+  void AdapterDeviceImpl::pushChangeEvent(const std::string& attrName) {
+    auto pv = getPvForAttribute(attrName);
+    if(!pv.isInitialised()) {
+      return;
+    }
+
+    auto propertyIt = _attributeProperties.find(attrName);
+    if(propertyIt == _attributeProperties.end()) {
+      return;
+    }
+    const auto& property = propertyIt->second;
+
+    // Dispatch on the raw Tango type because push_change_event is a type template while this function is not. A
+    // ChimeraTK::Void process variable is mapped to DEV_VOID, so it needs a branch of its own.
+    switch(property.dataType) {
+      case Tango::DEV_UCHAR:
+        detail::pushChangeEventForAttribute<Tango::DevUChar, uint8_t>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_ENUM:
+        detail::pushChangeEventForAttribute<Tango::DevShort, int8_t>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_USHORT:
+        detail::pushChangeEventForAttribute<Tango::DevUShort, uint16_t>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_SHORT:
+        detail::pushChangeEventForAttribute<Tango::DevShort, int16_t>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_ULONG:
+        detail::pushChangeEventForAttribute<Tango::DevULong, uint32_t>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_LONG:
+        detail::pushChangeEventForAttribute<Tango::DevLong, int32_t>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_ULONG64:
+        detail::pushChangeEventForAttribute<Tango::DevULong64, uint64_t>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_LONG64:
+        detail::pushChangeEventForAttribute<Tango::DevLong64, int64_t>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_FLOAT:
+        detail::pushChangeEventForAttribute<Tango::DevFloat, float>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_DOUBLE:
+        detail::pushChangeEventForAttribute<Tango::DevDouble, double>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_STRING:
+        detail::pushChangeEventForAttribute<Tango::DevString, std::string>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_BOOLEAN:
+        detail::pushChangeEventForAttribute<Tango::DevBoolean, ChimeraTK::Boolean>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_VOID:
+        detail::pushChangeEventForAttribute<Tango::DevBoolean, ChimeraTK::Void>(this, attrName, property, pv);
+        break;
+      default:
+        DEV_ERROR_STREAM(this) << "Unsupported data type for change event on attribute " << attrName << std::endl;
+        break;
+    }
+  }
+
+  /********************************************************************************************************************/
+
+  void AdapterDeviceImpl::pushDataReadyEvent(const std::string& attrName) {
+    auto pv = getPvForAttribute(attrName);
+    if(!pv.isInitialised()) {
+      return;
+    }
+
+    // The counter only advances with a new version of the process variable, so repeats of the same version (which can
+    // happen when the same update is picked up more than once) carry the same counter.
+    auto& lastPushed = _lastDataReadyVersions[attrName];
+    if(lastPushed == pv.getVersionNumber()) {
+      return;
+    }
+    lastPushed = pv.getVersionNumber();
+
+    // The counter of the first pushed event is 1, which the increment of the still zeroed entry produces.
+    auto& counter = _dataReadyCounters[attrName];
+    push_data_ready_event(attrName, ++counter);
   }
 } // namespace TangoAdapter
