@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <deviceServer>
     <deviceClass name="serverTestEventing">
-        <deviceInstance name="tango/test/serverTestEventing">
+        <deviceInstance name="tango/test/serverTestEventing" autoMapCommandsFromVoid="false">
             <attribute name="INT_FROM_DEVICE_SCALAR" source="INT/FROM_DEVICE_SCALAR">
                 <eventing>change</eventing>
             </attribute>

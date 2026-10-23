@@ -8,8 +8,9 @@
 #include <ChimeraTK/ControlSystemAdapter/ProcessArray.h>
 
 void ExtendedReferenceTestApplication::initialise() {
-  for(const auto& [direction, name, size] : ExtendedReferenceTestApplication::additionalVariables) {
-    additionalProcessArrays.emplace_back(_processVariableManager->createProcessArray<int>(direction, name, size));
+  for(const auto& [direction, name, size, description] : ExtendedReferenceTestApplication::additionalVariables) {
+    additionalProcessArrays.emplace_back(_processVariableManager->createProcessArray<int>(
+        direction, name, size, ChimeraTK::TransferElement::unitNotSet, description));
   }
   ReferenceTestApplication::initialise();
 }

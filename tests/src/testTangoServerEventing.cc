@@ -138,24 +138,6 @@ static bool pumpUntilEvent(ExtendedReferenceTestApplication& app, WriteFunction 
 
 /**********************************************************************************************************************/
 
-/// Run the testTangoServer binary in the given working directory and return its exit status.
-static int runTestTangoServer(const std::filesystem::path& workingDirectory, const std::string& deviceName) {
-  auto testBinary = std::filesystem::absolute(boost::unit_test::framework::master_test_suite().argv[0]);
-  auto serverBinary = testBinary.parent_path() / "testTangoServer";
-
-  // The instance name is mandatory for Tango::Util::init, which aborts without it before the mapper is read.
-  auto command = std::format("cd {} && {} TestEventingReject -nodb -dlist {} -ORBendPoint giop:tcp::0",
-      workingDirectory.string(), serverBinary.string(), deviceName);
-
-  auto status = std::system(command.c_str());
-  if(status == -1) {
-    return -1;
-  }
-  return WIFEXITED(status) ? WEXITSTATUS(status) : 128;
-}
-
-/**********************************************************************************************************************/
-
 BOOST_AUTO_TEST_CASE(testChangeEventCarriesWrittenValue) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
 
@@ -328,8 +310,8 @@ BOOST_AUTO_TEST_CASE(testChangeEventCarriesInvalidQualityForFaultyData) {
 /**********************************************************************************************************************/
 
 BOOST_AUTO_TEST_CASE(testInvalidEventingValueRejectedAtMapperRead) {
-  const auto status = runTestTangoServer(
-      std::filesystem::current_path() / "rejectInvalidEventingValue", "tango/test/testtangoserverinvalideventing");
+  const auto status = runTestTangoServer(std::filesystem::current_path() / "rejectInvalidEventingValue",
+      "TestEventingReject", "tango/test/testtangoserverinvalideventing");
 
   BOOST_TEST(status != 0);
 }
@@ -337,8 +319,8 @@ BOOST_AUTO_TEST_CASE(testInvalidEventingValueRejectedAtMapperRead) {
 /**********************************************************************************************************************/
 
 BOOST_AUTO_TEST_CASE(testWriteOnlyEventingRejectedAtMapperRead) {
-  const auto status = runTestTangoServer(
-      std::filesystem::current_path() / "rejectWriteOnlyEventing", "tango/test/testtangoserverwriteonlyeventing");
+  const auto status = runTestTangoServer(std::filesystem::current_path() / "rejectWriteOnlyEventing",
+      "TestEventingReject", "tango/test/testtangoserverwriteonlyeventing");
 
   BOOST_TEST(status != 0);
 }
