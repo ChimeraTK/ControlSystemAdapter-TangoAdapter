@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer>
+    <deviceClass name="testTangoServer">
+        <deviceInstance name="tango/test/rejectcommandtypeclashinclassone">
+            <command name="ClashingCommand" inputArgument="INT/TO_DEVICE_SCALAR" />
+        </deviceInstance>
+        <deviceInstance name="tango/test/rejectcommandtypeclashinclasstwo">
+            <command name="ClashingCommand" inputArgument="FLOAT/TO_DEVICE_SCALAR" />
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>
