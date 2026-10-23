@@ -15,7 +15,7 @@ class ExtendedReferenceTestApplication : public ReferenceTestApplication {
  public:
   using ReferenceTestApplication::ReferenceTestApplication;
 
-  using VariableHolder = std::tuple<ChimeraTK::SynchronizationDirection, std::string, size_t>;
+  using VariableHolder = std::tuple<ChimeraTK::SynchronizationDirection, std::string, size_t, std::string>;
 
   void initialise() override;
 

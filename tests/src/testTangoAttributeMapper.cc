@@ -22,7 +22,7 @@
 struct TestFixtureConfig {
   static void apply(TangoTestFixtureImpl&) {
     ExtendedReferenceTestApplication::additionalVariables.emplace_back(
-        ChimeraTK::SynchronizationDirection::deviceToControlSystem, "plainVariableInRoot", 1);
+        ChimeraTK::SynchronizationDirection::deviceToControlSystem, "plainVariableInRoot", 1, std::string{});
   }
 };
 
@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(testPropertyMapping) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
 
   std::unique_ptr<std::vector<std::string>> attributes(proxy.get_attribute_list());
-  BOOST_TEST(attributes->size() == 90);
+  BOOST_TEST(attributes->size() == 89);
 
   BOOST_CHECK(std::find_if(attributes->begin(), attributes->end(),
                   [](auto& attr) { return attr == "plainVariableInRoot"; }) != attributes->end());

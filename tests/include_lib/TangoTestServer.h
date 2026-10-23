@@ -145,6 +145,22 @@ inline T ThreadedTangoServer::getClassProperty(const std::string& name) {
 }
 
 /**********************************************************************************************************************/
+
+/**
+ * @brief Run the testTangoServer binary as a subprocess and return its exit status.
+ *
+ * The mapper is read from the testTangoServer-AttributeMapper.xml of the given working directory. The subprocess runs
+ * with the given executable name, which the mapper read assertions need to select the program name they report.
+ *
+ * @param workingDirectory directory which holds the mapper file, used as the working directory of the subprocess
+ * @param executableName value of the first argument of testTangoServer
+ * @param deviceName device name passed to testTangoServer through -dlist
+ * @return exit status of the subprocess, or 128 when it was terminated by a signal
+ */
+int runTestTangoServer(
+    const std::filesystem::path& workingDirectory, const std::string& executableName, const std::string& deviceName);
+
+/**********************************************************************************************************************/
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/
 

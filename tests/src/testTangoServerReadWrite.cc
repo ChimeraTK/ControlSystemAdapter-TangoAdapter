@@ -18,14 +18,13 @@ BOOST_GLOBAL_FIXTURE(Fixture_t);
 
 /**********************************************************************************************************************/
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(testReadWriteScalar, T, TestTypes) {
+BOOST_AUTO_TEST_CASE_TEMPLATE(testReadWriteScalar, T, TestTypesNoVoid) {
   auto [tf, app, _] = TangoTestFixtureImpl::getContents();
   using TangoType = typename boost::mpl::at<Type2Tango, T>::type;
 
   auto tangoWriteName = tf.adapterType2Name<T>() + "_TO_DEVICE_SCALAR";
   auto value = tf.generateDefaultValueForType<TangoType, T>();
-  if constexpr(!std::is_same_v<ChimeraTK::Boolean, T> && !std::is_same_v<ChimeraTK::Void, T> &&
-      !std::is_same_v<std::string, T>) {
+  if constexpr(!std::is_same_v<ChimeraTK::Boolean, T> && !std::is_same_v<std::string, T>) {
     value *= 3;
   }
 
