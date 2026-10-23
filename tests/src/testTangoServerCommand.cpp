@@ -94,8 +94,8 @@ BOOST_AUTO_TEST_CASE(testArgumentAndReturnValue) {
   BOOST_TEST(returned == 17);
 
   // The process array of the application carries the argument: its version number changed. The return-value source is
-  // not read with a Tango attribute, because INT/FROM_DEVICE_SCALAR is a command source of this device instance and
-  // the import skips it.
+  // not read with a Tango attribute, because INT/FROM_DEVICE_SCALAR is a command source of the file and the import
+  // skips it.
   BOOST_TEST(pollToDeviceWriteVersionChanged<int32_t>(app, "/INT/TO_DEVICE_SCALAR", intArgumentVersion));
 }
 
@@ -183,19 +183,18 @@ BOOST_AUTO_TEST_CASE(testTriggerOnly) {
 
 /**********************************************************************************************************************/
 
-/// The <command> elements before the <import> element leave a command source unmapped as an attribute.
+/// The <import> element before the <command> elements leaves a command source unmapped as an attribute.
 BOOST_AUTO_TEST_CASE(testImportSkipsCommandSource) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
 
-  // The import covers VOID/TO_DEVICE_SCALAR, but the source is already a command source of this device instance, so it
-  // stays unmapped.
+  // The import covers VOID/TO_DEVICE_SCALAR, but the source is a command source of the file, so it stays unmapped.
   std::unique_ptr<std::vector<std::string>> attributes(proxy.get_attribute_list());
   for(const auto& attrName : *attributes) {
     BOOST_TEST(attrName != "VOID_TO_DEVICE_SCALAR");
   }
-  // The import covers every process variable of the household except the eight command sources of this device
-  // instance: the source stays unmapped although the import covers it. The 88 process variables less the eight command
-  // sources plus the built-in State and Status give 82 attributes.
+  // The import covers every process variable of the household except the eight command sources of the file: the
+  // source stays unmapped although the import covers it. The 88 process variables less the eight command sources plus
+  // the built-in State and Status give 82 attributes.
   BOOST_TEST(attributes->size() == 82);
 
   // The command itself is registered on the device instance.
@@ -256,8 +255,7 @@ BOOST_AUTO_TEST_CASE(testNoReturnValue) {
   BOOST_CHECK_NO_THROW(proxy.command_inout("NoReturnValue", in));
 
   // The argument reached the application although the command has no return value. The argument is a command source
-  // of this device instance, so it is not a Tango attribute and the test reads it through
-  // ApplicationBase::getPVManager().
+  // of the file, so it is not a Tango attribute and the test reads it through ApplicationBase::getPVManager().
   BOOST_TEST(pollToDeviceWriteVersionChanged<int32_t>(app, "/INT/TO_DEVICE_SCALAR", intArgumentVersion));
 }
 
@@ -358,18 +356,10 @@ BOOST_AUTO_TEST_CASE(testNonReadableReturnValueRejectedAtMapperRead) {
   assertRejectedAtMapperRead("rejectNonReadableReturnValue");
 }
 
-/// A process variable which a command source and an attribute share, with the <attribute> element before the <command>
-/// element, makes the mapper read abort the start-up: the attribute maps the source first, so the <command> which
-/// names the source second is rejected.
+/// A process variable which is a command source and an attribute, with the <attribute> element before the <command>
+/// element, makes the mapper read abort the start-up: the exclusion does not depend on the element order.
 BOOST_AUTO_TEST_CASE(testCommandSourceAsAttributeRejectedAtMapperRead) {
   assertRejectedAtMapperRead("rejectCommandSourceAsAttribute");
-}
-
-/// A process variable which a command source and an attribute share, with the <command> element before the <attribute>
-/// element, makes the mapper read abort the start-up: the command declares the source first, so the <attribute> which
-/// names the source second is rejected.
-BOOST_AUTO_TEST_CASE(testCommandSourceAsCommandRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectCommandSourceAsCommand");
 }
 
 /// The same command name with different types in two device instances makes the mapper read abort the start-up.
