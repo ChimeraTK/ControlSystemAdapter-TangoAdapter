@@ -172,4 +172,22 @@ namespace TangoAdapter {
     }
   }
 
+  /**
+   * @brief Convert one sample of the Tango type that carries it to the AdapterType.
+   *
+   * A std::string sample is copied out of the incoming DevString buffer, because Tango owns that buffer and may free
+   * it. Every other sample is converted as is. Shared by the command input path, so it converts identically to the
+   * return path of convertToTangoType. The Tango type is deduced from the sample, so the buffer element type of the
+   * Tango sequence (which is const-qualified for a string array) binds as well.
+   */
+  template<typename AdapterType, typename TangoType>
+  AdapterType convertFromTangoType(const TangoType& value) {
+    if constexpr(std::is_same_v<AdapterType, std::string>) {
+      return std::string(value);
+    }
+    else {
+      return static_cast<AdapterType>(value);
+    }
+  }
+
 } // namespace TangoAdapter
