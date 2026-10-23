@@ -22,9 +22,12 @@ current behaviour.
 fails to start.
 - Eventing applies to readable scalar and spectrum attributes.
 - Eventing on a write-only attribute is rejected when the mapper file is read.
-- `change` on a readable `ChimeraTK::Void` process variable is rejected when the
-mapper file is read, because a Void carries no value to push. Void
-attributes accept `dataReady` and `off` only.
+- `change` on a readable `ChimeraTK::Void` process variable is accepted. The
+readout time stamp of such an event is the only way to tell a client when the
+variable was produced, because a Tango DATA_READY event carries a counter and no
+time stamp. Tango has no attribute type for a Void register, so the event's value
+is the constant `true` that the attribute's read path reports.
+- Void attributes accept all three values.
 - Image attributes are not implemented and stay unsupported by this change.
 - Image attributes cannot occur today: the ControlSystemAdapter delivers
 single-channel process arrays, so a mapped attribute is always scalar or
@@ -46,8 +49,7 @@ mode with `BOOST_TEST` and print both values on failure.
 and maps it to the enum. An unknown or empty value throws
 `ChimeraTK::logic_error` naming the attribute and the offending value.
 - `AttributeMapper::addAttribute` rejects `DataReady`/`Change` when the process
-variable is not readable, rejects `Change` when its value type is
-`ChimeraTK::Void`, and rejects both when the data format is image. The image
+variable is not readable and rejects both when the data format is image. The image
 check stays as a defensive guard: it cannot trigger today, because the
 ControlSystemAdapter delivers single-channel process arrays, so the data format
 is never image.
@@ -77,10 +79,15 @@ The switch keeps `DEV_ENUM` and `DEV_VOID` distinct from `DEV_SHORT` and
 - Each branch builds the Tango-typed buffer the matching `push_change_event`
 overload expects, mirroring the read path of
 `ScalarAttribTempl`/`SpectrumAttribTempl`.
-- The change switch has no `DEV_VOID` case: `Change` is rejected for a Void
-process variable, so the generic branch and the `default:` error branch cover
-every reachable type. `pushVoidChangeEvent` and its comment in
-`src/AdapterDeviceImpl.cpp` are deleted.
+- The `DEV_VOID` case uses the common helper with the Tango type `Tango::DevBoolean`
+and the adapter type `ChimeraTK::Void`, because a Void attribute is registered as
+`DEV_BOOLEAN` (`AttributeProperty::getDataType`) and its read path reports the
+constant `true`. A Void register carries no sample, so the branch of the helper
+that does not read a value pushes that constant; the quality and the readout time
+stamp are produced for it exactly as for every other type. The helper asserts at
+compile time that a Void attribute pushes a `Tango::DevBoolean`.
+- The Void case is an `if constexpr` branch of the common helper instead of a
+helper of its own, so the quality, the time stamp and the push stay in one place.
 - Every other `dataType` case instantiates the same Tango/AdapterType pair as
 `util::toScalarTangoAttribute`/`util::toSpectrumTangoAttribute` and casts the
 accessor with `dynamic_pointer_cast`, so that the check for a failed cast can
@@ -127,14 +134,17 @@ registration to support DATA_READY events.
 `doc/example-AttributeMapper.xml` shows all three values: `change` on an
 attribute whose source value changes (the position source `/Motors/position`),
 `dataReady` on an attribute the client must be told about whether or not its
-value changed (a status word source), and `off` on `numberOfMotors`, which never
-changes.
+value changed (a status word source), `off` on `numberOfMotors`, which never
+changes, and `change` on a `ChimeraTK::Void` source (the new-data trigger
+`/Motors/newDataTrigger`), whose event carries the time the trigger was produced.
 - `doc/mainpage.dox` describes the keyword, the three values, the difference
 between the two kinds (their payload; both emit on every update), the rejection
-of an unknown value, of a write-only attribute and of `change` on a Void process
-variable, and that image attributes are not implemented. It must not claim
-that an image attribute is rejected when the mapper file is read, because that
-case cannot occur.
+of an unknown value and of a write-only attribute, the Void case, and that image
+attributes are not implemented. For the Void case it states that a CHANGE event
+carries the readout time stamp with the constant `true` of the attribute's read
+path, while a DATA_READY event carries a counter. It must not claim that an image
+attribute is rejected when the mapper file is read, because that case cannot
+occur.
 
 ### Alternatives considered
 
@@ -183,11 +193,11 @@ fresh and which is therefore present in any checkout. Each case carries one
 `attributeWithEventing` helpers, so the test covers the attribute data
 (description, egu, data format, data type, write type) together with the mode.
 The rejection cases are: an unknown `<eventing>` value, an empty
-`<eventing>` element, eventing on a write-only attribute, and `change` on a
-Void attribute, each expected to throw `ChimeraTK::logic_error`. The
+`<eventing>` element and eventing on a write-only attribute, each expected to
+throw `ChimeraTK::logic_error`. The
 acceptance cases are the parsed mode for `dataReady`, `change`, `off` and an
-absent `<eventing>` element (the last two both `Off`), `dataReady` on a Void
-attribute, and the data-mapping cases: a scalar with
+absent `<eventing>` element (the last two both `Off`), `dataReady` and `change`
+on a Void attribute, and the data-mapping cases: a scalar with
 `<eventing>change</eventing>`, a spectrum with `<eventing>dataReady</eventing>`,
 and a write-only attribute without `<eventing>`. Every case names the eventing
 mode it carries in its doc comment, and compares the parsed mode with
@@ -197,10 +207,15 @@ mode it carries in its doc comment, and compares the parsed mode with
 removed, together with their CMake copies; the rejection cases are covered by
 the mapper test bullet.
 - The mapper also carries a readable `ChimeraTK::Void` attribute with
-`dataReady`; write the matching to-device `ChimeraTK::Void` process variable
-through the proxy and use the helper of the bullet above (one main loop
+`dataReady`, and a second attribute on the same `ChimeraTK::Void` process
+variable with `change`; write the matching to-device `ChimeraTK::Void` process
+variable through the proxy and use the helper of the bullet above (one main loop
 iteration plus the condition check, repeated until the event arrives), then
-assert a DATA_READY event with an increasing counter arrives. `change` on a
-Void attribute is asserted to be rejected, in the mapper test bullet.
+assert a DATA_READY event with an increasing counter arrives.
+- The CHANGE event of that Void attribute carries the constant `true` and the
+`ATTR_VALID` quality, and its time stamp is the readout time stamp of the
+process variable: it lies between the time before the write and the time the
+event arrived. A second write produces an event with a strictly later time
+stamp, which a constant time stamp would not.
 - Assert a CHANGE event of an attribute whose process variable carries faulty
 data validity arrives with quality `ATTR_INVALID`.

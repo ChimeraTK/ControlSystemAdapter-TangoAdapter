@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(testMapperParsesEventing) {
 /**********************************************************************************************************************/
 
 /**
- * @brief DataReady is parsed for a Void source, which supports dataReady and off only.
+ * @brief DataReady is parsed for a Void source, which accepts all three values.
  */
 BOOST_AUTO_TEST_CASE(testMapperParsesDataReadyForVoid) {
   const auto attributes = parseAttributesOf(
@@ -231,9 +231,12 @@ BOOST_AUTO_TEST_CASE(testWriteOnlyEventingRejectedAtMapperRead) {
 /**********************************************************************************************************************/
 
 /**
- * @brief Change eventing on a Void process variable is rejected when the mapper file is read.
+ * @brief Change is parsed for a Void source, whose CHANGE event carries the readout time stamp and the quality.
  */
-BOOST_AUTO_TEST_CASE(testVoidChangeEventingRejectedAtMapperRead) {
-  expectMapperRejects(
+BOOST_AUTO_TEST_CASE(testMapperParsesChangeForVoid) {
+  const auto attributes = parseAttributesOf(
       "voidChange", attributeWithEventing("VOID_FROM_DEVICE_SCALAR", "VOID/FROM_DEVICE_SCALAR", "change"));
+
+  BOOST_REQUIRE_EQUAL(attributes.size(), 1U);
+  BOOST_TEST(attributes.front().eventing == TangoAdapter::EventingMode::Change);
 }

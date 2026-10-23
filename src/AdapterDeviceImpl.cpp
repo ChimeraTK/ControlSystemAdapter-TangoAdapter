@@ -72,7 +72,16 @@ namespace detail {
     // The version number of the transfer carries the time the data was produced, which is the time the event refers to.
     auto timestamp = Tango::TangoTimestamp(pv.getVersionNumber().getTime());
 
-    if(attr.attrDataFormat == AttrDataFormat::SPECTRUM) {
+    if constexpr(std::is_same_v<AdapterType, ChimeraTK::Void>) {
+      // A Void register carries no sample, so a Void attribute is registered as DEV_BOOLEAN and its read path reports
+      // the constant true. The event carries that constant together with the quality and the time stamp, which is what
+      // makes it useful: a Tango DATA_READY event carries no time stamp at all.
+      static_assert(std::is_same_v<TangoType, Tango::DevBoolean>,
+          "A Void attribute is registered as Tango::DEV_BOOLEAN, so it pushes a Tango::DevBoolean");
+      auto data = std::make_unique<Tango::DevBoolean>(true);
+      device->push_change_event(attrName, data.release(), timestamp, quality, 1, 0, true);
+    }
+    else if(attr.attrDataFormat == AttrDataFormat::SPECTRUM) {
       const auto length = accessor->getNumberOfSamples();
       // Tango needs a runtime-length C-style array here, cannot use std::array.
       // NOLINTNEXTLINE(modernize-avoid-c-arrays)
@@ -435,8 +444,7 @@ namespace TangoAdapter {
     const auto& property = propertyIt->second;
 
     // Dispatch on the raw Tango type because push_change_event is a type template while this function is not. A
-    // ChimeraTK::Void process variable is rejected when the mapper file is read, so DEV_VOID is unreachable here and
-    // the default branch covers it.
+    // ChimeraTK::Void process variable is mapped to DEV_VOID, so it needs a branch of its own.
     switch(property.dataType) {
       case Tango::DEV_UCHAR:
         detail::pushChangeEventForAttribute<Tango::DevUChar, uint8_t>(this, attrName, property, pv);
@@ -473,6 +481,9 @@ namespace TangoAdapter {
         break;
       case Tango::DEV_BOOLEAN:
         detail::pushChangeEventForAttribute<Tango::DevBoolean, ChimeraTK::Boolean>(this, attrName, property, pv);
+        break;
+      case Tango::DEV_VOID:
+        detail::pushChangeEventForAttribute<Tango::DevBoolean, ChimeraTK::Void>(this, attrName, property, pv);
         break;
       default:
         DEV_ERROR_STREAM(this) << "Unsupported data type for change event on attribute " << attrName << std::endl;

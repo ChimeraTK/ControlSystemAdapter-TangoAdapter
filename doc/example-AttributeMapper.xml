@@ -28,6 +28,11 @@
                 <egu>n/a</egu>
                 <eventing>dataReady</eventing>
             </attribute>
+            <attribute name="newDataTrigger" source="/Motors/newDataTrigger">
+                <description>A Void register announcing that new data is available</description>
+                <egu>n/a</egu>
+                <eventing>change</eventing>
+            </attribute>
         </deviceInstance>
     </deviceClass>
 </deviceServer>

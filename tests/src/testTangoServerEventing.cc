@@ -140,6 +140,17 @@ static bool writeOnceAndRunMainLoopUntil(WriteFunction write, Predicate conditio
 
 /**********************************************************************************************************************/
 
+/**
+ * @brief The readout time stamp carried by a change event, as a system clock time point.
+ */
+static std::chrono::system_clock::time_point eventTimeStamp(Tango::DeviceAttribute& attribute) {
+  const auto date = attribute.get_date();
+  return std::chrono::system_clock::time_point(std::chrono::seconds(date.tv_sec) +
+      std::chrono::microseconds(date.tv_usec) + std::chrono::nanoseconds(date.tv_nsec));
+}
+
+/**********************************************************************************************************************/
+
 BOOST_AUTO_TEST_CASE(testChangeEventCarriesWrittenValue) {
   auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
 
@@ -263,7 +274,8 @@ BOOST_AUTO_TEST_CASE(testVoidDataReadyEventCounterIncreases) {
   EventCollector collector;
   const auto eventId = proxy.subscribe_event("VOID_FROM_DEVICE_SCALAR", Tango::DATA_READY_EVENT, &collector);
 
-  // A Void attribute only ever carries a DATA_READY event, so subscribing to a CHANGE event must be rejected.
+  // This attribute is configured for dataReady eventing, so a subscription to a change event is not accepted even
+  // though change eventing is supported for Void attributes in general.
   BOOST_CHECK_THROW(proxy.subscribe_event("VOID_FROM_DEVICE_SCALAR", Tango::CHANGE_EVENT, nullptr), Tango::DevFailed);
 
   const auto hasFirstEvent = [&collector] { return collector.dataReadyEventCount() >= 1; };
@@ -278,6 +290,52 @@ BOOST_AUTO_TEST_CASE(testVoidDataReadyEventCounterIncreases) {
   const auto secondCounter = collector.lastDataReadyCounter();
 
   BOOST_TEST(secondCounter > firstCounter);
+
+  proxy.unsubscribe_event(eventId);
+}
+
+/**********************************************************************************************************************/
+
+BOOST_AUTO_TEST_CASE(testVoidChangeEventCarriesReadoutTimeStamp) {
+  auto [tf, app, proxy] = TangoTestFixtureImpl::getContents();
+
+  EventCollector collector;
+  const auto eventId = proxy.subscribe_event("VOID_FROM_DEVICE_SCALAR_CHANGE", Tango::CHANGE_EVENT, &collector);
+
+  app.dataValidity = ChimeraTK::DataValidity::ok;
+  const auto beforeWrite = std::chrono::system_clock::now();
+
+  // The subscription itself already produces a change event carrying the value the attribute held before the write, so
+  // the event of the write is the one whose time stamp does not lie before the write.
+  const auto producedByWrite = [&beforeWrite](
+                                   Tango::DeviceAttribute& attr) { return eventTimeStamp(attr) >= beforeWrite; };
+  BOOST_REQUIRE(writeOnceAndRunMainLoopUntil([&tf] { tf.write("VOID_TO_DEVICE_SCALAR", Tango::DevBoolean(true)); },
+      [&collector, &producedByWrite] { return collector.hasChangeEvent(producedByWrite); }));
+  const auto eventArrived = std::chrono::system_clock::now();
+
+  auto event = collector.lastChangeEvent(producedByWrite);
+  BOOST_REQUIRE(event.has_value());
+
+  // A Void register carries no value, so the attribute reports the constant true of its read path.
+  Tango::DevBoolean value = false;
+  (*event) >> value;
+  BOOST_TEST(value == true);
+  BOOST_TEST((*event).get_quality() == Tango::AttrQuality::ATTR_VALID);
+
+  // The event carries the readout time stamp of the process variable, not the reception time of the event: the
+  // predicate above already places it after the write, and it cannot lie after the arrival either.
+  const auto firstTimeStamp = eventTimeStamp(*event);
+  BOOST_TEST(firstTimeStamp <= eventArrived);
+
+  // A second write is a new version of the process variable, so its event carries a later time stamp.
+  const auto hasLaterEvent = [&collector, firstTimeStamp] {
+    return collector
+        .lastChangeEvent(
+            [&firstTimeStamp](Tango::DeviceAttribute& attr) { return eventTimeStamp(attr) > firstTimeStamp; })
+        .has_value();
+  };
+  BOOST_REQUIRE(writeOnceAndRunMainLoopUntil(
+      [&tf] { tf.write("VOID_TO_DEVICE_SCALAR", Tango::DevBoolean(true)); }, hasLaterEvent));
 
   proxy.unsubscribe_event(eventId);
 }
