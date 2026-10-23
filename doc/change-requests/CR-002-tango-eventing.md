@@ -105,8 +105,7 @@ flag set so Tango takes ownership.
 quality-carrying `DeviceImpl::push_change_event` overload: `ATTR_INVALID` when
 the process variable's data validity is not `ChimeraTK::DataValidity::ok` and
 `ATTR_VALID` otherwise. That overload also needs a readout time stamp, taken
-from the version number of the process variable, because that is the time the
-data was produced. DeviceAccess exposes no other time stamp.
+from the accessor. DeviceAccess exposes no other time stamp.
 DATA_READY events carry no quality.
 - `DataReady` pushes with `DeviceImpl::push_data_ready_event(attrName,
 counter)`.
