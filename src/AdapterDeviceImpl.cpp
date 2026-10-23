@@ -61,7 +61,7 @@ namespace detail {
   void pushChangeEventForAttribute(Tango::DeviceImpl* device, const std::string& attrName,
       const AttributeProperty& attr, ChimeraTK::TransferElementAbstractor& pv) {
     auto accessor =
-        boost::reinterpret_pointer_cast<ChimeraTK::NDRegisterAccessor<AdapterType>>(pv.getHighLevelImplElement());
+        boost::dynamic_pointer_cast<ChimeraTK::NDRegisterAccessor<AdapterType>>(pv.getHighLevelImplElement());
     if(!accessor) {
       DEV_WARN_STREAM(device) << "pv type mismatch for attribute " << attrName << std::endl;
       return;
@@ -69,7 +69,8 @@ namespace detail {
 
     auto quality = accessor->dataValidity() == ChimeraTK::DataValidity::ok ? Tango::AttrQuality::ATTR_VALID :
                                                                              Tango::AttrQuality::ATTR_INVALID;
-    auto timestamp = Tango::TangoTimestamp(std::chrono::system_clock::now());
+    // The version number of the transfer carries the time the data was produced, which is the time the event refers to.
+    auto timestamp = Tango::TangoTimestamp(pv.getVersionNumber().getTime());
 
     if(attr.attrDataFormat == AttrDataFormat::SPECTRUM) {
       const auto length = accessor->getNumberOfSamples();
@@ -495,11 +496,8 @@ namespace TangoAdapter {
     }
     lastPushed = pv.getVersionNumber();
 
+    // The counter of the first pushed event is 1, which the increment of the still zeroed entry produces.
     auto& counter = _dataReadyCounters[attrName];
-    if(counter == 0) {
-      counter = 1;
-    }
-    push_data_ready_event(attrName, counter);
-    ++counter;
+    push_data_ready_event(attrName, ++counter);
   }
 } // namespace TangoAdapter
