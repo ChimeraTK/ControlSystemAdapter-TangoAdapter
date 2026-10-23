@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer>
+    <deviceClass name="testTangoServer">
+        <deviceInstance name="tango/test/rejectcommandvoidattribute">
+            <attribute name="VOID_TO_DEVICE_SCALAR" source="VOID/TO_DEVICE_SCALAR" />
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

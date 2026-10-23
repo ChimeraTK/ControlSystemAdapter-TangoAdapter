@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer>
+    <deviceClass name="testTangoServer">
+        <deviceInstance name="tango/test/rejectnonreadablereturnvalue">
+            <command name="NonReadableReturnValue" inputArgument="INT/TO_DEVICE_SCALAR"
+                     returnValue="INT/TO_DEVICE_SCALAR" />
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>
