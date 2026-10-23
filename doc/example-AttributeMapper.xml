@@ -18,6 +18,12 @@
                 <egu>n/a</egu>
                 <eventing>change</eventing>
             </attribute>
+            <command name="moveToPosition" inputArgument="/Motors/targetPosition" returnValue="/Motors/position">
+                <inputDescription>The target position</inputDescription>
+                <outputDescription>The position after the move</outputDescription>
+            </command>
+            <command name="stop" trigger="/Motors/stop" />
+            <command inputArgument="/Motors/targetPosition" />
         </deviceInstance>
     </deviceClass>
 </deviceServer>
