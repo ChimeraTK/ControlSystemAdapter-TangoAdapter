@@ -16,7 +16,7 @@ it) and `tests/serverTestEventing_ds-AttributeMapper.xml` (needs
 `autoMapCommandsFromVoid="false"`). CR-003's change set carries no other CR-002
 artefact.
 
-Status: READY TO IMPLEMENT (from TESTS REVIEWED)
+Status: IMPLEMENTED (from TESTS REVIEWED)
 
 ## Requirements
 
@@ -702,4 +702,4 @@ mapper fails at start-up and every CR-002 eventing test fails.
 - DI-106 [DONE] Affected-components list incomplete after the DI-105 fold. 'Aspect: the Tango command object' (CR-003:254-261) adds a from-Tango conversion helper next to the existing `convertToTangoType<TangoType, AdapterType>` (`include/TangoPropertyHelper.h:160`), so the change edits `include/TangoPropertyHelper.h`; but the affected-components list (CR-003:130-133) names only `include/Command.h`, `src/Command.cpp`, the mapper, the device class, the device instance, `xmlschema/tango_varia...
 - DI-107 [DONE] Affected-components list still incomplete: it does not name `include/CommandProperty.h`, the new header this change adds (git: added by commit 5784bde, absent from `master` and from the CR-002 tip; DI-65 and DI-87 call it the header `include/Command.h` uses). DI-106 fixed exactly this class of omission for `include/TangoPropertyHelper.h` (CR-003:131-133) but the equally new `include/CommandProperty.h` was left out.
 - DI-108 [DONE] Overlooked side effect: the change modifies the shared test application helper `tests/include_lib/ExtendedReferenceTestApplication.h` and `tests/src_lib/ExtendedReferenceTestApplication.cc` (the `VariableHolder` tuple gains a `description` element, commit 221ac29, consumed by `tests/src/testTangoServerCommand.cpp:35`), yet neither file is named anywhere in the CR - not in the affected components (CR-003:131-137) and not in the test-asset list (CR-003:138-148). The ripple als...
-- DI-109 [NEW] Rework the commits of the CR-003 branch into logical, easier to review units: replace the current history (the CR-document commit fd0ee6b plus a long chain of 20+ `fixup! CR-003: Map process variables to Tango commands` commits) with self-contained commits that each carry one coherent part of the change (for example: mapper/command data model and type mapping, the Tango command object and the conversion helper, device class and device instance wiring, schema and documentation, new test assets, follow-up on the existing tests, style fixes). No functional code change is intended; the working tree content stays as it is.
+- DI-109 [DONE] Rework the commits of the CR-003 branch into logical, easier to review units: replace the current history (the CR-document commit fd0ee6b plus a long chain of 20+ `fixup! CR-003: Map process variables to Tango commands` commits) with self-contained commits that each carry one coherent part of the change (for example: mapper/command data model and type mapping, the Tango command object and the conversion helper, device class and device instance wiring, schema and documentation, new...
