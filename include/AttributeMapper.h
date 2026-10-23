@@ -7,9 +7,14 @@
 #include <libxml++/libxml++.h>
 
 #include <AttributeProperty.h>
+#include <CommandProperty.h>
 
 #include <list>
+#include <map>
+#include <memory>
+#include <optional>
 #include <set>
+#include <string>
 
 namespace TangoAdapter {
 
@@ -17,12 +22,23 @@ namespace TangoAdapter {
    public:
     struct DeviceClass;
 
+    // The three optional process variables a declared command draws its argument and its return value from.
+    struct CommandSources {
+      std::optional<std::string> trigger;
+      std::optional<std::string> inputArgument;
+      std::optional<std::string> returnValue;
+    };
+
     struct DeviceInstance {
       DeviceInstance(std::string ourName, DeviceClass* parent) : name(std::move(ourName)), ourClass(parent) {}
       std::string name;
       std::optional<std::string> statusSource;
       std::optional<std::string> stateSource;
       std::map<std::string, std::string> attributeToSource;
+      std::map<std::string, CommandSources> commands;
+      // The write-only ChimeraTK::Void sources this instance auto-maps to commands, so import() can tell whether the
+      // option is still in force for the instance it maps into.
+      bool autoMapCommandsFromVoid{true};
       DeviceClass* ourClass;
     };
 
@@ -32,8 +48,12 @@ namespace TangoAdapter {
       std::string name;
       std::optional<std::string> title;
       std::optional<std::string> description;
+      // The autoMapCommandsFromVoid value set on this deviceClass, if any; the device instance inherits it.
+      std::optional<bool> autoMapCommandsFromVoid;
 
       std::list<AttributeProperty> attributes;
+      // Keyed by name, so a name clash with a differing input or return type is detected.
+      std::map<std::string, CommandProperty> commands;
       std::map<std::string, std::shared_ptr<DeviceInstance>> devicesInDeviceClass;
 
       explicit DeviceClass(std::string ourName) : name(std::move(ourName)) {}
@@ -70,7 +90,12 @@ namespace TangoAdapter {
     void processDeviceClassNode(xmlpp::Node* classNode);
     void processDeviceInstanceNode(const std::shared_ptr<DeviceClass>&, xmlpp::Node* instanceNode);
     void processAttributeNode(std::shared_ptr<DeviceInstance> device, xmlpp::Node* node);
+    void processCommandNode(std::shared_ptr<DeviceInstance> device, xmlpp::Node* node);
     void import(std::string importSource, std::shared_ptr<DeviceInstance> device);
+
+    // Collects the sources of every command of the file into _commandSources before the device classes and instances
+    // are processed, so import() and addAttribute() see a command source independent of the element order.
+    void collectCommandSources(xmlpp::Node* rootNode);
 
     // For passing on to the class constructor in the class factory
     std::map<std::string, std::shared_ptr<DeviceClass>> _classes;
@@ -78,12 +103,20 @@ namespace TangoAdapter {
     std::set<std::string> _inputVariables;
     std::set<std::string> _usedInputVariables; // For tracing which variables are
                                                // not to be imported.
+    // The sources of every command of the file, so import() and addAttribute() see a command source before the
+    // command element is processed and independent of the element and device-instance order.
+    std::set<std::string> _commandSources;
+    // The autoMapCommandsFromVoid value set on the deviceServer root, if any; the device class inherits it.
+    std::optional<bool> _autoMapCommandsFromVoid;
     std::map<std::string, std::list<std::shared_ptr<AttributeProperty>>> _descriptions;
     boost::shared_ptr<ChimeraTK::ControlSystemPVManager> _controlSystemPVManager;
 
     void addAttribute(std::shared_ptr<DeviceInstance>& device, const std::string& attrName,
-        const std::string& processVariableName, std::optional<std::string> unit,
-        const std::optional<std::string>& description, EventingMode eventing = EventingMode::Off);
+        std::string processVariableName, std::optional<std::string> unit, const std::optional<std::string>& description,
+        EventingMode eventing = EventingMode::Off);
+
+    void addCommand(std::shared_ptr<DeviceInstance>& device, const std::string& name, const CommandSources& sources,
+        std::optional<std::string> inputDescription = {}, std::optional<std::string> outputDescription = {});
   };
 
 } // namespace TangoAdapter
