@@ -138,13 +138,12 @@ value changed (a status word source), `off` on `numberOfMotors`, which never
 changes, and `change` on a `ChimeraTK::Void` source (the new-data trigger
 `/Motors/newDataTrigger`), whose event carries the time the trigger was produced.
 - `doc/mainpage.dox` describes the keyword, the three values, the difference
-between the two kinds (their payload; both emit on every update), the rejection
-of an unknown value and of a write-only attribute, the Void case, and that image
-attributes are not implemented. For the Void case it states that a CHANGE event
-carries the readout time stamp with the constant `true` of the attribute's read
-path, while a DATA_READY event carries a counter. It must not claim that an image
-attribute is rejected when the mapper file is read, because that case cannot
-occur.
+between the two kinds (their payload; both emit on every update) and the rejection
+of an unknown value and of a write-only attribute; it keeps the statement that
+image attributes are not implemented. It no longer restricts an eventing mode to a
+value type of the process variable, and it does not describe what a `ChimeraTK::Void`
+CHANGE event carries. It must not claim that an image attribute is rejected when
+the mapper file is read, because that case cannot occur.
 
 ### Alternatives considered
 
