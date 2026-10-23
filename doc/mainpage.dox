@@ -51,7 +51,7 @@ It is also possible to map individual variables to attributes using the `<attrib
 
 One can also override the description and egu of the process variable using the `<description>` and `<egu>` child tags of `<attribute>`.
 
-The optional `<eventing>` child tag enables Tango event generation for the attribute. Its content is one of `off` (the default), `dataReady` or `change`. `dataReady` emits a DATA_READY event and `change` a CHANGE event on every update of the attribute's process variable. Eventing is only allowed for readable scalar and spectrum attributes. An unknown value, a write-only attribute and `change` on a `ChimeraTK::Void` process variable (which carries no value to compare) are rejected when the mapper file is read. A `ChimeraTK::Void` attribute accepts `dataReady` and `off` only. Image attributes are not implemented.
+The optional `<eventing>` child tag enables Tango event generation for the attribute. Its content is one of `off` (the default), `dataReady` or `change`. `dataReady` emits a DATA_READY event and `change` a CHANGE event, both on every update of the attribute's process variable. The two kinds differ in their payload, not in when they fire: a CHANGE event carries the value and its quality, a DATA_READY event only the event counter. Eventing is only allowed for readable scalar and spectrum attributes. An unknown value, a write-only attribute and `change` on a `ChimeraTK::Void` process variable (which carries no value to push) are rejected when the mapper file is read. A `ChimeraTK::Void` attribute accepts `dataReady` and `off` only. Image attributes are not implemented.
 
 \subsubsection device_state_and_status Setting the Tango device state and status
 

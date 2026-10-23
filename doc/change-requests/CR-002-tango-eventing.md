@@ -23,14 +23,17 @@ fails to start.
 - Eventing applies to readable scalar and spectrum attributes.
 - Eventing on a write-only attribute is rejected when the mapper file is read.
 - `change` on a readable `ChimeraTK::Void` process variable is rejected when the
-mapper file is read, because a Void carries no value to compare. Void
+mapper file is read, because a Void carries no value to push. Void
 attributes accept `dataReady` and `off` only.
 - Image attributes are not implemented and stay unsupported by this change.
 - Image attributes cannot occur today: the ControlSystemAdapter delivers
 single-channel process arrays, so a mapped attribute is always scalar or
 spectrum.
 - Once image attributes exist, DATA_READY eventing must be supported for them.
-- An event is emitted on each update of the attribute's process variable.
+- Both kinds emit on every new version of the attribute's process variable,
+even when its value and quality are unchanged: a repeat is an update as well.
+- The two kinds differ in their payload, not in when they fire: `change` carries
+the attribute's value and quality, `dataReady` the DATA_READY counter.
 
 ## Specifications
 
@@ -80,8 +83,10 @@ every reachable type. `pushVoidChangeEvent` and its comment in
 `src/AdapterDeviceImpl.cpp` are deleted.
 - Every other `dataType` case instantiates the same Tango/AdapterType pair as
 `util::toScalarTangoAttribute`/`util::toSpectrumTangoAttribute` and casts the
-accessor with `reinterpret_pointer_cast`. No runtime `callForTypeNoVoid` is
-used, because `push_change_event` needs the type at compile time.
+accessor with `dynamic_pointer_cast`, so that the check for a failed cast can
+trigger: only a dynamic cast yields an empty pointer for a type mismatch. No
+runtime `callForTypeNoVoid` is used, because `push_change_event` needs the type
+at compile time.
 `AttributeProperty::getDataType` is not used, as it collapses `DEV_ENUM` to
 `DEV_SHORT`.
 - The elements are converted individually instead of reinterpreted: `int8_t` to
@@ -99,13 +104,15 @@ flag set so Tango takes ownership.
 - The pushed `Change` event mirrors the read path's quality through the
 quality-carrying `DeviceImpl::push_change_event` overload: `ATTR_INVALID` when
 the process variable's data validity is not `ChimeraTK::DataValidity::ok` and
-`ATTR_VALID` otherwise. That overload also needs a readout time stamp, filled
-with the current time (`Tango::TangoTimestamp(std::chrono::system_clock::now())`).
+`ATTR_VALID` otherwise. That overload also needs a readout time stamp, taken
+from the version number of the process variable, because that is the time the
+data was produced. DeviceAccess exposes no other time stamp.
 DATA_READY events carry no quality.
 - `DataReady` pushes with `DeviceImpl::push_data_ready_event(attrName,
 counter)`.
 - Each attribute carries its own DATA_READY counter in `AdapterDeviceImpl`,
-starting at 1. The counter advances only when the process variable's version
+incremented before each push, so the first event of an attribute carries 1. The
+counter advances only when the process variable's version
 number differs from the version number of the last push for that attribute; a
 push for a version number already pushed carries the same counter.
 `ChimeraTK::VersionNumber` exposes no numeric value, so `AdapterDeviceImpl`
@@ -118,12 +125,14 @@ its version number, and needs no data-format knowledge, so a future image
 attribute implementation needs only a DATA_READY counter and the same callback
 registration to support DATA_READY events.
 - `xmlschema/tango_variable_tree.xsd` gets the `<eventing>` element and
-`doc/example-AttributeMapper.xml` shows one, on an attribute whose value
-changes (for example a position source from `/Motors/position`), because
-`numberOfMotors` never changes; the `numberOfMotors` attribute shows
-`<eventing>off</eventing>` (or no `<eventing>` element).
-- `doc/mainpage.dox` describes the keyword, the three values, the rejection of
-an unknown value, of a write-only attribute and of `change` on a Void process
+`doc/example-AttributeMapper.xml` shows all three values: `change` on an
+attribute whose source value changes (the position source `/Motors/position`),
+`dataReady` on an attribute the client must be told about whether or not its
+value changed (a status word source), and `off` on `numberOfMotors`, which never
+changes.
+- `doc/mainpage.dox` describes the keyword, the three values, the difference
+between the two kinds (their payload; both emit on every update), the rejection
+of an unknown value, of a write-only attribute and of `change` on a Void process
 variable, and that image attributes are not implemented. It must not claim
 that an image attribute is rejected when the mapper file is read, because that
 case cannot occur.

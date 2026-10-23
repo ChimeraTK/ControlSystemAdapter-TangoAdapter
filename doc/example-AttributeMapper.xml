@@ -23,6 +23,11 @@
                 <egu>mm</egu>
                 <eventing>change</eventing>
             </attribute>
+            <attribute name="statusWord" source="/Motors/statusWord">
+                <description>The status word of the controller</description>
+                <egu>n/a</egu>
+                <eventing>dataReady</eventing>
+            </attribute>
         </deviceInstance>
     </deviceClass>
 </deviceServer>
