@@ -16,7 +16,7 @@ it) and `tests/serverTestEventing_ds-AttributeMapper.xml` (needs
 `autoMapCommandsFromVoid="false"`). CR-003's change set carries no other CR-002
 artefact.
 
-Status: IMPLEMENTED (from TESTS REVIEWED)
+Status: READY TO TEST (from TESTS REVIEWED)
 
 ## Requirements
 

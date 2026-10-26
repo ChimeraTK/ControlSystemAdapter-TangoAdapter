@@ -356,10 +356,18 @@ BOOST_AUTO_TEST_CASE(testNonReadableReturnValueRejectedAtMapperRead) {
   assertRejectedAtMapperRead("rejectNonReadableReturnValue");
 }
 
-/// A process variable which is a command source and an attribute, with the <attribute> element before the <command>
-/// element, makes the mapper read abort the start-up: the exclusion does not depend on the element order.
+/// A process variable which a command source and an attribute share, with the <attribute> element before the <command>
+/// element, makes the mapper read abort the start-up: the attribute maps the source first, so the <command> which
+/// names the source second is rejected.
 BOOST_AUTO_TEST_CASE(testCommandSourceAsAttributeRejectedAtMapperRead) {
   assertRejectedAtMapperRead("rejectCommandSourceAsAttribute");
+}
+
+/// A process variable which a command source and an attribute share, with the <command> element before the <attribute>
+/// element, makes the mapper read abort the start-up: the command declares the source first, so the <attribute> which
+/// names the source second is rejected.
+BOOST_AUTO_TEST_CASE(testCommandSourceAsCommandRejectedAtMapperRead) {
+  assertRejectedAtMapperRead("rejectCommandSourceAsCommand");
 }
 
 /// The same command name with different types in two device instances makes the mapper read abort the start-up.
