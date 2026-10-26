@@ -503,12 +503,13 @@ namespace TangoAdapter {
 
   /********************************************************************************************************************/
 
-  void AdapterDeviceImpl::waitForCommandReturnValue(
-      CommandState& state, const ChimeraTK::VersionNumber& previousVersion) {
+  void AdapterDeviceImpl::waitForCommandReturnValue(CommandState& state, const ChimeraTK::VersionNumber& writeVersion) {
     std::unique_lock<std::mutex> lock(state.mutex);
-    // A notification of an unrelated update does not end the wait: the predicate compares the version number.
+    // The answer has to post-date the command's own write: an unrelated update which pre-dates the write does not end
+    // the wait, whatever its source. An update which post-dates the write ends it, whatever its source (see the
+    // accepted limitation of the blocking design).
     state.condition.wait(
-        lock, [&state, &previousVersion]() { return state.returnValue.getVersionNumber() != previousVersion; });
+        lock, [&state, &writeVersion]() { return state.returnValue.getVersionNumber() > writeVersion; });
   }
 
   /********************************************************************************************************************/

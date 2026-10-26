@@ -51,16 +51,14 @@ namespace TangoAdapter {
           "Command::execute()");
     }
 
-    // The return-value version number is taken before the writes, so an application answering between this snapshot
-    // and the writes is still noticed: its version number differs from the snapshot.
-    ChimeraTK::VersionNumber previousReturnVersion(nullptr);
-    if(state->returnValue.isInitialised()) {
-      previousReturnVersion = state->returnValue.getVersionNumber();
-    }
+    // The newest version number the command's own writes received. The wait requires the return value to post-date it,
+    // so an unrelated update of the return-value process variable which pre-dates the write does not end the wait.
+    ChimeraTK::VersionNumber writeVersion(nullptr);
 
     // The argument is written first, so the application sees it before the trigger.
     if(state->inputArgument.isInitialised()) {
       writeInputArgument(*adapterDevice, in_any, state->inputArgument);
+      writeVersion = state->inputArgument.getVersionNumber();
     }
 
     if(state->trigger.isInitialised()) {
@@ -75,6 +73,8 @@ namespace TangoAdapter {
       }
       voidAccessor->setDataValidity(ChimeraTK::DataValidity::ok);
       voidAccessor->write();
+      // A trigger-only command takes the version of its void trigger write, which is newer than the argument write.
+      writeVersion = voidAccessor->getVersionNumber();
     }
 
     if(!state->returnValue.isInitialised()) {
@@ -83,7 +83,7 @@ namespace TangoAdapter {
       return new CORBA::Any();
     }
 
-    AdapterDeviceImpl::waitForCommandReturnValue(*state, previousReturnVersion);
+    AdapterDeviceImpl::waitForCommandReturnValue(*state, writeVersion);
 
     if(state->returnValue.dataValidity() != ChimeraTK::DataValidity::ok) {
       // A Tango command has no quality channel, so an invalid return value has to fail the call. The reason names the

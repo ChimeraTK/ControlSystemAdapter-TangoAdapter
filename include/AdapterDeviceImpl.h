@@ -55,8 +55,8 @@ namespace TangoAdapter {
     // TangoAdapter::Command drives the execution through them.
     std::shared_ptr<CommandState> getCommandState(const std::string& commandName);
 
-    // Waits until the return accessor carries a version number other than the given one.
-    static void waitForCommandReturnValue(CommandState& state, const ChimeraTK::VersionNumber& previousVersion);
+    // Waits until the return accessor carries a version number newer than the given write version.
+    static void waitForCommandReturnValue(CommandState& state, const ChimeraTK::VersionNumber& writeVersion);
 
     // Stores the incoming values in the input accessor (scalar or spectrum) and writes it with a valid data validity.
     // The Command does the CORBA::Any conversion, this does the accessor I/O.
