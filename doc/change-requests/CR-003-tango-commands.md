@@ -72,8 +72,12 @@ a `trigger` the input argument write is the trigger.
 - The call blocks until the process variable of `returnValue` carries data
 written after the command's own write, and returns its value.
 - The answer has to post-date the version number of the argument and trigger
-write, so an unrelated update of the return-value process variable, for example
-a refresh from another source of the application, does not end the wait.
+write, so an unrelated update of the return-value process variable which
+pre-dates the command's own write, for example a refresh from another source of
+the application, does not end the wait. Accepted limitation: an update which
+post-dates the write ends the wait whatever its source, so an application which
+refreshes the return-value process variable from an unrelated source can make
+the call return that refresh's value.
 - A return value whose process variable does not carry valid data fails the
 call.
 - The call waits forever: there is no timeout.
@@ -282,8 +286,9 @@ well.
 Aspect: device instance.
 
 - `AdapterDeviceImpl` gains a map from command name to the three accessors and
-to a wait state, which is a mutex, a condition variable and the version number
-of the return value.
+to a wait state, which is a mutex and a condition variable; the version number
+the wait compares is the write version `execute()` passes (see the execution
+aspect below), not a value the wait state holds.
 - `attachToClassCommands()` runs in `AdapterDeviceClass::device_factory()` next
 to `attachToClassAttributes()`. It skips the commands the device instance does
 not declare, and for the others it takes the accessors of its sources from the
@@ -338,16 +343,17 @@ per-command mutex, condition variable and notification callback;
 `waitForCommandReturnValue()` (`src/AdapterDeviceImpl.cpp:515-520`) takes the
 write version instead of the pre-write snapshot and `execute()` passes it
 (`src/Command.cpp:54-58`, `:86`).
-- The wait state is the adapter's own per-command mutex, condition variable and
-version number, and the command waits on that condition variable
+- The wait state is the adapter's own per-command mutex and condition variable,
+and the command waits on that condition variable
 (`AdapterDeviceImpl::waitForCommandReturnValue()`, `src/AdapterDeviceImpl.cpp:515`).
 It is notified by the callback which `attachToClassCommands()` passes to
 `TangoUpdater::addVariable()` for the return-value accessor
 (`src/AdapterDeviceImpl.cpp:489`), not by the return-value process variable's own
 queue.
 - The wait is a wait on the condition variable with the newer-than-the-write
-version number comparison as its predicate, so a notification of an unrelated
-update does not end it.
+version number comparison as its predicate, so an unrelated update which
+pre-dates the command's own write does not end it (see the accepted limitation
+above).
 - A return value whose accessor carries a data validity other than ok after the
 wait makes `execute()` throw a `Tango::DevFailed` naming the process variable
 and carrying a descriptive reason which names the faulty return value, not
@@ -463,9 +469,11 @@ command from two sources: `TypedPVHolder::inputToOutput`
 writes `INT/FROM_DEVICE_SCALAR` from the command's argument
 `INT/TO_DEVICE_SCALAR` and from the unrelated `INT/BIDIRECTIONAL`, and
 `INT/FROM_DEVICE_ARRAY` alike. The wait condition ignores an update which
-pre-dates the command's own write, so an unrelated refresh does not end it; the
-tests keep their sources, and the assertion on the returned value is the check
-for the condition, so repeated full `ctest -j16` runs probe it.
+pre-dates the command's own write, so an unrelated refresh does not end it; a
+refresh which post-dates the write does end it, and the reference application's
+refresh carries the argument's value, so the assertion on the returned value is
+the check for the condition. The tests keep their sources, so repeated full
+`ctest -j16` runs probe it.
 - The mapper declares one device class with the single device instance
 `tango/test/serverTestCommand`. An in-process fixture module takes the
 mixed-case instance name the fixture derives from `BOOST_TEST_MODULE` as
@@ -754,11 +762,13 @@ mapper fails at start-up and every CR-002 eventing test fails.
 - DI-114 [DONE] tests/src/testTangoServerCommand.cpp:186: the docstring 'The <import> element before the <command> elements leaves a command source unmapped as an attribute' states the opposite element order of the mapper it runs against. tests/serverTestCommand_ds-AttributeMapper.xml now declares the <command> elements (lines 10-40) before <import>/</import> (line 41), and its own header comment says so; the docstring must be reworded to the commands-before-import, first-come order.
 - DI-115 [DONE] A command source is still called a source 'of the file' in tests/serverTestCommand_ds-AttributeMapper.xml:37 and tests/src/testTangoServerCommand.cpp:97, :190, :195 and :258 although DI-110 made the attribute/command exclusion instance-local, and the CR Test plan (doc/change-requests/CR-003-tango-commands.md:561-562) explicitly requires the mapper comment to be reworded from the file-wide wording to the instance-local one. Reword all five comments to the device instance.
 - DI-116 [REPLACED] Flaky test with a specification-level root cause: testTangoServerCommand / testArgumentAndReturnValue fails intermittently (about 1 in 10 to 1 in 20 full parallel `ctest -j16` runs; reproduced repeatedly) with `testTangoServerCommand.cpp(94): error: in "testArgumentAndReturnValue": check returned == 17 has failed [0 != 17]`. The call returns the stale initial value of the return-value process variable instead of the value it sent.
-- DI-117 [REPLACED] Root cause (measured by temporary instrumentation, since reverted): the command waits for the return-value process variable to carry a version number DIFFERENT from the snapshot taken before its writes (src/Command.cpp:56-58 snapshot, src/AdapterDeviceImpl.cpp:519-520 predicate). The reference test application writes INT/FROM_DEVICE_SCALAR from TWO independent sources in ReferenceTestApplication::TypedPVHolder::inputToOutput: the command's argument INT/TO_DEVICE_SCALAR and the unr...
-- DI-118 [REPLACED] This is a specification problem, not an implementation deviation: Requirements (CR-003 line 72, 'The call blocks until the process variable of `returnValue` carries a new version number, and returns its value') and Specifications (CR-003 lines 316-318, 'takes the version number of the return accessor before the writes, waits on the wait state until the version number differs') define exactly the condition that src/Command.cpp implements. A correct condition has to require the retu...
-- DI-119 [REPLACED] Same latent race affects every other command test that waits for a return value driven through the reference application's FROM_DEVICE_* coupling (testTriggerAndArgument, testArrayArgumentAndReturnValue, testBooleanArrayArgumentAndReturnValue, testInvalidReturnValue): all use INT/FROM_DEVICE_SCALAR / INT/FROM_DEVICE_ARRAY, which the application also refreshes from INT/BIDIRECTIONAL, so any of them can return or validate a stale value under load. The Test plan does not mention this...
+- DI-117 [REPLACED] Root cause (measured by temporary instrumentation, since reverted): the command waits for the return-value process variable to carry a version number DIFFERENT from the snapshot taken before its writes (src/Command.cpp:56-58 snapshot, src/AdapterDeviceImpl.cpp:519-520 predicate). The reference test application writes INT/FROM_DEVICE_SCALAR from TWO independent sources in ReferenceTestApplication::TypedPVHolder::inputToOutput: the command's argument INT/TO_DEVICE_SCALAR and th...
+- DI-118 [REPLACED] This is a specification problem, not an implementation deviation: Requirements (CR-003 line 72, 'The call blocks until the process variable of `returnValue` carries a new version number, and returns its value') and Specifications (CR-003 lines 316-318, 'takes the version number of the return accessor before the writes, waits on the wait state until the version number differs') define exactly the condition that src/Command.cpp implements. A correct condition has to require the...
+- DI-119 [REPLACED] Same latent race affects every other command test that waits for a return value driven through the reference application's FROM_DEVICE_* coupling (testTriggerAndArgument, testArrayArgumentAndReturnValue, testBooleanArrayArgumentAndReturnValue, testInvalidReturnValue): all use INT/FROM_DEVICE_SCALAR / INT/FROM_DEVICE_ARRAY, which the application also refreshes from INT/BIDIRECTIONAL, so any of them can return or validate a stale value under load. The Test plan does not mention...
 - DI-120 [DONE] Timeout in this environment: a full `ctest -j16` run plus repeated stress runs exceeded the 1200-1500 s tool budget several times, so the flakiness measurement was done in batches of 20 in 20-25 runs each; the suite itself needs roughly 16 s per full run and the other 14 tests plus coding_style pass.
 - DI-121 [FOLDED-IN] Wait condition defect confirmed, specification-level (DI-116, DI-117): Requirements (doc/change-requests/CR-003-tango-commands.md:72, 'The call blocks until the process variable of `returnValue` carries a new version number, and returns its value') and Specifications (doc:315-320, 'takes the version number of the return accessor before the writes, waits on the wait state until the version number differs') prescribe exactly the condition src/Command.cpp:54-58 and src/AdapterD...
 - DI-122 [FOLDED-IN] Correction to fold (DI-118, user decision: 'Require the answer to post-date the command's own write'): the call has to wait for the return-value process variable to carry a version number newer than the write the command itself performed. Requirements, Specifications and the execute()/wait path (src/Command.cpp:54-58 and :86, src/AdapterDeviceImpl.cpp:515-520, include/AdapterDeviceImpl.h:59) have to carry that condition instead of the pre-write snapshot and the 'differs' pre...
 - DI-123 [FOLDED-IN] Test plan gap (DI-119): the plan never mentions that the reference application drives INT/FROM_DEVICE_SCALAR and INT/FROM_DEVICE_ARRAY from the command argument and from the unrelated INT/BIDIRECTIONAL, so testTriggerAndArgument, testArrayArgumentAndReturnValue, testBooleanArrayArgumentAndReturnValue and testInvalidReturnValue are exposed to the same race. The plan has to state the coupling, why the corrected condition makes the command tests insensitive to it, and which ass...
 - DI-124 [FOLDED-IN] New requirement statement needed for the corrected condition: the comparison is between version numbers of the application and of the adapter, and ChimeraTK version numbers are per-process counters (install-debug/include/ChimeraTK/VersionNumber.h:81-93), so the ordering holds only while the application runs in the adapter's process (as in the in-process fixture); for a separate application process the answers are stamped by the application's own counter. The plan has to carr...
+- DI-125 [NEW] Specifications still describe the wait state as carrying the return value's version number, contradicting the corrected wait condition of DI-122: 'Aspect: device instance' (CR-003:284-286, 'a wait state, which is a mutex, a condition variable and the version number of the return value') and 'Aspect: execution' (CR-003:341-343, 'The wait state is the adapter's own per-command mutex, condition variable and version number') both let the wait state hold a version number, while the corrected condition (CR-003:329-340) and include/AdapterDeviceImpl.h:45-52 show that CommandState holds only the three accessors, a mutex and a condition variable, and that waitForCommandReturnValue() takes the write version as a parameter. The implementer cannot tell from the plan whether CommandState stores a version number or not.
+- DI-126 [NEW] Requirements (CR-003:74-76) and Specifications (CR-003:348-350) overstate what the corrected condition achieves: 'an unrelated update of the return-value process variable, for example a refresh from another source of the application, does not end the wait' / 'a notification of an unrelated update does not end it'. Any update whose version post-dates the command's own write does end the wait, whatever its source, so an application refreshing the return-value process variable from an unrelated source after the write still makes the call return that refresh's value; only refreshes that pre-date the write are excluded. That is exactly the defect class DI-116/DI-121 removed, and it survives for the post-write case. The reference tests pass only because the reference application's unrelated refresh carries the argument's value (Test plan, CR-003:460-468), which the plan should say. Without this the requirement promises a discrimination the version comparison cannot make, and the residual has to be stated as an accepted limitation.
