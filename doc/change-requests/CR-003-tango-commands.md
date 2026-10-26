@@ -554,16 +554,15 @@ value, asserted element by element.
 - `CMakeLists.txt` copies the new mapper assets and
 `tests/testCommandOption_template.db` into the build directory with
 `file(COPY ... DESTINATION ${CMAKE_BINARY_DIR})` entries, next to the existing
-entries, so the tests and the subprocess find them. The asset
-`tests/testCommandTwoDevices_template.db` and its existing `file(COPY ...)`
-entry (`CMakeLists.txt:109`) are removed. The existing
-`tests/serverTestCommand_ds-AttributeMapper.xml` is reworked to the
-single-instance form the module needs: it drops its second device instance, the
-`autoMapCommandsFromVoid` overrides and the explicit `<attribute>`, and gains
-`<import>/</import>`. The duplicate reject fixture
-`tests/rejectCommandOnlyReturnValue` and its `file(COPY ...)` entry
-(`CMakeLists.txt:114`) are removed: it repeats the invalid configuration of
-`tests/rejectCommandNoSource`, which stays the fixture of that rejection.
+entries, so the tests and the subprocess find them. The existing
+`tests/serverTestCommand_ds-AttributeMapper.xml` is already the single-instance
+form the module needs; its `<import>/</import>` element moves after the
+`<command>` elements, so the import skips the sources the instance has already
+mapped as commands, and the mapper comment is reworded from the file-wide
+"a command source of this file" rationale to the instance-local, first-come
+one. `tests/testCommandTwoDevices_template.db` and
+`tests/rejectCommandOnlyReturnValue` and their `file(COPY ...)` entries were
+already removed, so only the new assets need `file(COPY ...)` entries.
 - Rejections at start-up, each with its own mapper file, asserted by running
 `testTangoServer` as a subprocess as described in CR-002:
 - a command without `trigger` and without `inputArgument` (for example one
@@ -580,9 +579,15 @@ variable;
 - a source which is not in the variable household of the application;
 - an `inputArgument` naming a process variable which is not writeable;
 - a `returnValue` naming a process variable which is not readable;
-- a process variable which is a command source and an attribute, with the
-mapper placing the `<command>` element before the `<attribute>` element, so the
-`<attribute>` which names the source second is rejected;
+- a process variable which a command source and an attribute share, with the
+`<command>` element first: the `<attribute>` which names the source second is
+rejected;
+- a process variable which a command source and an attribute share, with the
+`<attribute>` element first: the `<command>` which names the source second is
+rejected;
+each with its own mapper file, the existing
+`tests/rejectCommandSourceAsAttribute` staying the attribute-first fixture with
+its order-independence comment removed;
 - the same command name with different types in two device instances;
 - a command named `State`, `Status` or `Init`, each with its own mapper file.
 - The existing tests which rely on the boolean attribute of a write-only
@@ -682,7 +687,7 @@ mapper fails at start-up and every CR-002 eventing test fails.
 - DI-79 [DONE] Additional genuine defect found while working (folded in during the attempt but reverted to leave the tree clean for the go-back): src/AttributMapper.cpp:536, name = util::deriveAttributeName(sources.trigger ? *sources.trigger : *sources.inputArgument), dereferences *sources.inputArgument even when trigger is engaged; for a trigger-only <command> without an explicit name it dereferences an empty std::optional (assertion/UB/SIGABRT at server start-up). Correct form: sources....
 - DI-80 [REPLACED] Test plan vs implementation: the Test plan (CR-003 test plan, testArgumentAndReturnValue / testNoReturnValue bullets) does not state which attribute count the command mapper's `<import>/</import>` yields once the command-source exclusion fires. Fixing DI-76/DI-78 per the specification excludes every command source of tests/serverTestCommand_ds-AttributeMapper.xml from the import (INT/TO_DEVICE_SCALAR, INT/FROM_DEVICE_SCALAR, INT/TO_DEVICE_ARRAY, INT/FROM_DEVICE_ARRAY, BOOLEAN/...
 - DI-81 [REPLACED] Test plan vs tests: tests/src/testTangoServerCommand.cpp:34 readIntFromDeviceScalar() and :48 pollIntFromDeviceScalar() read the Tango attribute INT_FROM_DEVICE_SCALAR, but the specification excludes INT/FROM_DEVICE_SCALAR from the import because it is a command returnValue of ArgumentAndReturnValue / TriggerAndArgument / InvalidReturnValue. This makes testArgumentAndReturnValue (:109) and testNoReturnValue (:229) fail with a Tango DevFailed. The Test plan already prescribes t...
-- DI-82 [REPLACED] DI-80 (Test plan gap): the Test plan never states the attribute count of tests/serverTestCommand_ds-AttributeMapper.xml once the command-source exclusion fires. Its <import>/</import> maps the household's 87 process variables except the seven command sources of the file (INT/TO_DEVICE_SCALAR, INT/FROM_DEVICE_SCALAR, INT/TO_DEVICE_ARRAY, INT/FROM_DEVICE_ARRAY, BOOLEAN/TO_DEVICE_ARRAY, BOOLEAN/FROM_DEVICE_ARRAY, VOID/TO_DEVICE_SCALAR), so 80 process variables plus the built-in ...
+- DI-82 [REPLACED] DI-80 (Test plan gap): the Test plan never states the attribute count of tests/serverTestCommand_ds-AttributeMapper.xml once the command-source exclusion fires. Its <import>/</import> maps the household's 87 process variables except the seven command sources of the file (INT/TO_DEVICE_SCALAR, INT/FROM_DEVICE_SCALAR, INT/TO_DEVICE_ARRAY, INT/FROM_DEVICE_ARRAY, BOOLEAN/TO_DEVICE_ARRAY, BOOLEAN/FROM_DEVICE_ARRAY, VOID/TO_DEVICE_SCALAR), so 80 process variables plus the built-in ....
 - DI-83 [DONE] DI-81 (test-side deviation from a correct plan): tests/src/testTangoServerCommand.cpp:34 readIntFromDeviceScalar and :48 pollIntFromDeviceScalar read the Tango attribute INT_FROM_DEVICE_SCALAR, but per the Requirements (CR-003:102-104) that source is skipped by the import because INT/FROM_DEVICE_SCALAR is a returnValue of ArgumentAndReturnValue, TriggerAndArgument and InvalidReturnValue (tests/serverTestCommand_ds-AttributeMapper.xml:11,17,30), so the attribute no longer ex...
 - DI-84 [DONE] Specification gap: the Specifications never state which name form a mapper file uses for a source, nor that a source name is normalised to the process variable name form before it enters `_commandSources`, `_usedInputVariables`, `attributeToSource` and the source comparisons. The Requirements' attribute/command exclusion and the derived command name both depend on that comparison. The repository uses both forms - `tests/serverTestCommand_ds-AttributeMapper.xml:11,17`, `tests/...
 - DI-85 [DONE] Specification states the wrong mechanism for a requirement: the bullet on the auto-mapping branch of `import()` says an explicit `<attribute>` naming a write-only `ChimeraTK::Void` process variable is rejected 'because such a source is a command source and `addAttribute()` throws for a command source'. `_commandSources` only holds the sources of the file's `<command>` elements, so for `tests/rejectCommandVoidAttribute/testTangoServer-AttributeMapper.xml` (an explicit `<attrib...
@@ -711,3 +716,5 @@ mapper fails at start-up and every CR-002 eventing test fails.
 - DI-108 [DONE] Overlooked side effect: the change modifies the shared test application helper `tests/include_lib/ExtendedReferenceTestApplication.h` and `tests/src_lib/ExtendedReferenceTestApplication.cc` (the `VariableHolder` tuple gains a `description` element, commit 221ac29, consumed by `tests/src/testTangoServerCommand.cpp:35`), yet neither file is named anywhere in the CR - not in the affected components (CR-003:131-137) and not in the test-asset list (CR-003:138-148). The ripple als...
 - DI-109 [DONE] Rework the commits of the CR-003 branch into logical, easier to review units: replace the current history (the CR-document commit fd0ee6b plus a long chain of 20+ `fixup! CR-003: Map process variables to Tango commands` commits) with self-contained commits that each carry one coherent part of the change (for example: mapper/command data model and type mapping, the Tango command object and the conversion helper, device class and device instance wiring, schema and documentation, ne...
 - DI-110 [FOLDED-IN] User decision after three clarifying questions: make the Tango mapper's command/attribute exclusion behave like the DOOCS adapter and drop the extra tree walk. Concretely: remove AttributeMapper::collectCommandSources() (src/AttributMapper.cpp:710-733) and its call in readMapperFile (src/AttributMapper.cpp:761) together with the file-wide set AttributeMapper::_commandSources (include/AttributeMapper.h:108), and decide the exclusion in the single document-order pass with firs...
+- DI-111 [NEW] Test plan asset bullet (doc/change-requests/CR-003-tango-commands.md:554-566) is stale after the DI-110 fold and omits the edit the new first-come semantics require. It says tests/serverTestCommand_ds-AttributeMapper.xml 'drops its second device instance, the autoMapCommandsFromVoid overrides and the explicit <attribute>, and gains <import>/</import>' and that tests/testCommandTwoDevices_template.db (CMakeLists.txt:109) and tests/rejectCommandOnlyReturnValue (CMakeLists.txt:114) are removed, but on disk the mapper is already the single-instance form with no overrides and no explicit <attribute> and already carries <import>/</import> (line 8, placed BEFORE the <command> elements), both assets and their file(COPY ...) entries are already gone, and CMakeLists.txt:109/:114 now hold unrelated entries (serverTestCommandOption mapper, rejectInt8ArrayArgument). The bullet never states that the <import>/</import> element must move AFTER the <command> elements, although the DI-110 decision (first-come in one document-order pass) makes that mandatory: with the import first, import() auto-maps VOID/TO_DEVICE_SCALAR to the command VOID_TO_DEVICE_SCALAR and every later explicit <command> whose source is already mapped is rejected by addCommand(), so the whole module fails at start-up. The mapper comment at tests/serverTestCommand_ds-AttributeMapper.xml:4-7 still explains the superseded file-wide rationale ('a command source of this file') and is not called out for rework either.
+- DI-112 [NEW] Rejection-order coverage gap in the Test plan (doc:583-585). The Requirements (doc:107-111) make the attribute/command exclusion symmetric ('whichever of <attribute> and <command> names the source first wins and the other is rejected when the mapper file is read') and the Specifications (doc:200-202) define two distinct checks (addAttribute() rejects a source an earlier command of the instance declared; addCommand() rejects a source an earlier attribute of the instance mapped), but the one rejection bullet covers only the '<command> element before the <attribute> element' order, i.e. only addAttribute()'s check. The on-disk fixture tests/rejectCommandSourceAsAttribute/testTangoServer-AttributeMapper.xml is the opposite order (<attribute> then <command>) and its comment claims 'the exclusion must not depend on the element order', which the order-dependent requirement now contradicts. Whichever single order the fixture is reworked to, the other check stays untested, and the plan neither states which order each fixture exercises nor that this fixture and its stale comment are reworked.
