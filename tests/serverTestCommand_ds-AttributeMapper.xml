@@ -34,8 +34,8 @@
             <command name="DescribedArgumentAndReturnValue" inputArgument="INT/DESCRIBED"
                      returnValue="INT/DESCRIBED" />
             <!-- Two commands without a name: the name defaults to the name derived from the trigger source, or from the
-                 inputArgument source when there is no trigger. Both reuse a command source of the file, so the command
-                 sources and the attribute count stay unchanged. -->
+                 inputArgument source when there is no trigger. Both reuse a command source of this device instance, so
+                 the command sources and the attribute count stay unchanged. -->
             <command trigger="VOID/TO_DEVICE_SCALAR" />
             <command inputArgument="INT/TO_DEVICE_SCALAR" />
             <import>/</import>

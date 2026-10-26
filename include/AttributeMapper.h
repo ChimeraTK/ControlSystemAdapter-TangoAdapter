@@ -36,8 +36,7 @@ namespace TangoAdapter {
       std::optional<std::string> stateSource;
       std::map<std::string, std::string> attributeToSource;
       std::map<std::string, CommandSources> commands;
-      // The write-only ChimeraTK::Void sources this instance auto-maps to commands, so import() can tell whether the
-      // option is still in force for the instance it maps into.
+      // The autoMapCommandsFromVoid value in force for this device instance; import() reads it from here.
       bool autoMapCommandsFromVoid{true};
       DeviceClass* ourClass;
     };
