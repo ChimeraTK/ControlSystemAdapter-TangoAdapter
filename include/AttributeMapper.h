@@ -93,19 +93,12 @@ namespace TangoAdapter {
     void processCommandNode(std::shared_ptr<DeviceInstance> device, xmlpp::Node* node);
     void import(std::string importSource, std::shared_ptr<DeviceInstance> device);
 
-    // Collects the sources of every command of the file into _commandSources before the device classes and instances
-    // are processed, so import() and addAttribute() see a command source independent of the element order.
-    void collectCommandSources(xmlpp::Node* rootNode);
-
     // For passing on to the class constructor in the class factory
     std::map<std::string, std::shared_ptr<DeviceClass>> _classes;
 
     std::set<std::string> _inputVariables;
     std::set<std::string> _usedInputVariables; // For tracing which variables are
                                                // not to be imported.
-    // The sources of every command of the file, so import() and addAttribute() see a command source before the
-    // command element is processed and independent of the element and device-instance order.
-    std::set<std::string> _commandSources;
     // The autoMapCommandsFromVoid value set on the deviceServer root, if any; the device class inherits it.
     std::optional<bool> _autoMapCommandsFromVoid;
     std::map<std::string, std::list<std::shared_ptr<AttributeProperty>>> _descriptions;

@@ -2,10 +2,10 @@
 <deviceServer>
     <deviceClass name="serverTestCommand">
         <deviceInstance name="tango/test/serverTestCommand">
-            <!-- Import everything, placed before the commands: every process variable of the household except the
-                 command sources becomes an attribute of this instance. VOID/TO_DEVICE_SCALAR stays unmapped even
-                 though the import covers it, because it is a command source of this file. -->
-            <import>/</import>
+            <!-- The commands are declared before the import: the attribute/command exclusion is instance-local and
+                 follows the element order, so the import skips every source this instance has already mapped as a
+                 command and leaves it unmapped although it covers it. Every other process variable of the household
+                 becomes an attribute of this instance. -->
             <!-- A command without a trigger: the argument write is the trigger. -->
             <command name="ArgumentAndReturnValue" inputArgument="INT/TO_DEVICE_SCALAR"
                      returnValue="INT/FROM_DEVICE_SCALAR">
@@ -38,6 +38,7 @@
                  sources and the attribute count stay unchanged. -->
             <command trigger="VOID/TO_DEVICE_SCALAR" />
             <command inputArgument="INT/TO_DEVICE_SCALAR" />
+            <import>/</import>
         </deviceInstance>
     </deviceClass>
 </deviceServer>

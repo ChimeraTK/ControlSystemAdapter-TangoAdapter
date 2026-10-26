@@ -2,8 +2,8 @@
 <deviceServer>
     <deviceClass name="testTangoServer">
         <deviceInstance name="tango/test/rejectcommandsourceasattribute">
-            <!-- The <attribute> element comes before the <command> element, so the exclusion must not depend on the
-                 element order. -->
+            <!-- The <attribute> element comes before the <command> element: the attribute maps the source first, so the
+                 <command> which names the same source second is rejected. -->
             <attribute name="INT_TO_DEVICE_SCALAR" source="INT/TO_DEVICE_SCALAR" />
             <command name="SourceAsAttribute" inputArgument="INT/TO_DEVICE_SCALAR" />
         </deviceInstance>
