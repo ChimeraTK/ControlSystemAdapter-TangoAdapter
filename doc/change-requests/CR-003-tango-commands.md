@@ -104,9 +104,14 @@ variable and the command.
 - The same command name with a different input or return type in the device
 instances of one class is rejected in the same way.
 - A command named `State`, `Status` or `Init` is rejected in the same way.
-- A process variable used by a command of any device instance in the mapper
-file cannot also be mapped as an attribute: an explicit `<attribute>` naming it
-is rejected when the mapper file is read, and an `<import>` skips it.
+- A process variable which a command of a device instance uses cannot also be
+mapped as an attribute of that instance, decided in the mapper file's element
+order as the DOOCS adapter's `import()` does: whichever of `<attribute>` and
+`<command>` names the source first wins and the other is rejected when the
+mapper file is read.
+- An `<import>` skips every source the device instance it maps into has already
+mapped as an attribute or as a command. A source which only another device
+instance of the file maps is unaffected.
 
 Aspect: compatibility option.
 
@@ -114,8 +119,8 @@ Aspect: compatibility option.
 and `deviceInstance` restores the behaviour of today when it is `false`: a
 write-only `ChimeraTK::Void` process variable becomes a boolean attribute
 again, and an explicit `<attribute>` naming one is allowed unless a `<command>`
-of the same mapper file uses it as a source, because the source then stays a
-command source of the file.
+of the same device instance names it as a source and was processed before the
+`<attribute>`.
 - The default is `true`, and the value set on the most specific level wins.
 
 Aspect: schema and documentation.
@@ -192,29 +197,26 @@ the reserved attribute names.
 type or data format Tango has no command type for aborts the start-up.
 - Two attributes may keep mapping one source, as `testTangoServerMapTwice`
 relies on; only a source shared between a command and an attribute is a clash.
-- `addCommand()` therefore rejects a source which `_usedInputVariables` already
-holds as an attribute source.
-- `AttributeMapper` keeps the command sources of the file in a set next to
-`_usedInputVariables`, so every command source is known when `import()` and
-`addAttribute()` run: `import()` skips it and `addAttribute()` throws for it
-independent of the element order and of the order of the device instances.
+- `addAttribute()` rejects a source which an earlier command of the device
+instance has declared, and `addCommand()` rejects a source which an earlier
+attribute of the instance has mapped.
+- `DeviceInstance` records the sources of the commands it declares as the
+command elements are processed, which is the only command-source state: the
+exclusion is instance-local and follows the element order, so whichever of
+`<attribute>` and `<command>` names a source first wins. `AttributeMapper` keeps
+no file-wide command-source set.
 - A mapper element names a source in the process variable form
 (`INT/TO_DEVICE_SCALAR`), while `getCsVariableNames()` and the source
 comparisons work on the canonical form with a leading slash
 (`/INT/TO_DEVICE_SCALAR`). Every source name a mapper element provides is
-normalised to the canonical form before it enters `_commandSources`,
-`_usedInputVariables`, `attributeToSource` and the comparisons against the
-process variable names, so a mapper file may write either form and the
-attribute/command exclusion and the derived command name see one form.
-- `import()` skips a source which the device instance it maps into has already
-mapped, and a command source of the file, but not a source which only another
-device instance mapped. `_usedInputVariables` stays a set of the file, so
-`addCommand()` still rejects a source which any instance mapped as an attribute,
-while two device classes may each import the whole tree independently and derive
-the same attributes.
-`addCommand()` still rejects a source which `_usedInputVariables` already holds
-as an attribute source, so a source which is a command source of one device
-instance and an attribute of another is rejected in either order.
+normalised to the canonical form before it enters `attributeToSource` and the
+comparisons against the process variable names, so a mapper file may write
+either form and the attribute/command exclusion and the derived command name see
+one form.
+- `import()` skips every source which the device instance it maps into has
+already mapped as an attribute or as a command, but not a source which only
+another device instance mapped. Two device classes may each import the whole
+tree independently and derive the same attributes.
 - `import()` gains the auto-mapping branch: a write-only `ChimeraTK::Void`
 process variable becomes a trigger-only command through `addCommand()`, or the
 attribute of today when `autoMapCommandsFromVoid` is `false`. An explicit
@@ -222,11 +224,10 @@ attribute of today when `autoMapCommandsFromVoid` is `false`. An explicit
 rejected with a `ChimeraTK::logic_error` when the mapper file is read, because
 `addAttribute()` rejects a source while the device instance has
 `autoMapCommandsFromVoid` in force and the source is a write-only,
-non-readable `ChimeraTK::Void` process variable, next to the sources of the
-file's `<command>` elements. Only when no command of the mapper file uses that
-source as a trigger,
-an `inputArgument` or a `returnValue` does `autoMapCommandsFromVoid="false"`
-let the explicit `<attribute>` map the boolean attribute of today.
+non-readable `ChimeraTK::Void` process variable. Only when no `<command>` of the
+same device instance has declared that source before the `<attribute>` does
+`autoMapCommandsFromVoid="false"` let the explicit `<attribute>` map the boolean
+attribute of today.
 - `getUnusedVariables()` adds the command sources like the state and status
 sources, so the application keeps publishing them.
 
@@ -399,6 +400,10 @@ application which reports a problem behind a call which never returns.
 are the same set for every device instance, only the sources differ, and the
 class-level registration with a per-instance `is_allowed()` keeps the
 client-visible interface in one place.
+- Gathering the command sources of the whole file in a pre-pass over the
+document (`collectCommandSources()`): rejected. It needs a second tree walk, and
+the DOOCS adapter keeps the same first-come behaviour with the instance-local
+state of the single document-order pass.
 - The `ProxyCommand` indirection with a shared owner and a queue per command of
 an earlier draft on `jgeorg/wip/commands`: rejected. It serves no purpose for a
 stateless command whose data lives in the device instance.
@@ -411,8 +416,9 @@ trigger-only command has no other source to take its name from.
 - New module `testTangoServerCommand` with the mapper
 `tests/serverTestCommand_ds-AttributeMapper.xml`, run with the automatic main
 loop of the reference application, because a call blocks until the application
-has answered. The mapper places `<import>/</import>` before its `<command>`
-elements, so every process variable of the household except the command sources
+has answered. The mapper declares its `<command>` elements before its
+`<import>/</import>`, so the import skips every command source the instance has
+already mapped as a command and every other process variable of the household
 becomes an attribute of the instance, while `VOID/TO_DEVICE_SCALAR` stays
 unmapped although the import covers it. The fixture adds one described process
 variable (`INT/DESCRIBED`, see `testCommandDescriptions`), so the household has
@@ -436,17 +442,18 @@ mixed-case instance name the fixture derives from `BOOST_TEST_MODULE` as
 `tango/test/` plus the module name; only a module which runs against an offline
 database names its instances in lower case. The instance carries the commands
 of the module. The mapper leaves `autoMapCommandsFromVoid` at its
-default, so `VOID/TO_DEVICE_SCALAR` is a command source of the file and no
+default, so `VOID/TO_DEVICE_SCALAR` is a command source of the instance and no
 source of it is both a command source and an attribute.
 - `testArgumentAndReturnValue`: a command without a trigger, so its argument is
 the trigger, with `INT/TO_DEVICE_SCALAR` as argument and
 `INT/FROM_DEVICE_SCALAR` as return value. The call returns the value it was
 given and the process array of the application carries it. Neither source is
-available as a Tango attribute, because the `<import>` skips the command
-sources of the file: `INT_FROM_DEVICE_SCALAR` in particular does not exist, as
-it is the `returnValue` of this command and of two others. The test therefore
-reads the process array through `ApplicationBase::getPVManager()` and must not
-read the return-value source with a Tango attribute.
+available as a Tango attribute, because the `<import>` skips the sources the
+instance has already mapped as commands: `INT_FROM_DEVICE_SCALAR` in particular
+does not exist, as it is the `returnValue` of this command and of two others.
+The test therefore reads the process array through
+`ApplicationBase::getPVManager()` and must not read the return-value source with
+a Tango attribute.
 - `testCommandDescriptions`: the `in_type_desc` and `out_type_desc` of
 `command_query()` are asserted. The command of `testArgumentAndReturnValue`
 carries explicit `inputDescription` and `outputDescription` children and the
@@ -466,7 +473,7 @@ trigger to the name derived from its `inputArgument` source; both names are
 asserted through `command_query()`. The module mapper declares two further
 commands without a `name`: one with only a `trigger` and one with only an
 `inputArgument`. Both reuse a source the file already uses as a command source,
-so the command sources of the file and the count of 82 attributes stay
+so the command sources of the instance and the count of 82 attributes stay
 unchanged.
 
 - `testTriggerAndArgument`: a command with a `ChimeraTK::Void` trigger and an
@@ -480,11 +487,12 @@ application's process array of `VOID/TO_DEVICE_SCALAR`, so the trigger write
 reached the application. The returned `Tango::DeviceData` is not inspected,
 because `is_empty()` and `get_type()` throw `API_EmptyDeviceData` in this
 cppTango build.
-- `testImportSkipsCommandSource` asserts that the `<import>` element which
-precedes the `<command>` elements leaves `VOID/TO_DEVICE_SCALAR` unmapped as an
-attribute although the import covers it, and that the command is registered:
-the command sources of the file are known when `import()` runs, independent of
-the element order. It asserts the resulting attribute count of 82: the 88
+- `testImportSkipsCommandSource` asserts that the `<import>` element leaves
+`VOID/TO_DEVICE_SCALAR` unmapped as an attribute although the import covers it,
+and that the command is registered: the instance has already mapped the source
+as a command when the import runs, because the mapper declares its `<command>`
+elements before its `<import>/</import>`. It asserts the resulting attribute
+count of 82: the 88
 process variables of the household less the eight command sources, plus the
 built-in `State` and `Status`. The count is not the 88 of
 `testTangoServerImportAll`, whose mapper imports every process variable.
@@ -493,7 +501,7 @@ built-in `State` and `Status`. The count is not the 88 of
 value, asserted element by element.
 - `testNoReturnValue`: the call returns without waiting for a return value,
 asserted against the argument process variable of the application. The argument
-is a command source of the file, so it is not a Tango attribute and the test
+is a command source of the instance, so it is not a Tango attribute and the test
 reads it through `ApplicationBase::getPVManager()`.
 - `testInvalidReturnValue`: with the data validity of the reference application
 set to faulty, a call with a return value fails with a Tango exception which
@@ -532,8 +540,7 @@ names in lower case and names the `VOID_TO_DEVICE_SCALAR` attribute with its
 class and its single device instance `tango/test/serverTestCommandOptionRoot`
 carry no override, so the value of the root level is the one which applies and
 the write-only `ChimeraTK::Void` process variable stays the boolean attribute of
-today. The mapper declares no command, so no source of the file is a command
-source. The `true` which `testAutoMappedVoid` sets on the root equals the
+today. The mapper declares no command, so no source is a command source. The `true` which `testAutoMappedVoid` sets on the root equals the
 default and therefore does not verify the root level by itself.
 - The rejection of a command which a device instance does not declare
 (`is_allowed()` returning false, `API_CommandNotAllowed`) stays untested. It
@@ -574,8 +581,8 @@ variable;
 - an `inputArgument` naming a process variable which is not writeable;
 - a `returnValue` naming a process variable which is not readable;
 - a process variable which is a command source and an attribute, with the
-mapper placing the `<attribute>` element before the `<command>` element, so
-that order still aborts the start-up;
+mapper placing the `<command>` element before the `<attribute>` element, so the
+`<attribute>` which names the source second is rejected;
 - the same command name with different types in two device instances;
 - a command named `State`, `Status` or `Init`, each with its own mapper file.
 - The existing tests which rely on the boolean attribute of a write-only
@@ -702,4 +709,5 @@ mapper fails at start-up and every CR-002 eventing test fails.
 - DI-106 [DONE] Affected-components list incomplete after the DI-105 fold. 'Aspect: the Tango command object' (CR-003:254-261) adds a from-Tango conversion helper next to the existing `convertToTangoType<TangoType, AdapterType>` (`include/TangoPropertyHelper.h:160`), so the change edits `include/TangoPropertyHelper.h`; but the affected-components list (CR-003:130-133) names only `include/Command.h`, `src/Command.cpp`, the mapper, the device class, the device instance, `xmlschema/tango_varia...
 - DI-107 [DONE] Affected-components list still incomplete: it does not name `include/CommandProperty.h`, the new header this change adds (git: added by commit 5784bde, absent from `master` and from the CR-002 tip; DI-65 and DI-87 call it the header `include/Command.h` uses). DI-106 fixed exactly this class of omission for `include/TangoPropertyHelper.h` (CR-003:131-133) but the equally new `include/CommandProperty.h` was left out.
 - DI-108 [DONE] Overlooked side effect: the change modifies the shared test application helper `tests/include_lib/ExtendedReferenceTestApplication.h` and `tests/src_lib/ExtendedReferenceTestApplication.cc` (the `VariableHolder` tuple gains a `description` element, commit 221ac29, consumed by `tests/src/testTangoServerCommand.cpp:35`), yet neither file is named anywhere in the CR - not in the affected components (CR-003:131-137) and not in the test-asset list (CR-003:138-148). The ripple als...
-- DI-109 [DONE] Rework the commits of the CR-003 branch into logical, easier to review units: replace the current history (the CR-document commit fd0ee6b plus a long chain of 20+ `fixup! CR-003: Map process variables to Tango commands` commits) with self-contained commits that each carry one coherent part of the change (for example: mapper/command data model and type mapping, the Tango command object and the conversion helper, device class and device instance wiring, schema and documentation, new...
+- DI-109 [DONE] Rework the commits of the CR-003 branch into logical, easier to review units: replace the current history (the CR-document commit fd0ee6b plus a long chain of 20+ `fixup! CR-003: Map process variables to Tango commands` commits) with self-contained commits that each carry one coherent part of the change (for example: mapper/command data model and type mapping, the Tango command object and the conversion helper, device class and device instance wiring, schema and documentation, ne...
+- DI-110 [NEW] User decision after three clarifying questions: make the Tango mapper's command/attribute exclusion behave like the DOOCS adapter and drop the extra tree walk. Concretely: remove AttributeMapper::collectCommandSources() (src/AttributMapper.cpp:710-733) and its call in readMapperFile (src/AttributMapper.cpp:761) together with the file-wide set AttributeMapper::_commandSources (include/AttributeMapper.h:108), and decide the exclusion in the single document-order pass with first-come semantics, as the DOOCS adapter's import() does (upstream ControlSystemAdapter-DoocsAdapter src/VariableMapper.cc:508-511, skipping every source already in _userProcessVariables): import() skips a source the device instance it maps into has already mapped as an attribute or as a command, and addAttribute()/addCommand() reject only a source this instance has already seen in the other role. This reverses the folded decisions that make the exclusion file-wide and independent of the element and device-instance order (Requirements 'Aspect: invalid configuration' and the compatibility bullet, Specifications CR-003:195-220, DI-13/DI-18/DI-23) and it invalidates the Test plan premises built on it: the rejectCommandSourceAsAttribute fixture only aborts start-up when the <command> element precedes the <attribute> (the reverse order is then accepted), the plan's order-independence claims (CR-003:415-419, :486-488, :576-577) fall away, and the module mapper must declare its <command> elements before its <import>/</import> or the import maps the command sources as attributes and addCommand() rejects them (the attribute count of 82 is unchanged once the commands come first).
