@@ -62,7 +62,8 @@ The `<command>` tag has the optional attributes `name`, `trigger`, `inputArgumen
 a write-only `ChimeraTK::Void` process variable; writing to it starts the command. An `inputArgument` names a writeable
 process variable, whose value is written to the application when the command is called, and a `returnValue` names a
 readable process variable, whose value is returned to the caller. A command without a `trigger` treats its argument as
-the trigger and needs an `inputArgument`. The command needs at least one of `trigger` and `inputArgument`.
+the trigger and needs an `inputArgument`. The command needs at least one of `trigger` and `inputArgument`. A command
+which carries both a `trigger` and an `inputArgument` writes the argument first and the trigger afterwards.
 
 If `name` is omitted, it is derived from the `trigger` source, or from the `inputArgument` source when there is no
 trigger. The optional `inputDescription` and `outputDescription` child tags override the descriptions of the argument

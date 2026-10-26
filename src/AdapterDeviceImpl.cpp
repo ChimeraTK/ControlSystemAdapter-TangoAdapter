@@ -465,12 +465,8 @@ namespace TangoAdapter {
       state->inputArgument = takeAccessor(sources.inputArgument, true);
       state->returnValue = takeAccessor(sources.returnValue, false);
 
-      if(state->trigger.isInitialised()) {
-        updater.addVariable(state->trigger, get_name() + "/" + commandName + "/trigger");
-      }
-      if(state->inputArgument.isInitialised()) {
-        updater.addVariable(state->inputArgument, get_name() + "/" + commandName + "/inputArgument");
-      }
+      // Only the return value is registered: the trigger is a write-only ChimeraTK::Void source, which the updater
+      // would ignore, and the argument is written by the call itself, so neither needs monitoring.
       if(state->returnValue.isInitialised()) {
         // The return value is monitored so a new version number of its process variable ends the wait. The callback
         // only notifies the wait state. It runs on the shared updater thread, on which the state and status callbacks
