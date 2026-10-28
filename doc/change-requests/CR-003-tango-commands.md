@@ -13,7 +13,7 @@ and the mapper-text helpers of `tests/src/testTangoAttributeMapper.cc`. Both
 change requests edit the same files. CR-003's change set carries no CR-002
 artefact of its own.
 
-Status: READY TO TEST (from DONE)
+Status: TESTS PASSED (from DONE)
 
 ## Requirements
 
