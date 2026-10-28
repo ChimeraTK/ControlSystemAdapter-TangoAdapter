@@ -6,17 +6,16 @@ one optional input argument and one optional return value. A write-only
 argument-less command without a return value by default, instead of the boolean
 attribute of today.
 
-Depends on: CR-002. CR-003 sits on the tip of the CR-002 branch
-(`jgeorg-agent/CR-002-tango-eventing`): its test plan relies on the subprocess
-and reject-mapper test infrastructure CR-002 introduces, and both change
-requests edit the same files. Next to its own files CR-003 also changes three
-CR-002 artefacts: `tests/src/testTangoServerEventing.cc` (uses the shared
-`runTestTangoServer` helper), `tests/include_lib/TangoTestServer.h` (declares
-it) and `tests/serverTestEventing_ds-AttributeMapper.xml` (needs
-`autoMapCommandsFromVoid="false"`). CR-003's change set carries no other CR-002
-artefact.
+Depends on: CR-002, which is merged into master; CR-003 sits on master. Its
+test plan uses the mapper-read test infrastructure CR-002 introduces: the
+`withMapperFileInCaseDirectory` helper of `tests/include_lib/TangoTestServer.h`
+and the mapper-text helpers of `tests/src/testTangoAttributeMapper.cc`. Both
+change requests edit the same files. Next to its own files CR-003 also changes
+the CR-002 artefact `tests/serverTestEventing_ds-AttributeMapper.xml`, which
+needs `autoMapCommandsFromVoid="false"`. CR-003's change set carries no other
+CR-002 artefact.
 
-Status: DONE
+Status: READY TO IMPLEMENT (from DONE)
 
 ## Requirements
 
@@ -394,9 +393,6 @@ Aspect: coding style.
 - The change leaves the shared repository configuration untouched: `.clang-tidy`
 and `.gitignore` keep the content the user maintains, so no include-header or
 build-output ignore is added to them.
-- An include which `misc-include-cleaner` flags gets a per-line
-`// NOLINTNEXTLINE(misc-include-cleaner)` with a one-line justification, as
-`tests/src_lib/TangoTestServer.cc` already does for `<sys/wait.h>`.
 
 ### Alternatives considered
 
@@ -600,17 +596,21 @@ value, asserted element by element.
 - `CMakeLists.txt` copies the new mapper assets and
 `tests/testCommandOption_template.db` into the build directory with
 `file(COPY ... DESTINATION ${CMAKE_BINARY_DIR})` entries, next to the existing
-entries, so the tests and the subprocess find them. The existing
+entries, so the tests find them. The existing
 `tests/serverTestCommand_ds-AttributeMapper.xml` is already the single-instance
 form the module needs; its `<import>/</import>` element moves after the
 `<command>` elements, so the import skips the sources the instance has already
 mapped as commands, and the mapper comment is reworded from the file-wide
 "a command source of this file" rationale to the instance-local, first-come
-one. `tests/testCommandTwoDevices_template.db` and
-`tests/rejectCommandOnlyReturnValue` and their `file(COPY ...)` entries were
-already removed, so only the new assets need `file(COPY ...)` entries.
-- Rejections at start-up, each with its own mapper file, asserted by running
-`testTangoServer` as a subprocess as described in CR-002:
+one.
+- Rejections when the mapper file is read, each with its own mapper file,
+asserted by the in-process mapper test CR-002 uses: build an
+`AttributeMapper`, set the control-system process-variable manager of the
+running in-process server on it, read the mapper file written for the case with
+`withMapperFileInCaseDirectory` and assert that the read throws
+`ChimeraTK::logic_error`. No server and no subprocess is started, because the
+`TangoAdapter::run` of a server would abort the test binary on the escaping
+error. The cases are:
 - a command without `trigger` and without `inputArgument` (for example one
 with only a `returnValue`), so the `name` derivation has no source;
 - an unsupported value type (`uint8_t` scalar, `int8_t` scalar, `int8_t` array);
@@ -630,12 +630,14 @@ variable;
 rejected;
 - a process variable which a command source and an attribute share, with the
 `<attribute>` element first: the `<command>` which names the source second is
-rejected;
-each with its own mapper file, the existing
-`tests/rejectCommandSourceAsAttribute` staying the attribute-first fixture with
-its order-independence comment removed;
+rejected.
 - the same command name with different types in two device instances;
-- a command named `State`, `Status` or `Init`, each with its own mapper file.
+- a command named `State`, `Status` or `Init`.
+- The change set carries no `runTestTangoServer` helper, no mapper assets under
+`tests/rejectCommand*` and no `file(COPY ...)` entries for such assets: the
+mapper-read rejection cases above need neither a separate process nor a
+directory of their own, because the mapper test writes and reads the mapper file
+itself.
 - The existing tests which rely on the boolean attribute of a write-only
 `ChimeraTK::Void` process variable have to follow the new mapping:
 `testTangoServerImportAll` (its attribute count and the void process variables),
@@ -649,3 +651,12 @@ The mapper of `testTangoServerEventing`,
 `autoMapCommandsFromVoid="false"` on that device instance; otherwise the whole
 mapper fails at start-up and every CR-002 eventing test fails.
 - The full `ctest` run of the project, including the `coding_style` test.
+
+## Deferred issue
+
+- DI-1 [NEW] CR-002 was reworked and merged into master after CR-003 was
+finished. The merged CR-002 drops the `runTestTangoServer` subprocess helper and
+its mapper asset directories, and asserts its mapper-read rejection cases with
+the in-process mapper test of `tests/src/testTangoAttributeMapper.cc`. CR-003's
+rejection cases still run `testTangoServer` as a subprocess, so they are
+reworked to that in-process mapper test.
