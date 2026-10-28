@@ -13,7 +13,7 @@ and the mapper-text helpers of `tests/src/testTangoAttributeMapper.cc`. Both
 change requests edit the same files. CR-003's change set carries no CR-002
 artefact of its own.
 
-Status: IMPLEMENTED (from DONE)
+Status: READY TO TEST (from DONE)
 
 ## Requirements
 
@@ -631,6 +631,14 @@ rejected;
 rejected.
 - the same command name with different types in two device instances;
 - a command named `State`, `Status` or `Init`.
+- The positive counterpart of those rejections: an explicit `<attribute>`
+naming the write-only `ChimeraTK::Void` process variable `VOID/TO_DEVICE_SCALAR`
+is accepted whatever `autoMapCommandsFromVoid` is, and maps the boolean
+attribute of today. The test writes the mapper file for a single device instance
+which carries the `<attribute>` and sets the option to `true` and to `false`
+with `withMapperFileBodyInCaseDirectory`, and asserts the read succeeds and the
+attribute's Tango type is `DevBoolean` (the type `getDataType()` derives from the
+raw `DevVoid` property).
 - The change set carries no `runTestTangoServer` helper, no mapper assets under
 `tests/rejectCommand*` and no `file(COPY ...)` entries for such assets: the
 mapper-read rejection cases above need neither a separate process nor a

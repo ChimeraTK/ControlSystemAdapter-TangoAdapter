@@ -20,6 +20,7 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include <chrono>
+#include <list>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -292,9 +293,13 @@ constexpr std::string_view rejectClassName = "serverTestCommand";
 
 /**
  * @brief The `<deviceInstance>` element with the given name and children (commands or attributes).
+ *
+ * The attribute text is appended to the name attribute, so a case can set `autoMapCommandsFromVoid` on the instance.
  */
-static std::string deviceInstance(const std::string& name, const std::string& children) {
-  return "        <deviceInstance name=\"" + name + "\">\n" + children + "        </deviceInstance>\n";
+static std::string deviceInstance(
+    const std::string& name, const std::string& children, const std::string& attributes = {}) {
+  return "        <deviceInstance name=\"" + name + "\"" + attributes + ">\n" + children +
+      "        </deviceInstance>\n";
 }
 
 /**
@@ -331,6 +336,24 @@ static void expectMapperBodyRejects(const std::string& caseName, const std::stri
   BOOST_CHECK_THROW(withMapperFileBodyInCaseDirectory(
                         caseName, std::string(rejectClassName), classBody, [&mapper] { mapper.readMapperFile(); }),
       ChimeraTK::logic_error);
+}
+
+/**
+ * @brief The attributes the mapper parsed from the mapper file written for the given `<deviceClass>` body.
+ *
+ * The read must succeed for a positive case, unlike `expectMapperBodyRejects`.
+ */
+static std::list<TangoAdapter::AttributeProperty> parseAttributesOfBody(
+    const std::string& caseName, const std::string& classBody) {
+  TangoAdapter::AttributeMapper mapper;
+  mapper.setCSPVManager(TangoAdapter::TangoAdapter::getInstance().getCsPvManager());
+  withMapperFileBodyInCaseDirectory(
+      caseName, std::string(rejectClassName), classBody, [&mapper] { mapper.readMapperFile(); });
+
+  std::string name = std::string(rejectClassName);
+  const auto deviceClass = mapper.getClass(name);
+  BOOST_REQUIRE(deviceClass != nullptr);
+  return deviceClass->attributes;
 }
 
 /**********************************************************************************************************************/
@@ -420,6 +443,25 @@ BOOST_AUTO_TEST_CASE(testReservedCommandNameRejectedAtMapperRead) {
   expectMapperRejects("commandNameState", command("name=\"State\" inputArgument=\"INT/TO_DEVICE_SCALAR\""));
   expectMapperRejects("commandNameStatus", command("name=\"Status\" inputArgument=\"INT/TO_DEVICE_SCALAR\""));
   expectMapperRejects("commandNameInit", command("name=\"Init\" inputArgument=\"INT/TO_DEVICE_SCALAR\""));
+}
+
+/// An explicit <attribute> naming a write-only ChimeraTK::Void process variable keeps mapping the boolean attribute
+/// of today whatever autoMapCommandsFromVoid is: the mapper read accepts it and only the element-order exclusion of a
+/// command source rejects it.
+BOOST_AUTO_TEST_CASE(testExplicitVoidAttributeUnaffectedByOption) {
+  const std::string voidAttribute =
+      "            <attribute name=\"VOID_TO_DEVICE_SCALAR\" source=\"VOID/TO_DEVICE_SCALAR\" />\n";
+
+  for(const auto& option : {std::string("true"), std::string("false")}) {
+    const auto attributes = parseAttributesOfBody("explicitVoidAttribute" + option,
+        deviceInstance("tango/test/servertestcommand", voidAttribute, " autoMapCommandsFromVoid=\"" + option + "\""));
+
+    BOOST_REQUIRE_EQUAL(attributes.size(), 1U);
+    BOOST_TEST(attributes.front().name == "VOID_TO_DEVICE_SCALAR");
+    // The write-only Void source keeps the boolean attribute of today: the Tango type is DevBoolean (the raw property
+    // type is DevVoid, which getDataType() maps to DevBoolean, see AttributeProperty::getDataType()).
+    BOOST_TEST(attributes.front().getDataType() == Tango::DEV_BOOLEAN);
+  }
 }
 
 /**********************************************************************************************************************/
