@@ -10,10 +10,8 @@ Depends on: CR-002, which is merged into master; CR-003 sits on master. Its
 test plan uses the mapper-read test infrastructure CR-002 introduces: the
 `withMapperFileInCaseDirectory` helper of `tests/include_lib/TangoTestServer.h`
 and the mapper-text helpers of `tests/src/testTangoAttributeMapper.cc`. Both
-change requests edit the same files. Next to its own files CR-003 also changes
-the CR-002 artefact `tests/serverTestEventing_ds-AttributeMapper.xml`, which
-needs `autoMapCommandsFromVoid="false"`. CR-003's change set carries no other
-CR-002 artefact.
+change requests edit the same files. CR-003's change set carries no CR-002
+artefact of its own.
 
 Status: PLANNED (from DONE)
 
@@ -28,8 +26,9 @@ element.
 becomes an argument-less command without a return value.
 - A readable `ChimeraTK::Void` process variable still becomes an attribute.
 - An explicit `<attribute>` naming a write-only `ChimeraTK::Void` process
-variable is rejected when the mapper file is read; the user has to write
-`<command>` instead.
+variable keeps mapping the boolean attribute of today, whatever
+`autoMapCommandsFromVoid` is. Only the element-order exclusion below rejects it,
+when a `<command>` of the same device instance claimed the source first.
 
 Aspect: configuration of a command.
 
@@ -128,10 +127,9 @@ Aspect: compatibility option.
 
 - The XML attribute `autoMapCommandsFromVoid` on `deviceServer`, `deviceClass`
 and `deviceInstance` restores the behaviour of today when it is `false`: a
-write-only `ChimeraTK::Void` process variable becomes a boolean attribute
-again, and an explicit `<attribute>` naming one is allowed unless a `<command>`
-of the same device instance names it as a source and was processed before the
-`<attribute>`.
+write-only `ChimeraTK::Void` process variable which an `<import>` maps becomes a
+boolean attribute again instead of a command. The option does not affect an
+explicit `<attribute>`.
 - The default is `true`, and the value set on the most specific level wins.
 
 Aspect: schema and documentation.
@@ -233,15 +231,11 @@ another device instance mapped. Two device classes may each import the whole
 tree independently and derive the same attributes.
 - `import()` gains the auto-mapping branch: a write-only `ChimeraTK::Void`
 process variable becomes a trigger-only command through `addCommand()`, or the
-attribute of today when `autoMapCommandsFromVoid` is `false`. An explicit
-`<attribute>` naming a write-only `ChimeraTK::Void` process variable is
-rejected with a `ChimeraTK::logic_error` when the mapper file is read, because
-`addAttribute()` rejects a source while the device instance has
-`autoMapCommandsFromVoid` in force and the source is a write-only,
-non-readable `ChimeraTK::Void` process variable. Only when no `<command>` of the
-same device instance has declared that source before the `<attribute>` does
-`autoMapCommandsFromVoid="false"` let the explicit `<attribute>` map the boolean
-attribute of today.
+boolean attribute of today when `autoMapCommandsFromVoid` is `false`. The option
+gates that branch alone: an explicit `<attribute>` naming a write-only
+`ChimeraTK::Void` process variable still maps the boolean attribute of today,
+whatever the option is, and only the element-order exclusion rejects it when an
+earlier `<command>` of the same device instance declared the source.
 - `getUnusedVariables()` adds the command sources like the state and status
 sources, so the application keeps publishing them.
 
@@ -382,7 +376,9 @@ attributes, the two description children and an `autoMapCommandsFromVoid`
 boolean attribute on `DeviceInstanceType`, `DeviceClassType` and the
 `deviceServer` root. The schema is an editor aid, not consumed by the build.
 - `doc/mainpage.dox` gains a subsection with the element, the auto-mapping, the
-type restrictions and the blocking behaviour. It documents the three command
+type restrictions and the blocking behaviour. It states that an explicit
+`<attribute>` naming a write-only `ChimeraTK::Void` process variable is allowed
+whatever the option is. It documents the three command
 forms: a `trigger` only, a `trigger` with an argument, and an argument only,
 whose write is the trigger. For a command with a trigger and an argument it
 states that the argument is written before the trigger.
@@ -620,8 +616,6 @@ with only a `returnValue`), so the `name` derivation has no source;
 - an unsupported value type (`uint8_t` scalar, `int8_t` scalar, `int8_t` array);
 an image cannot occur, because the ControlSystemAdapter delivers single-channel
 process arrays, so it stays untested like the image rejection of CR-002.
-- an explicit `<attribute>` naming a write-only `ChimeraTK::Void` process
-variable;
 - a `returnValue` naming a `ChimeraTK::Void` process variable;
 - an `inputArgument` naming a `ChimeraTK::Void` process variable;
 - a `trigger` naming a process variable which is not a write-only
@@ -646,19 +640,30 @@ itself.
 `ChimeraTK::Void` process variable have to follow the new mapping:
 `testTangoServerImportAll` (its attribute count and the void process variables),
 `testTangoAttributeMapper` (its attribute count, which drops from 90 to 89) and
-`testTangoServerReadWrite` (its `Void` instantiation of the scalar test).
+`testTangoServerReadWrite` (its `Void` instantiation of the scalar test). The
+void-attribute case of the mapper-read rejection tests goes away, because the
+read accepts the mapper file it writes now.
 - `testTangoServerMapTwice` is unaffected: two attributes which map one source
 stay supported, verified by its five attributes and both renames.
 The mapper of `testTangoServerEventing`,
 `tests/serverTestEventing_ds-AttributeMapper.xml`, maps
-`VOID/TO_DEVICE_SCALAR` with an explicit `<attribute>`, so it needs
-`autoMapCommandsFromVoid="false"` on that device instance; otherwise the whole
-mapper fails at start-up and every CR-002 eventing test fails.
+`VOID/TO_DEVICE_SCALAR` with an explicit `<attribute>` and keeps no
+`autoMapCommandsFromVoid`, so the option is at its default: the mapper read
+accepts the `<attribute>` and the CR-002 eventing tests, which write it as a
+`Tango::DevBoolean`, cover the allowance.
 - The full `ctest` run of the project, including the `coding_style` test.
 
 ## Deferred issue
 
 - DI-1 [DONE] CR-002 was reworked and merged into master after CR-003 was
+reworked, so CR-003 is rebased onto master and takes CR-002's in-process
+mapper-read test infrastructure instead of the subprocess and reject-directory
+assets it used before.
 - DI-2 [FOLDED-IN] Specifications line-number citations for src/AdapterDeviceImpl.cpp are stale relative to the current code base (they predate the rebase that moved the file's lines up by ~13): '(:515-520)' and '(:515)' name the wait on waitForCommandReturnValue(), which is now at :502 (body :503-508); '(:489)' names the return-value TangoUpdater::addVariable() registration, now at :476 (a blank/'}' line sits at :489).
 - DI-3 [FOLDED-IN] include/ScalarAttribTempl.h:90,110 is cited for the convertToTangoType() read-path call, but in the current code :90 is an assert() and :110 is a set_quality() call; the only remaining convertToTangoType() call in that file is at :105.
 - DI-4 [FOLDED-IN] Minor: include/TangoPropertyHelper.h:160 is cited for the convertToTangoType<TangoType,AdapterType> declaration, which is now at :158; src/AdapterDeviceImpl.cpp:346-358 is cited for the state and status callbacks, which are now registered at :315 (state) and :357 (status).
+- DI-5 [FOLDED-IN] An explicit `<attribute>` naming a write-only
+`ChimeraTK::Void` process variable was rejected while `autoMapCommandsFromVoid`
+was in force, so the user had to write `<command>` instead. It is allowed again
+whatever the option is, and only the element-order exclusion of a `<command>`
+which claimed the source first rejects it.
