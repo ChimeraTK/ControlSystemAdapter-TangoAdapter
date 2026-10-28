@@ -13,7 +13,7 @@ and the mapper-text helpers of `tests/src/testTangoAttributeMapper.cc`. Both
 change requests edit the same files. CR-003's change set carries no CR-002
 artefact of its own.
 
-Status: PLANNED (from DONE)
+Status: READY TO IMPLEMENT (from DONE)
 
 ## Requirements
 
@@ -659,5 +659,5 @@ accepts the `<attribute>` and the CR-002 eventing tests, which write it as a
 - DI-2 [FOLDED-IN] Specifications line-number citations for src/AdapterDeviceImpl.cpp are stale relative to the current code base (they predate the rebase that moved the file's lines up by ~13): '(:515-520)' and '(:515)' name the wait on waitForCommandReturnValue(), which is now at :502 (body :503-508); '(:489)' names the return-value TangoUpdater::addVariable() registration, now at :476 (a blank/'}' line sits at :489).
 - DI-3 [FOLDED-IN] include/ScalarAttribTempl.h:90,110 is cited for the convertToTangoType() read-path call, but in the current code :90 is an assert() and :110 is a set_quality() call; the only remaining convertToTangoType() call in that file is at :105.
 - DI-4 [FOLDED-IN] Minor: include/TangoPropertyHelper.h:160 is cited for the convertToTangoType<TangoType,AdapterType> declaration, which is now at :158; src/AdapterDeviceImpl.cpp:346-358 is cited for the state and status callbacks, which are now registered at :315 (state) and :357 (status).
-- DI-5 [NEW] An explicit `<attribute>` naming a write-only `ChimeraTK::Void` process variable keeps mapping the boolean attribute of today, whatever `autoMapCommandsFromVoid` is; only the element-order exclusion rejects it.
+- DI-5 [IMPLEMENTED] An explicit `<attribute>` naming a write-only `ChimeraTK::Void` process variable keeps mapping the boolean attribute of today, whatever `autoMapCommandsFromVoid` is; only the element-order exclusion rejects it.
 - DI-6 [FOLDED-IN] The CR-003 document's 'Deferred issue' section is truncated mid-sentence: DI-1 (line 658) ends with '...merged into master after CR-003 was' and DI-5 (line 662) ends with '...An explicit `<attribute>` naming a write-only', which is also the last line of the file (verified with od -c, file ends at 'write-only\n'). DI-5's entry is therefore incomplete and cannot be verified as written, so it cannot be confirmed resolved.
