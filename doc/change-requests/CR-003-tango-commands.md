@@ -274,10 +274,10 @@ call on another device instance of the class fails with
 `API_CommandNotAllowed`.
 - The two conversions are shared, not repeated: the input path calls the new
 `convertFromTangoType<AdapterType, TangoType>`, added next to the existing
-`convertToTangoType<TangoType, AdapterType>` (`include/TangoPropertyHelper.h:160`),
+`convertToTangoType<TangoType, AdapterType>` (`include/TangoPropertyHelper.h:158`),
 and the return path calls
 `convertToTangoType<TangoType, AdapterType>` itself, the helper the attribute read
-path (`include/ScalarAttribTempl.h:90,110`, `include/SpectrumAttribTempl.h:96`)
+path (`include/ScalarAttribTempl.h:105`, `include/SpectrumAttribTempl.h:96`)
 and the change-event push (`AdapterDeviceImpl::pushChangeEvent`) use. The
 per-Tango-type dispatch of the two paths only selects the template arguments of
 those helpers and carries no conversion of its own. `convertFromTangoType()`
@@ -307,7 +307,7 @@ nothing monitors them.
 - The callback only notifies the wait state and takes no Tango lock, but it runs
 on the shared updater thread on which the state and status callbacks of the same
 device (CR-001) also run and take the device monitor
-(`src/AdapterDeviceImpl.cpp:346-358`). The updater thread runs all callbacks of
+(`src/AdapterDeviceImpl.cpp:315` for state and `:357` for status). The updater thread runs all callbacks of
 one updated element before it returns to `waitAny()`
 (`src/TangoUpdater.cpp:52-76`).
 - Therefore, when the application publishes a new state or status while a
@@ -347,15 +347,15 @@ the write version, so an update of the return-value process variable which
 pre-dates the command's own write, for example the application refreshing it
 from an unrelated source, does not end the wait. The wait state stays the
 per-command mutex, condition variable and notification callback;
-`waitForCommandReturnValue()` (`src/AdapterDeviceImpl.cpp:515-520`) takes the
+`waitForCommandReturnValue()` (`src/AdapterDeviceImpl.cpp:502`) takes the
 write version instead of the pre-write snapshot and `execute()` passes it
 (`src/Command.cpp:54-58`, `:86`).
 - The wait state is the adapter's own per-command mutex and condition variable,
 and the command waits on that condition variable
-(`AdapterDeviceImpl::waitForCommandReturnValue()`, `src/AdapterDeviceImpl.cpp:515`).
+(`AdapterDeviceImpl::waitForCommandReturnValue()`, `src/AdapterDeviceImpl.cpp:502`, body `:503-508`).
 It is notified by the callback which `attachToClassCommands()` passes to
 `TangoUpdater::addVariable()` for the return-value accessor
-(`src/AdapterDeviceImpl.cpp:489`), not by the return-value process variable's own
+(`src/AdapterDeviceImpl.cpp:476`), not by the return-value process variable's own
 queue.
 - The wait is a wait on the condition variable with the newer-than-the-write
 version number comparison as its predicate, so an unrelated update which
@@ -659,3 +659,6 @@ mapper fails at start-up and every CR-002 eventing test fails.
 ## Deferred issue
 
 - DI-1 [DONE] CR-002 was reworked and merged into master after CR-003 was
+- DI-2 [NEW] Specifications line-number citations for src/AdapterDeviceImpl.cpp are stale relative to the current code base (they predate the rebase that moved the file's lines up by ~13): '(:515-520)' and '(:515)' name the wait on waitForCommandReturnValue(), which is now at :502 (body :503-508); '(:489)' names the return-value TangoUpdater::addVariable() registration, now at :476 (a blank/'}' line sits at :489).
+- DI-3 [NEW] include/ScalarAttribTempl.h:90,110 is cited for the convertToTangoType() read-path call, but in the current code :90 is an assert() and :110 is a set_quality() call; the only remaining convertToTangoType() call in that file is at :105.
+- DI-4 [NEW] Minor: include/TangoPropertyHelper.h:160 is cited for the convertToTangoType<TangoType,AdapterType> declaration, which is now at :158; src/AdapterDeviceImpl.cpp:346-358 is cited for the state and status callbacks, which are now registered at :315 (state) and :357 (status).
