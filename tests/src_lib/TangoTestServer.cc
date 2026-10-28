@@ -5,14 +5,9 @@
 
 #include "TangoAdapter.h"
 
-// WIFEXITED and WEXITSTATUS below come from sys/wait.h; clang-tidy attributes the macros to another direct include.
-// NOLINTNEXTLINE(misc-include-cleaner)
-#include <sys/wait.h>
-
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
-#include <format>
 #include <random>
 
 ThreadedTangoServer::ThreadedTangoServer(std::string setTestName, bool setVerbose)
@@ -172,24 +167,6 @@ ThreadedTangoServer& ThreadedTangoServer::overrideNames(const std::string& newNa
 /**********************************************************************************************************************/
 
 std::atomic<bool> ThreadedTangoServer::shutdownRequested{false};
-
-/**********************************************************************************************************************/
-
-int runTestTangoServer(
-    const std::filesystem::path& workingDirectory, const std::string& executableName, const std::string& deviceName) {
-  auto testBinary = std::filesystem::absolute(boost::unit_test::framework::master_test_suite().argv[0]);
-  auto serverBinary = testBinary.parent_path() / "testTangoServer";
-
-  // The instance name is mandatory for Tango::Util::init, which aborts without it before the mapper is read.
-  auto command = std::format("cd {} && {} {} -nodb -dlist {} -ORBendPoint giop:tcp::0", workingDirectory.string(),
-      serverBinary.string(), executableName, deviceName);
-
-  auto status = std::system(command.c_str());
-  if(status == -1) {
-    return -1;
-  }
-  return WIFEXITED(status) ? WEXITSTATUS(status) : 128;
-}
 
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/

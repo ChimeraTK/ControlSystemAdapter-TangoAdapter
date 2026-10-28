@@ -3,6 +3,7 @@
 
 #define BOOST_TEST_MODULE serverTestCommand
 
+#include "TangoAdapter.h"
 #include "TangoTestServer.h"
 
 #include <ChimeraTK/ControlSystemAdapter/DevicePVManager.h>
@@ -18,12 +19,10 @@
 // NOLINTNEXTLINE(misc-include-cleaner)
 #include <boost/test/included/unit_test.hpp>
 
-#include <algorithm>
-#include <cctype>
 #include <chrono>
-#include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -288,90 +287,145 @@ BOOST_AUTO_TEST_CASE(testInvalidReturnValue) {
 
 /**********************************************************************************************************************/
 
-/**
- * @brief Assert that the mapper of the given rejection directory aborts the start-up of testTangoServer.
- *
- * The device name is derived from the directory name by lowering it, as every reject fixture uses lower-case device
- * names.
- */
-static void assertRejectedAtMapperRead(const std::string& rejectDirectory) {
-  auto deviceName = rejectDirectory;
-  std::transform(deviceName.begin(), deviceName.end(), deviceName.begin(),
-      [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+constexpr std::string_view rejectClassName = "serverTestCommand";
 
-  const auto status = runTestTangoServer(
-      std::filesystem::current_path() / rejectDirectory, "CommandReject", "tango/test/" + deviceName);
-  BOOST_TEST(status != 0);
+/**
+ * @brief The `<deviceInstance>` element with the given name and children (commands or attributes).
+ */
+static std::string deviceInstance(const std::string& name, const std::string& children) {
+  return "        <deviceInstance name=\"" + name + "\">\n" + children + "        </deviceInstance>\n";
+}
+
+/**
+ * @brief A single `<command>` element.
+ */
+static std::string command(const std::string& attributes) {
+  return "            <command " + attributes + " />\n";
+}
+
+/**
+ * @brief Assert that the mapper file written for the given single-device-instance children is rejected with a
+ * logic_error.
+ *
+ * The mapper reads its process variables from the control-system process-variable manager of the running in-process
+ * server, so no subprocess is started. The mapper file is written for a single device instance whose children the
+ * caller gives.
+ */
+static void expectMapperRejects(const std::string& caseName, const std::string& children) {
+  TangoAdapter::AttributeMapper mapper;
+  mapper.setCSPVManager(TangoAdapter::TangoAdapter::getInstance().getCsPvManager());
+  BOOST_CHECK_THROW(withMapperFileInCaseDirectory(caseName, std::string(rejectClassName),
+                        "tango/test/servertestcommand", children, [&mapper] { mapper.readMapperFile(); }),
+      ChimeraTK::logic_error);
+}
+
+/**
+ * @brief Assert that the mapper file written for the given `<deviceClass>` body is rejected with a logic_error.
+ *
+ * The body carries the `<deviceInstance>` elements itself, for a case with more than one instance.
+ */
+static void expectMapperBodyRejects(const std::string& caseName, const std::string& classBody) {
+  TangoAdapter::AttributeMapper mapper;
+  mapper.setCSPVManager(TangoAdapter::TangoAdapter::getInstance().getCsPvManager());
+  BOOST_CHECK_THROW(withMapperFileBodyInCaseDirectory(
+                        caseName, std::string(rejectClassName), classBody, [&mapper] { mapper.readMapperFile(); }),
+      ChimeraTK::logic_error);
 }
 
 /**********************************************************************************************************************/
 
-/// A command without trigger and without inputArgument makes the mapper read abort the start-up.
+/// A command without trigger and without inputArgument makes the mapper read abort with a logic_error.
 BOOST_AUTO_TEST_CASE(testCommandWithoutSourceRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectCommandNoSource");
+  expectMapperRejects("commandNoSource", command("name=\"NoSource\" returnValue=\"INT/FROM_DEVICE_SCALAR\""));
 }
 
-/// An unsupported value type makes the mapper read abort the start-up: a uint8_t scalar, an int8_t scalar and an
+/// An unsupported value type makes the mapper read abort with a logic_error: a uint8_t scalar, an int8_t scalar and an
 /// int8_t array have no Tango command type.
 BOOST_AUTO_TEST_CASE(testUnsupportedValueTypeRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectUint8ScalarArgument");
-  assertRejectedAtMapperRead("rejectInt8ScalarArgument");
-  assertRejectedAtMapperRead("rejectInt8ArrayArgument");
+  expectMapperRejects(
+      "uint8ScalarArgument", command("name=\"Uint8ScalarArgument\" inputArgument=\"UCHAR/TO_DEVICE_SCALAR\""));
+  expectMapperRejects(
+      "int8ScalarArgument", command("name=\"Int8ScalarArgument\" inputArgument=\"CHAR/TO_DEVICE_SCALAR\""));
+  expectMapperRejects(
+      "int8ArrayArgument", command("name=\"Int8ArrayArgument\" inputArgument=\"CHAR/TO_DEVICE_ARRAY\""));
 }
 
-/// An explicit <attribute> naming a write-only ChimeraTK::Void process variable makes the mapper read abort the
-/// start-up.
+/// An explicit <attribute> naming a write-only ChimeraTK::Void process variable makes the mapper read abort with a
+/// logic_error.
 BOOST_AUTO_TEST_CASE(testVoidAttributeRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectCommandVoidAttribute");
+  expectMapperRejects(
+      "voidAttribute", "            <attribute name=\"VOID_TO_DEVICE_SCALAR\" source=\"VOID/TO_DEVICE_SCALAR\" />\n");
 }
 
-/// A returnValue naming a ChimeraTK::Void process variable makes the mapper read abort the start-up.
+/// A returnValue naming a ChimeraTK::Void process variable makes the mapper read abort with a logic_error.
 BOOST_AUTO_TEST_CASE(testVoidReturnValueRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectVoidReturnValue");
+  expectMapperRejects("voidReturnValue",
+      command(
+          "name=\"VoidReturnValue\" inputArgument=\"INT/TO_DEVICE_SCALAR\" returnValue=\"VOID/FROM_DEVICE_SCALAR\""));
 }
 
-/// An inputArgument naming a ChimeraTK::Void process variable makes the mapper read abort the start-up.
+/// An inputArgument naming a ChimeraTK::Void process variable makes the mapper read abort with a logic_error.
 BOOST_AUTO_TEST_CASE(testVoidInputArgumentRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectVoidInputArgument");
+  expectMapperRejects(
+      "voidInputArgument", command("name=\"VoidInputArgument\" inputArgument=\"VOID/TO_DEVICE_SCALAR\""));
 }
 
-/// A trigger naming a process variable which is not a write-only ChimeraTK::Void makes the mapper read abort the
-/// start-up.
+/// A trigger naming a process variable which is not a write-only ChimeraTK::Void makes the mapper read abort with a
+/// logic_error.
 BOOST_AUTO_TEST_CASE(testNonVoidTriggerRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectNonVoidTrigger");
+  expectMapperRejects("nonVoidTrigger", command("name=\"NonVoidTrigger\" trigger=\"INT/TO_DEVICE_SCALAR\""));
 }
 
-/// A source which is not in the variable household makes the mapper read abort the start-up.
+/// A source which is not in the variable household makes the mapper read abort with a logic_error.
 BOOST_AUTO_TEST_CASE(testUnknownSourceRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectUnknownSource");
+  expectMapperRejects("unknownSource", command("name=\"UnknownSource\" inputArgument=\"DOES/NOT_EXIST\""));
 }
 
-/// An inputArgument naming a process variable which is not writeable makes the mapper read abort the start-up.
+/// An inputArgument naming a process variable which is not writeable makes the mapper read abort with a logic_error.
 BOOST_AUTO_TEST_CASE(testNonWriteableArgumentRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectNonWriteableArgument");
+  expectMapperRejects(
+      "nonWriteableArgument", command("name=\"NonWriteableArgument\" inputArgument=\"INT/FROM_DEVICE_SCALAR\""));
 }
 
-/// A returnValue naming a process variable which is not readable makes the mapper read abort the start-up.
+/// A returnValue naming a process variable which is not readable makes the mapper read abort with a logic_error.
 BOOST_AUTO_TEST_CASE(testNonReadableReturnValueRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectNonReadableReturnValue");
+  expectMapperRejects("nonReadableReturnValue",
+      command("name=\"NonReadableReturnValue\" inputArgument=\"INT/TO_DEVICE_SCALAR\" "
+              "returnValue=\"INT/TO_DEVICE_SCALAR\""));
 }
 
-/// A process variable which is a command source and an attribute, with the <attribute> element before the <command>
-/// element, makes the mapper read abort the start-up: the exclusion does not depend on the element order.
+/// A process variable which a command source and an attribute share, with the <attribute> element before the <command>
+/// element, makes the mapper read abort with a logic_error: the attribute maps the source first, so the <command>
+/// which names the source second is rejected.
 BOOST_AUTO_TEST_CASE(testCommandSourceAsAttributeRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectCommandSourceAsAttribute");
+  expectMapperRejects("commandSourceAsAttribute",
+      "            <attribute name=\"INT_TO_DEVICE_SCALAR\" source=\"INT/TO_DEVICE_SCALAR\" />\n" +
+          command("name=\"SourceAsAttribute\" inputArgument=\"INT/TO_DEVICE_SCALAR\""));
 }
 
-/// The same command name with different types in two device instances makes the mapper read abort the start-up.
+/// A process variable which a command source and an attribute share, with the <command> element before the <attribute>
+/// element, makes the mapper read abort with a logic_error: the command declares the source first, so the <attribute>
+/// which names the source second is rejected.
+BOOST_AUTO_TEST_CASE(testCommandSourceAsCommandRejectedAtMapperRead) {
+  expectMapperRejects("commandSourceAsCommand",
+      command("name=\"SourceAsCommand\" inputArgument=\"INT/TO_DEVICE_SCALAR\"") +
+          "            <attribute name=\"INT_TO_DEVICE_SCALAR\" source=\"INT/TO_DEVICE_SCALAR\" />\n");
+}
+
+/// The same command name with different types in two device instances makes the mapper read abort with a logic_error.
 BOOST_AUTO_TEST_CASE(testCommandTypeClashInClassRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectCommandTypeClashInClass");
+  expectMapperBodyRejects("commandTypeClashInClass",
+      deviceInstance("tango/test/servertestcommandone",
+          command("name=\"ClashingCommand\" inputArgument=\"INT/TO_DEVICE_SCALAR\"")) +
+          deviceInstance("tango/test/servertestcommandtwo",
+              command("name=\"ClashingCommand\" inputArgument=\"FLOAT/TO_DEVICE_SCALAR\"")));
 }
 
-/// A command named State, Status or Init makes the mapper read abort the start-up.
+/// A command named State, Status or Init makes the mapper read abort with a logic_error.
 BOOST_AUTO_TEST_CASE(testReservedCommandNameRejectedAtMapperRead) {
-  assertRejectedAtMapperRead("rejectCommandNameState");
-  assertRejectedAtMapperRead("rejectCommandNameStatus");
-  assertRejectedAtMapperRead("rejectCommandNameInit");
+  expectMapperRejects("commandNameState", command("name=\"State\" inputArgument=\"INT/TO_DEVICE_SCALAR\""));
+  expectMapperRejects("commandNameStatus", command("name=\"Status\" inputArgument=\"INT/TO_DEVICE_SCALAR\""));
+  expectMapperRejects("commandNameInit", command("name=\"Init\" inputArgument=\"INT/TO_DEVICE_SCALAR\""));
 }
 
 /**********************************************************************************************************************/

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<deviceServer>
-    <deviceClass name="testTangoServer">
-        <deviceInstance name="tango/test/rejectint8arrayargument">
-            <command name="Int8ArrayArgument" inputArgument="CHAR/TO_DEVICE_ARRAY" />
-        </deviceInstance>
-    </deviceClass>
-</deviceServer>

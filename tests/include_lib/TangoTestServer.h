@@ -145,22 +145,6 @@ inline T ThreadedTangoServer::getClassProperty(const std::string& name) {
 }
 
 /**********************************************************************************************************************/
-
-/**
- * @brief Run the testTangoServer binary as a subprocess and return its exit status.
- *
- * The mapper is read from the testTangoServer-AttributeMapper.xml of the given working directory. The subprocess runs
- * with the given executable name, which the mapper read assertions need to select the program name they report.
- *
- * @param workingDirectory directory which holds the mapper file, used as the working directory of the subprocess
- * @param executableName value of the first argument of testTangoServer
- * @param deviceName device name passed to testTangoServer through -dlist
- * @return exit status of the subprocess, or 128 when it was terminated by a signal
- */
-int runTestTangoServer(
-    const std::filesystem::path& workingDirectory, const std::string& executableName, const std::string& deviceName);
-
-/**********************************************************************************************************************/
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/
 
@@ -220,6 +204,20 @@ inline std::string mapperFile(
 /**********************************************************************************************************************/
 
 /**
+ * @brief The mapper XML text with the given `<deviceClass>` body.
+ *
+ * The body carries the `<deviceInstance>` elements themselves, so a case can declare several instances or set
+ * `autoMapCommandsFromVoid` on the class. The text is returned, not written;
+ * `withMapperFileBodyInCaseDirectory` writes it under the executable name of the running server.
+ */
+inline std::string mapperFileBody(const std::string& className, const std::string& classBody) {
+  return "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<deviceServer>\n    <deviceClass name=\"" + className + "\">\n" +
+      classBody + "    </deviceClass>\n</deviceServer>\n";
+}
+
+/**********************************************************************************************************************/
+
+/**
  * @brief Run the given action with the current directory set to a per-case directory holding the given mapper file.
  *
  * The mapper derives the file name it reads from the executable name of the running in-process server, so the file
@@ -237,6 +235,32 @@ void withMapperFileInCaseDirectory(const std::string& caseName, const std::strin
     std::ofstream out(
         caseDirectory / (std::string(Tango::Util::instance()->get_ds_exec_name()) + "-AttributeMapper.xml"));
     out << mapperFile(className, deviceName, attributesXml);
+  }
+
+  const auto guard = cppext::finally([&previousDirectory] { std::filesystem::current_path(previousDirectory); });
+  std::filesystem::current_path(caseDirectory);
+  action();
+}
+
+/**********************************************************************************************************************/
+
+/**
+ * @brief Run the given action with the current directory set to a per-case directory holding the given mapper file.
+ *
+ * Like `withMapperFileInCaseDirectory`, but the mapper file carries the given `<deviceClass>` body instead of a single
+ * device instance with the given `<attribute>` children.
+ */
+template<typename Action>
+void withMapperFileBodyInCaseDirectory(
+    const std::string& caseName, const std::string& className, const std::string& classBody, Action action) {
+  const auto previousDirectory = std::filesystem::current_path();
+  const auto caseDirectory = previousDirectory / ("mapperCase_" + caseName);
+  std::filesystem::create_directories(caseDirectory);
+
+  {
+    std::ofstream out(
+        caseDirectory / (std::string(Tango::Util::instance()->get_ds_exec_name()) + "-AttributeMapper.xml"));
+    out << mapperFileBody(className, classBody);
   }
 
   const auto guard = cppext::finally([&previousDirectory] { std::filesystem::current_path(previousDirectory); });

@@ -15,7 +15,7 @@ the CR-002 artefact `tests/serverTestEventing_ds-AttributeMapper.xml`, which
 needs `autoMapCommandsFromVoid="false"`. CR-003's change set carries no other
 CR-002 artefact.
 
-Status: READY TO IMPLEMENT (from DONE)
+Status: IMPLEMENTED (from DONE)
 
 ## Requirements
 
@@ -162,7 +162,10 @@ instance `tango/test/serverTestCommand`),
 `tests/serverTestCommandOptionServer_ds-AttributeMapper.xml`,
 `tests/src/testTangoServerCommandOptionRoot.cpp`,
 `tests/serverTestCommandOptionRoot_ds-AttributeMapper.xml` and
-`tests/testCommandOption_template.db`. The shared test application helper
+`tests/testCommandOption_template.db`. The shared test server helper
+`tests/include_lib/TangoTestServer.h` gains the `mapperFileBody()` and
+`withMapperFileBodyInCaseDirectory()` overloads the rejection cases with more
+than one device instance use. The shared test application helper
 `tests/include_lib/ExtendedReferenceTestApplication.h` and
 `tests/src_lib/ExtendedReferenceTestApplication.cc` gains a `description`
 element in its `VariableHolder` tuple, so a fixture can add a described process
@@ -607,7 +610,8 @@ one.
 asserted by the in-process mapper test CR-002 uses: build an
 `AttributeMapper`, set the control-system process-variable manager of the
 running in-process server on it, read the mapper file written for the case with
-`withMapperFileInCaseDirectory` and assert that the read throws
+`withMapperFileInCaseDirectory` (or `withMapperFileBodyInCaseDirectory` for the
+case with more than one device instance) and assert that the read throws
 `ChimeraTK::logic_error`. No server and no subprocess is started, because the
 `TangoAdapter::run` of a server would abort the test binary on the escaping
 error. The cases are:
@@ -654,9 +658,4 @@ mapper fails at start-up and every CR-002 eventing test fails.
 
 ## Deferred issue
 
-- DI-1 [NEW] CR-002 was reworked and merged into master after CR-003 was
-finished. The merged CR-002 drops the `runTestTangoServer` subprocess helper and
-its mapper asset directories, and asserts its mapper-read rejection cases with
-the in-process mapper test of `tests/src/testTangoAttributeMapper.cc`. CR-003's
-rejection cases still run `testTangoServer` as a subprocess, so they are
-reworked to that in-process mapper test.
+- DI-1 [IMPLEMENTED] CR-002 was reworked and merged into master after CR-003 was

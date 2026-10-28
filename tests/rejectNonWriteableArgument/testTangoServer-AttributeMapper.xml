@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<deviceServer>
-    <deviceClass name="testTangoServer">
-        <deviceInstance name="tango/test/rejectnonwriteableargument">
-            <command name="NonWriteableArgument" inputArgument="INT/FROM_DEVICE_SCALAR" />
-        </deviceInstance>
-    </deviceClass>
-</deviceServer>

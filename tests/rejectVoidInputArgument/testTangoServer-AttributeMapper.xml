@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<deviceServer>
-    <deviceClass name="testTangoServer">
-        <deviceInstance name="tango/test/rejectvoidinputargument">
-            <command name="VoidInputArgument" inputArgument="VOID/TO_DEVICE_SCALAR" />
-        </deviceInstance>
-    </deviceClass>
-</deviceServer>
