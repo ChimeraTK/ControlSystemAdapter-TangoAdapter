@@ -13,7 +13,7 @@ and the mapper-text helpers of `tests/src/testTangoAttributeMapper.cc`. Both
 change requests edit the same files. CR-003's change set carries no CR-002
 artefact of its own.
 
-Status: READY TO IMPLEMENT (from DONE)
+Status: IMPLEMENTED (from DONE)
 
 ## Requirements
 
@@ -656,14 +656,7 @@ accepts the `<attribute>` and the CR-002 eventing tests, which write it as a
 ## Deferred issue
 
 - DI-1 [DONE] CR-002 was reworked and merged into master after CR-003 was
-reworked, so CR-003 is rebased onto master and takes CR-002's in-process
-mapper-read test infrastructure instead of the subprocess and reject-directory
-assets it used before.
 - DI-2 [FOLDED-IN] Specifications line-number citations for src/AdapterDeviceImpl.cpp are stale relative to the current code base (they predate the rebase that moved the file's lines up by ~13): '(:515-520)' and '(:515)' name the wait on waitForCommandReturnValue(), which is now at :502 (body :503-508); '(:489)' names the return-value TangoUpdater::addVariable() registration, now at :476 (a blank/'}' line sits at :489).
 - DI-3 [FOLDED-IN] include/ScalarAttribTempl.h:90,110 is cited for the convertToTangoType() read-path call, but in the current code :90 is an assert() and :110 is a set_quality() call; the only remaining convertToTangoType() call in that file is at :105.
 - DI-4 [FOLDED-IN] Minor: include/TangoPropertyHelper.h:160 is cited for the convertToTangoType<TangoType,AdapterType> declaration, which is now at :158; src/AdapterDeviceImpl.cpp:346-358 is cited for the state and status callbacks, which are now registered at :315 (state) and :357 (status).
-- DI-5 [FOLDED-IN] An explicit `<attribute>` naming a write-only
-`ChimeraTK::Void` process variable was rejected while `autoMapCommandsFromVoid`
-was in force, so the user had to write `<command>` instead. It is allowed again
-whatever the option is, and only the element-order exclusion of a `<command>`
-which claimed the source first rejects it.
+- DI-5 [IMPLEMENTED] An explicit `<attribute>` naming a write-only

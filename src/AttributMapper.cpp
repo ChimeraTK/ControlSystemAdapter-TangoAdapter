@@ -381,17 +381,15 @@ namespace TangoAdapter {
       nSamples = pv->getNumberOfSamples();
     });
 
-    // A write-only ChimeraTK::Void source is the trigger of an auto-mapped command while the option is in force, so an
-    // explicit <attribute> naming it has to be written as a <command> instead. A source an earlier <command> of the
-    // same device instance declared is rejected here as well: the exclusion is instance-local and follows the element
-    // order, so whichever of <attribute> and <command> names the source first wins.
-    if(util::instanceDeclaresSourceAsCommand(*device, processVariableName) ||
-        (device->autoMapCommandsFromVoid && valueType == typeid(ChimeraTK::Void) && processVariable->isWriteable() &&
-            !processVariable->isReadable())) {
+    // A source an earlier <command> of the same device instance declared is rejected here: the exclusion is
+    // instance-local and follows the element order, so whichever of <attribute> and <command> names the source first
+    // wins. The autoMapCommandsFromVoid option does not reject the attribute: an explicit <attribute> naming a
+    // write-only ChimeraTK::Void process variable keeps mapping the boolean attribute of today whatever the option is,
+    // and only the auto-mapping branch of import() turns that source into a command.
+    if(util::instanceDeclaresSourceAsCommand(*device, processVariableName)) {
       throw ChimeraTK::logic_error("Process variable " + processVariableName +
-          " is used by a command and cannot be "
-          "mapped as attribute \"" +
-          attrName + "\". Use a <command> element instead");
+          " is used by a command of this device instance and cannot be mapped as attribute \"" + attrName +
+          "\": declare the <attribute> before the <command> which names the source");
     }
 
     if(eventing != EventingMode::Off) {

@@ -350,13 +350,6 @@ BOOST_AUTO_TEST_CASE(testUnsupportedValueTypeRejectedAtMapperRead) {
       "int8ArrayArgument", command("name=\"Int8ArrayArgument\" inputArgument=\"CHAR/TO_DEVICE_ARRAY\""));
 }
 
-/// An explicit <attribute> naming a write-only ChimeraTK::Void process variable makes the mapper read abort with a
-/// logic_error.
-BOOST_AUTO_TEST_CASE(testVoidAttributeRejectedAtMapperRead) {
-  expectMapperRejects(
-      "voidAttribute", "            <attribute name=\"VOID_TO_DEVICE_SCALAR\" source=\"VOID/TO_DEVICE_SCALAR\" />\n");
-}
-
 /// A returnValue naming a ChimeraTK::Void process variable makes the mapper read abort with a logic_error.
 BOOST_AUTO_TEST_CASE(testVoidReturnValueRejectedAtMapperRead) {
   expectMapperRejects("voidReturnValue",
