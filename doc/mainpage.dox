@@ -53,6 +53,38 @@ One can also override the description and egu of the process variable using the 
 
 The optional `<eventing>` child tag enables Tango event generation for the attribute. Its content is one of `off` (the default), `dataReady` or `change`. `dataReady` emits a DATA_READY event and `change` a CHANGE event, both on every update of the attribute's process variable. The two kinds differ in their payload, not in when they fire: a CHANGE event carries the value and its quality, a DATA_READY event only the event counter. Eventing is only allowed for readable scalar and spectrum attributes. An unknown value and a write-only attribute are rejected when the mapper file is read. Image attributes are not implemented.
 
+\subsubsection command_mapping Tango commands
+
+A device instance can declare Tango commands with the `<command>` tag. A command takes at most one input argument and
+returns at most one value, both named by a process variable of the application.
+
+The `<command>` tag has the optional attributes `name`, `trigger`, `inputArgument` and `returnValue`. A `trigger` names
+a write-only `ChimeraTK::Void` process variable; writing to it starts the command. An `inputArgument` names a writeable
+process variable, whose value is written to the application when the command is called, and a `returnValue` names a
+readable process variable, whose value is returned to the caller. A command without a `trigger` treats its argument as
+the trigger and needs an `inputArgument`. The command needs at least one of `trigger` and `inputArgument`. A command
+which carries both a `trigger` and an `inputArgument` writes the argument first and the trigger afterwards.
+
+If `name` is omitted, it is derived from the `trigger` source, or from the `inputArgument` source when there is no
+trigger. The optional `inputDescription` and `outputDescription` child tags override the descriptions of the argument
+and the return value process variables.
+
+The input and return types follow from the value type and the data format of the named process variables. A scalar
+`uint8_t` or `int8_t` process variable, an array of `int8_t` and an image cannot be a command type and are rejected when
+the mapper file is read. A `ChimeraTK::Void` process variable may only be a `trigger`.
+
+A call blocks until the application has answered: it waits for a new version of the return value process variable, or,
+for a command without a return value, until the argument or trigger write has been seen. A process variable which a
+command uses cannot also be mapped as an attribute.
+
+By default, a write-only `ChimeraTK::Void` process variable which the mapper imports becomes an argument-less command
+without a return value. The `autoMapCommandsFromVoid` attribute on `deviceServer`, `deviceClass` or `deviceInstance`
+restores the previous behaviour of the import when it is `false`: such a process variable becomes a boolean attribute
+again. An explicit `<attribute>` naming a write-only `ChimeraTK::Void` process variable is allowed whatever the option
+is, so it keeps mapping the boolean attribute. A `<command>` of the same device instance which names the source first
+rejects the `<attribute>`, and the other way round. The value set on the most specific level wins, and the default is
+`true`.
+
 \subsubsection device_state_and_status Setting the Tango device state and status
 
 By default a device starts up in state ON and with the status "Application is running.". An application can take

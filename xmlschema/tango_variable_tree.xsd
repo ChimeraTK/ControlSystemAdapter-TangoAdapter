@@ -20,11 +20,25 @@
     <xs:attribute name="source" type="xs:string" use="required" />
   </xs:complexType>
 
+  <!-- Define reusable complex type for 'command' -->
+  <xs:complexType name="CommandType">
+    <xs:sequence>
+      <xs:element name="inputDescription" type="xs:string" minOccurs="0" />
+      <xs:element name="outputDescription" type="xs:string" minOccurs="0" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="optional" />
+    <xs:attribute name="trigger" type="xs:string" use="optional" />
+    <xs:attribute name="inputArgument" type="xs:string" use="optional" />
+    <xs:attribute name="returnValue" type="xs:string" use="optional" />
+  </xs:complexType>
+
   <!-- Define reusable complex type for 'deviceInstance' -->
   <xs:complexType name="DeviceInstanceType">
     <xs:choice minOccurs="1" maxOccurs="unbounded">
       <!-- Multiple attributes are allowed -->
       <xs:element name="attribute" type="AttributeType" maxOccurs="unbounded" />
+      <!-- Multiple commands are allowed -->
+      <xs:element name="command" type="CommandType" maxOccurs="unbounded" />
       <!-- Multiple imports are also allowed -->
       <xs:element name="import" type="xs:string" maxOccurs="unbounded" />
     </xs:choice>
@@ -34,6 +48,9 @@
     <xs:attribute name="stateSource" type="xs:string" use="optional" />
     <!-- Optional string process variable mapped to the Tango device status. -->
     <xs:attribute name="statusSource" type="xs:string" use="optional" />
+    <!-- Whether a write-only ChimeraTK::Void process variable is auto-mapped to a trigger-only command. The value of
+         the most specific level (deviceInstance, deviceClass, deviceServer) wins; the default is true. -->
+    <xs:attribute name="autoMapCommandsFromVoid" type="xs:boolean" use="optional" />
   </xs:complexType>
 
   <!-- Define reusable complex type for 'deviceClass' -->
@@ -44,6 +61,9 @@
       <xs:element name="deviceInstance" type="DeviceInstanceType" maxOccurs="unbounded" />
     </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required" />
+    <!-- Whether a write-only ChimeraTK::Void process variable is auto-mapped to a trigger-only command. Inherited by
+         the device instances unless they set it themselves. -->
+    <xs:attribute name="autoMapCommandsFromVoid" type="xs:boolean" use="optional" />
   </xs:complexType>
 
   <xs:group name="DeviceClassDetails">
@@ -59,6 +79,9 @@
       <xs:sequence>
         <xs:element name="deviceClass" type="DeviceClassType" maxOccurs="unbounded" />
       </xs:sequence>
+      <!-- Whether a write-only ChimeraTK::Void process variable is auto-mapped to a trigger-only command. The default
+           fallback the device classes and instances override. -->
+      <xs:attribute name="autoMapCommandsFromVoid" type="xs:boolean" use="optional" />
     </xs:complexType>
   </xs:element>
 

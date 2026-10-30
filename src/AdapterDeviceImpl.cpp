@@ -431,6 +431,85 @@ namespace TangoAdapter {
 
   /********************************************************************************************************************/
 
+  void AdapterDeviceImpl::attachToClassCommands(const std::shared_ptr<AttributeMapper::DeviceClass>& deviceClass) {
+    auto device = deviceClass->getDevice(get_name());
+    auto& adapter = TangoAdapter::getInstance();
+    auto csPvManager = adapter.getCsPvManager();
+    auto& updater = adapter.getUpdater();
+
+    for(const auto& [commandName, sources] : device->commands) {
+      auto state = std::make_shared<CommandState>();
+
+      auto takeAccessor = [&](const std::optional<std::string>& source, bool writeable) {
+        ChimeraTK::TransferElementAbstractor accessor;
+        if(!source) {
+          return accessor;
+        }
+
+        auto processVariable = csPvManager->getProcessVariable(*source);
+        accessor = ChimeraTK::TransferElementAbstractor(processVariable);
+
+        // The mapper already checked the role's readability/writeability, so this only guards against the process
+        // variable changing between the mapper run and the device creation.
+        if(writeable && !accessor.isWriteable()) {
+          throw ChimeraTK::logic_error(std::format("Command \"{}\": source {} is not writeable", commandName, *source));
+        }
+        if(!writeable && !accessor.isReadable()) {
+          throw ChimeraTK::logic_error(std::format("Command \"{}\": source {} is not readable", commandName, *source));
+        }
+
+        return accessor;
+      };
+
+      state->trigger = takeAccessor(sources.trigger, true);
+      state->inputArgument = takeAccessor(sources.inputArgument, true);
+      state->returnValue = takeAccessor(sources.returnValue, false);
+
+      // Only the return value is registered: the trigger is a write-only ChimeraTK::Void source, which the updater
+      // would ignore, and the argument is written by the call itself, so neither needs monitoring.
+      if(state->returnValue.isInitialised()) {
+        // The return value is monitored so a new version number of its process variable ends the wait. The callback
+        // only notifies the wait state. It runs on the shared updater thread, on which the state and status callbacks
+        // take the device monitor: a state or status published while a command waits therefore blocks the updater
+        // thread on the monitor the waiting call holds, and the call never returns. This is an accepted limitation of
+        // the blocking design.
+        updater.addVariable(state->returnValue, get_name() + "/" + commandName + "/returnValue",
+            [state]() { state->condition.notify_all(); });
+      }
+
+      _commandStates[commandName] = state;
+    }
+  }
+
+  /********************************************************************************************************************/
+
+  bool AdapterDeviceImpl::hasCommand(const std::string& commandName) {
+    return _commandStates.find(commandName) != _commandStates.end();
+  }
+
+  /********************************************************************************************************************/
+
+  std::shared_ptr<AdapterDeviceImpl::CommandState> AdapterDeviceImpl::getCommandState(const std::string& commandName) {
+    auto it = _commandStates.find(commandName);
+    if(it == _commandStates.end()) {
+      return {};
+    }
+    return it->second;
+  }
+
+  /********************************************************************************************************************/
+
+  void AdapterDeviceImpl::waitForCommandReturnValue(CommandState& state, const ChimeraTK::VersionNumber& writeVersion) {
+    std::unique_lock<std::mutex> lock(state.mutex);
+    // The answer has to post-date the command's own write: an unrelated update which pre-dates the write does not end
+    // the wait, whatever its source. An update which post-dates the write ends it, whatever its source (see the
+    // accepted limitation of the blocking design).
+    state.condition.wait(
+        lock, [&state, &writeVersion]() { return state.returnValue.getVersionNumber() > writeVersion; });
+  }
+
+  /********************************************************************************************************************/
+
   void AdapterDeviceImpl::pushChangeEvent(const std::string& attrName) {
     auto pv = getPvForAttribute(attrName);
     if(!pv.isInitialised()) {

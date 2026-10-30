@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer autoMapCommandsFromVoid="true">
+    <deviceClass name="optionclass" autoMapCommandsFromVoid="false">
+        <deviceInstance name="tango/test/servertestcommandoption">
+            <!-- The device class sets the option to false over the true of the deviceServer root, so the imported
+                 write-only ChimeraTK::Void process variable stays the boolean attribute of today. -->
+            <import>/</import>
+        </deviceInstance>
+    </deviceClass>
+    <deviceClass name="otheroptionclass" autoMapCommandsFromVoid="true">
+        <deviceInstance name="tango/test/servertestcommandoptionother" autoMapCommandsFromVoid="false">
+            <!-- The device instance sets the option to false over the true of its device class, so the imported
+                 write-only ChimeraTK::Void process variable stays the boolean attribute of today. -->
+            <import>/</import>
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deviceServer autoMapCommandsFromVoid="false">
+    <deviceClass name="serverTestCommandOptionRoot">
+        <deviceInstance name="tango/test/serverTestCommandOptionRoot">
+            <!-- The deviceServer root sets the option to false and neither the device class nor the device instance
+                 overrides it, so the imported write-only ChimeraTK::Void process variable stays the boolean attribute
+                 of today. The mapper declares no command. -->
+            <import>/</import>
+        </deviceInstance>
+    </deviceClass>
+</deviceServer>

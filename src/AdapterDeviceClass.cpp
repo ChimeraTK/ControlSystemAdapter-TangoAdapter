@@ -4,6 +4,7 @@
 #include "AdapterDeviceClass.h"
 
 #include "AdapterDeviceImpl.h"
+#include "Command.h"
 #include "TangoAdapter.h"
 #include "TangoLogCompat.h"
 
@@ -164,6 +165,7 @@ namespace TangoAdapter {
           deviceClass->devicesInDeviceClass[deviceName] = genericDevice;
         }
         device->attachToClassAttributes(deviceClass);
+        device->attachToClassCommands(deviceClass);
       }
 
       // Check before if database used.
@@ -213,7 +215,17 @@ namespace TangoAdapter {
 
   /********************************************************************************************************************/
 
-  void AdapterDeviceClass::command_factory() {}
+  void AdapterDeviceClass::command_factory() {
+    auto& adapter = TangoAdapter::getInstance();
+    auto deviceClass = adapter.getMapper().getClass(get_name());
+
+    for(const auto& commandEntry : deviceClass->commands) {
+      // Tango takes ownership of the command object pushed into the command list
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+      get_command_list().push_back(new Command(commandEntry.second));
+    }
+  }
+
   /********************************************************************************************************************/
 
   void AdapterDeviceClass::create_static_attribute_list(std::vector<Tango::Attr*>& att_list) {

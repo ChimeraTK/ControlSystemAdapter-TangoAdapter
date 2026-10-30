@@ -204,6 +204,20 @@ inline std::string mapperFile(
 /**********************************************************************************************************************/
 
 /**
+ * @brief The mapper XML text with the given `<deviceClass>` body.
+ *
+ * The body carries the `<deviceInstance>` elements themselves, so a case can declare several instances or set
+ * `autoMapCommandsFromVoid` on the class. The text is returned, not written;
+ * `withMapperFileBodyInCaseDirectory` writes it under the executable name of the running server.
+ */
+inline std::string mapperFileBody(const std::string& className, const std::string& classBody) {
+  return "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<deviceServer>\n    <deviceClass name=\"" + className + "\">\n" +
+      classBody + "    </deviceClass>\n</deviceServer>\n";
+}
+
+/**********************************************************************************************************************/
+
+/**
  * @brief Run the given action with the current directory set to a per-case directory holding the given mapper file.
  *
  * The mapper derives the file name it reads from the executable name of the running in-process server, so the file
@@ -221,6 +235,32 @@ void withMapperFileInCaseDirectory(const std::string& caseName, const std::strin
     std::ofstream out(
         caseDirectory / (std::string(Tango::Util::instance()->get_ds_exec_name()) + "-AttributeMapper.xml"));
     out << mapperFile(className, deviceName, attributesXml);
+  }
+
+  const auto guard = cppext::finally([&previousDirectory] { std::filesystem::current_path(previousDirectory); });
+  std::filesystem::current_path(caseDirectory);
+  action();
+}
+
+/**********************************************************************************************************************/
+
+/**
+ * @brief Run the given action with the current directory set to a per-case directory holding the given mapper file.
+ *
+ * Like `withMapperFileInCaseDirectory`, but the mapper file carries the given `<deviceClass>` body instead of a single
+ * device instance with the given `<attribute>` children.
+ */
+template<typename Action>
+void withMapperFileBodyInCaseDirectory(
+    const std::string& caseName, const std::string& className, const std::string& classBody, Action action) {
+  const auto previousDirectory = std::filesystem::current_path();
+  const auto caseDirectory = previousDirectory / ("mapperCase_" + caseName);
+  std::filesystem::create_directories(caseDirectory);
+
+  {
+    std::ofstream out(
+        caseDirectory / (std::string(Tango::Util::instance()->get_ds_exec_name()) + "-AttributeMapper.xml"));
+    out << mapperFileBody(className, classBody);
   }
 
   const auto guard = cppext::finally([&previousDirectory] { std::filesystem::current_path(previousDirectory); });

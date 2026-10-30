@@ -6,6 +6,7 @@
 #include "TangoAdapter.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <random>
 
